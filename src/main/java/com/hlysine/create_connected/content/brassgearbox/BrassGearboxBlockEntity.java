@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.content.brassgearbox;
 
 
-import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
+import com.zurrtum.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

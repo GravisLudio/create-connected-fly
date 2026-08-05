@@ -2,10 +2,10 @@ package com.hlysine.create_connected.content.linkedtransmitter;
 
 import com.hlysine.create_connected.registries.CCItems;
 import com.hlysine.create_connected.compat.SimCompatRegistry;
-import com.simibubi.create.AllSoundEvents;
-import com.simibubi.create.api.schematic.requirement.SpecialBlockItemRequirement;
-import com.simibubi.create.content.equipment.wrench.IWrenchable;
-import com.simibubi.create.content.schematics.requirement.ItemRequirement;
+import com.zurrtum.create.AllSoundEvents;
+import com.zurrtum.create.api.schematic.requirement.SpecialBlockItemRequirement;
+import com.zurrtum.create.content.equipment.wrench.IWrenchable;
+import com.zurrtum.create.content.schematics.requirement.ItemRequirement;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import dev.simulated_team.simulated.content.blocks.throttle_lever.ThrottleLeverBlock;
 import net.minecraft.core.BlockPos;

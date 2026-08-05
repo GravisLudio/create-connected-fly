@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.content.contraption.jukebox;
 
-import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
-import net.createmod.catnip.data.Pair;
+import com.zurrtum.create.content.contraptions.AbstractContraptionEntity;
+import com.zurrtum.create.catnip.data.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;

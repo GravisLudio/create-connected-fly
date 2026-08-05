@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_authors}"
+  ],
+  "contributors": [
+    "ZurrTum (Create Fly)",
+    "sashafiesta (port Fabric 1.20.1)"
+  ],
+  "contact": {
+    "homepage": "https://github.com/hlysine/create_connected",
+    "sources": "https://github.com/hlysine/create_connected",
+    "issues": "https://github.com/hlysine/create_connected/issues"
+  },
+  "license": "${mod_license}",
+  "icon": "create_connected_icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.hlysine.create_connected.CreateConnected"
+    ],
+    "client": [
+      "com.hlysine.create_connected.CreateConnectedClient"
+    ]
+  },
+  "accessWidener": "create_connected.classtweaker",
+  "mixins": [
+    "create_connected.mixins.json",
+    {
+      "config": "create_connected.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": ">=26.2- <26.3-",
+    "java": ">=25",
+    "fabric-api": "*",
+    "create": "*"
+  }
+}

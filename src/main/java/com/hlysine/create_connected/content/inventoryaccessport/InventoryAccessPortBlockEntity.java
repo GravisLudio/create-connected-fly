@@ -2,12 +2,12 @@ package com.hlysine.create_connected.content.inventoryaccessport;
 
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
-import com.simibubi.create.content.redstone.DirectedDirectionalBlock;
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
-import com.simibubi.create.foundation.blockEntity.behaviour.inventory.CapManipulationBehaviourBase;
-import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
-import net.createmod.catnip.math.BlockFace;
+import com.zurrtum.create.content.redstone.DirectedDirectionalBlock;
+import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
+import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
+import com.zurrtum.create.foundation.blockEntity.behaviour.inventory.CapManipulationBehaviourBase;
+import com.zurrtum.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
+import com.zurrtum.create.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -18,7 +18,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.items.IItemHandler;
+import com.zurrtum.create.infrastructure.items.ItemInventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +29,7 @@ import static com.hlysine.create_connected.content.inventoryaccessport.Inventory
 
 @EventBusSubscriber(modid = CreateConnected.MODID)
 public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
-    protected IItemHandler itemCapability;
+    protected ItemInventory itemCapability;
     private InvManipulationBehaviour observedInventory;
     private boolean powered;
 
@@ -101,9 +101,9 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         tag.putBoolean("Powered", powered);
     }
 
-    private IItemHandler getConnectedItemHandler() {
+    private ItemInventory getConnectedItemHandler() {
         if (powered) return null;
-        IItemHandler handler = observedInventory.getInventory();
+        ItemInventory handler = observedInventory.getInventory();
         if (handler instanceof WrappedItemHandler) return null;
         return handler;
     }
@@ -128,7 +128,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         @Override
         public int getSlots() {
             return preventRecursion(() -> {
-                IItemHandler handler = getConnectedItemHandler();
+                ItemInventory handler = getConnectedItemHandler();
                 return handler == null ? 0 : handler.getSlots();
             }, 0);
         }
@@ -136,7 +136,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         @Override
         public @NotNull ItemStack getStackInSlot(int i) {
             return preventRecursion(() -> {
-                IItemHandler handler = getConnectedItemHandler();
+                ItemInventory handler = getConnectedItemHandler();
                 return handler == null ? ItemStack.EMPTY : handler.getStackInSlot(i);
             }, ItemStack.EMPTY);
         }
@@ -144,7 +144,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         @Override
         public @NotNull ItemStack insertItem(int i, @NotNull ItemStack itemStack, boolean b) {
             return preventRecursion(() -> {
-                IItemHandler handler = getConnectedItemHandler();
+                ItemInventory handler = getConnectedItemHandler();
                 return handler == null ? itemStack : handler.insertItem(i, itemStack, b);
             }, itemStack);
         }
@@ -152,7 +152,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         @Override
         public @NotNull ItemStack extractItem(int i, int i1, boolean b) {
             return preventRecursion(() -> {
-                IItemHandler handler = getConnectedItemHandler();
+                ItemInventory handler = getConnectedItemHandler();
                 return handler == null ? ItemStack.EMPTY : handler.extractItem(i, i1, b);
             }, ItemStack.EMPTY);
         }
@@ -160,7 +160,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         @Override
         public int getSlotLimit(int i) {
             return preventRecursion(() -> {
-                IItemHandler handler = getConnectedItemHandler();
+                ItemInventory handler = getConnectedItemHandler();
                 return handler == null ? 0 : handler.getSlotLimit(i);
             }, 0);
         }
@@ -168,7 +168,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         @Override
         public boolean isItemValid(int i, @NotNull ItemStack itemStack) {
             return preventRecursion(() -> {
-                IItemHandler handler = getConnectedItemHandler();
+                ItemInventory handler = getConnectedItemHandler();
                 return handler != null && handler.isItemValid(i, itemStack);
             }, false);
         }

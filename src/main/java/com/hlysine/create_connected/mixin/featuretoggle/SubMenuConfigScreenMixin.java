@@ -6,7 +6,7 @@ import net.createmod.catnip.config.ui.ConfigScreen;
 import net.createmod.catnip.config.ui.SubMenuConfigScreen;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
+import net.fabricmc.api.EnvType;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.util.thread.EffectiveSide;
 import org.spongepowered.asm.mixin.Mixin;

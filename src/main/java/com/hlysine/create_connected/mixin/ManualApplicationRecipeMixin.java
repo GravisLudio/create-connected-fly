@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.mixin;
 
 import com.hlysine.create_connected.config.CServer;
-import com.simibubi.create.content.kinetics.deployer.ManualApplicationRecipe;
+import com.zurrtum.create.content.kinetics.deployer.ManualApplicationRecipe;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;

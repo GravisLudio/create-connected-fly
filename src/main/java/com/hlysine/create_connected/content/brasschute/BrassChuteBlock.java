@@ -1,9 +1,9 @@
 package com.hlysine.create_connected.content.brasschute;
 
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
-import com.simibubi.create.AllBlocks;
-import com.simibubi.create.content.logistics.chute.ChuteBlock;
-import com.simibubi.create.content.logistics.chute.ChuteBlockEntity;
+import com.zurrtum.create.AllBlocks;
+import com.zurrtum.create.content.logistics.chute.ChuteBlock;
+import com.zurrtum.create.content.logistics.chute.ChuteBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;

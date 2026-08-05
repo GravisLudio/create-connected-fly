@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.mixin.nestedschematics;
 
 import com.hlysine.create_connected.config.CServer;
-import com.simibubi.create.content.schematics.client.ClientSchematicLoader;
+import com.zurrtum.create.client.content.schematics.client.ClientSchematicLoader;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

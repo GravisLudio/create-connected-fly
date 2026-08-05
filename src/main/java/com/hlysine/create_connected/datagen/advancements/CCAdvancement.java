@@ -1,14 +1,14 @@
 package com.hlysine.create_connected.datagen.advancements;
 
 import com.hlysine.create_connected.CreateConnected;
-import com.simibubi.create.Create;
+import com.zurrtum.create.Create;
 import com.simibubi.create.foundation.advancement.CreateAdvancement;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import net.minecraft.advancements.*;
 import net.minecraft.advancements.critereon.*;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +24,7 @@ import java.util.function.UnaryOperator;
 
 public class CCAdvancement implements Awardable {
 
-    static final ResourceLocation BACKGROUND = Create.asResource("textures/gui/advancements.png");
+    static final Identifier BACKGROUND = Create.asResource("textures/gui/advancements.png");
     static final String LANG = "advancement." + CreateConnected.MODID + ".";
     static final String SECRET_SUFFIX = "\n§7(Hidden Advancement)";
 

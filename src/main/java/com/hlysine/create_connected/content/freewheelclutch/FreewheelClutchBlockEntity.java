@@ -2,11 +2,11 @@ package com.hlysine.create_connected.content.freewheelclutch;
 
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.hlysine.create_connected.content.ClutchValueBox;
-import com.simibubi.create.content.kinetics.RotationPropagator;
-import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
-import com.simibubi.create.foundation.utility.CreateLang;
+import com.zurrtum.create.content.kinetics.RotationPropagator;
+import com.zurrtum.create.content.kinetics.transmission.SplitShaftBlockEntity;
+import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
+import com.zurrtum.create.client.foundation.utility.CreateLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -17,7 +17,7 @@ import net.minecraft.world.ticks.TickPriority;
 import java.util.List;
 
 import static com.hlysine.create_connected.content.freewheelclutch.FreewheelClutchBlock.UNCOUPLED;
-import static com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity.RotationDirection;
+import static com.zurrtum.create.content.contraptions.bearing.WindmillBearingBlockEntity.RotationDirection;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING;
 
 public class FreewheelClutchBlockEntity extends SplitShaftBlockEntity {

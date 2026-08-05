@@ -2,18 +2,18 @@ package com.hlysine.create_connected.content.kineticbattery;
 
 
 import com.hlysine.create_connected.ConnectedLang;
-import com.simibubi.create.content.redstone.displayLink.DisplayLinkContext;
-import com.simibubi.create.content.redstone.displayLink.source.PercentOrProgressBarDisplaySource;
-import com.simibubi.create.content.trains.display.FlapDisplayBlockEntity;
-import com.simibubi.create.foundation.gui.ModularGuiLineBuilder;
-import com.simibubi.create.foundation.utility.CreateLang;
-import net.createmod.catnip.lang.LangBuilder;
+import com.zurrtum.create.content.redstone.displayLink.DisplayLinkContext;
+import com.zurrtum.create.content.redstone.displayLink.source.PercentOrProgressBarDisplaySource;
+import com.zurrtum.create.content.trains.display.FlapDisplayBlockEntity;
+import com.zurrtum.create.client.foundation.gui.ModularGuiLineBuilder;
+import com.zurrtum.create.client.foundation.utility.CreateLang;
+import com.zurrtum.create.client.catnip.lang.LangBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 public class KineticBatteryDisplaySource extends PercentOrProgressBarDisplaySource {
 
@@ -52,7 +52,7 @@ public class KineticBatteryDisplaySource extends PercentOrProgressBarDisplaySour
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void initConfigurationWidgets(DisplayLinkContext context, ModularGuiLineBuilder builder, boolean isFirstLine) {
         super.initConfigurationWidgets(context, builder, isFirstLine);
         if (isFirstLine)

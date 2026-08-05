@@ -3,7 +3,7 @@ package com.hlysine.create_connected.registries;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.config.FeatureToggle;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockEntity;
-import com.simibubi.create.AllCreativeModeTabs;
+import com.zurrtum.create.AllCreativeModeTabs;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;

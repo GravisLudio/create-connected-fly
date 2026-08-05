@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.mixin.sequencedgearshift;
 
-import net.createmod.catnip.gui.AbstractSimiScreen;
+import com.zurrtum.create.client.catnip.gui.AbstractSimiScreen;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;

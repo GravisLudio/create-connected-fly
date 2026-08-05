@@ -2,7 +2,7 @@ package com.hlysine.create_connected.mixin.linkedtransmitter;
 
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.hlysine.create_connected.registries.CCItems;
-import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlock;
+import com.zurrtum.create.content.redstone.analogLever.AnalogLeverBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;

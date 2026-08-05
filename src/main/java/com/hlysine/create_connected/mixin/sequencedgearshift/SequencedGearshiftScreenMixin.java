@@ -1,10 +1,10 @@
 package com.hlysine.create_connected.mixin.sequencedgearshift;
 
 import com.hlysine.create_connected.registries.CCSequencerInstructions;
-import com.simibubi.create.content.kinetics.transmission.sequencer.Instruction;
-import com.simibubi.create.content.kinetics.transmission.sequencer.SequencedGearshiftScreen;
-import com.simibubi.create.content.kinetics.transmission.sequencer.SequencerInstructions;
-import com.simibubi.create.foundation.gui.widget.ScrollInput;
+import com.zurrtum.create.content.kinetics.transmission.sequencer.Instruction;
+import com.zurrtum.create.client.content.kinetics.transmission.sequencer.SequencedGearshiftScreen;
+import com.zurrtum.create.content.kinetics.transmission.sequencer.SequencerInstructions;
+import com.zurrtum.create.client.foundation.gui.widget.ScrollInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,7 +24,7 @@ public class SequencedGearshiftScreenMixin {
             method = "updateParamsOfRow(I)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/simibubi/create/foundation/gui/widget/ScrollInput;standardStep()Ljava/util/function/Function;",
+                    target = "Lcom.zurrtum.create.client.foundation.gui.widget.ScrollInput;standardStep()Ljava/util/function/Function;",
                     shift = At.Shift.BY,
                     by = 2
             )
@@ -45,7 +45,7 @@ public class SequencedGearshiftScreenMixin {
     }
 
     @Inject(
-            at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/kinetics/transmission/sequencer/SequencedGearshiftScreen;updateParamsOfRow(I)V", shift = At.Shift.AFTER),
+            at = @At(value = "INVOKE", target = "Lcom.zurrtum.create.client.content.kinetics.transmission.sequencer.SequencedGearshiftScreen;updateParamsOfRow(I)V", shift = At.Shift.AFTER),
             method = "instructionUpdated(II)V",
             cancellable = true
     )

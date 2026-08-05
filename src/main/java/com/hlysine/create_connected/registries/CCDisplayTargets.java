@@ -2,14 +2,14 @@ package com.hlysine.create_connected.registries;
 
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.dashboard.DashboardDisplayTarget;
-import com.simibubi.create.api.behaviour.display.DisplayTarget;
-import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.zurrtum.create.api.behaviour.display.DisplayTarget;
+import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 
 import java.util.function.Supplier;
 
 public class CCDisplayTargets {
-    private static final CreateRegistrate REGISTRATE = CreateConnected.getRegistrate();
+    private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
 
     public static final RegistryEntry<DisplayTarget, DashboardDisplayTarget> DASHBOARD = simple("dashboard", DashboardDisplayTarget::new);
 

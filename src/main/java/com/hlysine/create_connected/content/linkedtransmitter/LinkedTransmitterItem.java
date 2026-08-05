@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
-import com.tterrag.registrate.builders.BlockBuilder;
+import com.hlysine.create_connected.foundation.registrate.BlockBuilder;
 import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;

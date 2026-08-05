@@ -2,20 +2,24 @@ package com.hlysine.create_connected;
 
 import com.hlysine.create_connected.registries.CCPartialModels;
 import com.hlysine.create_connected.registries.CCPonderPlugin;
-import net.createmod.ponder.foundation.PonderIndex;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import com.zurrtum.create.client.ponder.foundation.PonderIndex;
+import net.fabricmc.api.ClientModInitializer;
 
-@Mod(value = CreateConnected.MODID, dist = Dist.CLIENT)
-public class CreateConnectedClient {
-    public CreateConnectedClient(IEventBus modEventBus) {
+/**
+ * Fabric client entrypoint (was {@code @Mod(dist = Dist.CLIENT)}).
+ * <p>
+ * The project uses a single source set rather than {@code splitEnvironmentSourceSets()}, so this
+ * sits next to common code; Fabric only loads it on a client because it is declared under the
+ * {@code client} entrypoint in {@code fabric.mod.json}.
+ * <p>
+ * TODO: block entity renderers and Flywheel visuals used to be chained onto registration through
+ * Registrate. They need a {@code CCBlockEntityRenders} registered from here, mirroring Create Fly's
+ * {@code AllBlockEntityRenders}.
+ */
+public class CreateConnectedClient implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
         CCPartialModels.register();
-        modEventBus.addListener(CreateConnectedClient::init);
-    }
-
-    public static void init(final FMLClientSetupEvent event) {
         PonderIndex.addPlugin(new CCPonderPlugin());
     }
 }

@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.mixin.sequencedgearshift;
 
-import com.simibubi.create.content.kinetics.transmission.sequencer.SequencerInstructions;
-import com.simibubi.create.foundation.gui.AllGuiTextures;
+import com.zurrtum.create.content.kinetics.transmission.sequencer.SequencerInstructions;
+import com.zurrtum.create.client.foundation.gui.AllGuiTextures;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;

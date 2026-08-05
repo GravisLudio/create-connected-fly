@@ -1,10 +1,10 @@
 package com.hlysine.create_connected.mixin.chaincogwheel;
 
 import com.hlysine.create_connected.registries.CCBlocks;
-import com.simibubi.create.content.kinetics.RotationPropagator;
-import com.simibubi.create.content.kinetics.base.IRotate;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.content.kinetics.chainDrive.ChainDriveBlock;
+import com.zurrtum.create.content.kinetics.RotationPropagator;
+import com.zurrtum.create.content.kinetics.base.IRotate;
+import com.zurrtum.create.content.kinetics.base.KineticBlockEntity;
+import com.zurrtum.create.content.kinetics.chainDrive.ChainDriveBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = RotationPropagator.class, remap = false)
 public class RotationPropagatorMixin {
     @Inject(
-            method = "getRotationSpeedModifier(Lcom/simibubi/create/content/kinetics/base/KineticBlockEntity;Lcom/simibubi/create/content/kinetics/base/KineticBlockEntity;)F",
-            at = @At(value = "INVOKE", target = "Lcom/simibubi/create/content/kinetics/chainDrive/ChainDriveBlock;areBlocksConnected(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"),
+            method = "getRotationSpeedModifier(Lcom.zurrtum.create.content.kinetics.base.KineticBlockEntity;Lcom.zurrtum.create.content.kinetics.base.KineticBlockEntity;)F",
+            at = @At(value = "INVOKE", target = "Lcom.zurrtum.create.content.kinetics.chainDrive.ChainDriveBlock;areBlocksConnected(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"),
             cancellable = true
     )
     private static void handleChainCogwheels(KineticBlockEntity from,

@@ -1,8 +1,8 @@
 package com.hlysine.create_connected.content.sixwaygearbox;
 
 import com.hlysine.create_connected.registries.CCBlocks;
-import com.simibubi.create.content.kinetics.base.IRotate;
-import net.createmod.catnip.data.Iterate;
+import com.zurrtum.create.content.kinetics.base.IRotate;
+import com.zurrtum.create.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;

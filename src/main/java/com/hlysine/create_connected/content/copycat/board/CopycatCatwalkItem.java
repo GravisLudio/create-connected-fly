@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.content.copycat.board;
 
 import com.hlysine.create_connected.registries.CCBlocks;
-import net.createmod.catnip.data.Iterate;
+import com.zurrtum.create.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;

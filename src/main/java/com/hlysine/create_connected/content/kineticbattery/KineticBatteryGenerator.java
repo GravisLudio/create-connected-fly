@@ -1,7 +1,6 @@
 package com.hlysine.create_connected.content.kineticbattery;
 
 import com.hlysine.create_connected.CreateConnected;
-import com.simibubi.create.foundation.data.SpecialBlockStateGen;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
 import net.minecraft.core.Direction;

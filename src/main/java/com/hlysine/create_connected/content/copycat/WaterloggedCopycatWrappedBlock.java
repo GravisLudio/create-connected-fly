@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.content.copycat;
 
-import com.simibubi.create.AllTags;
+import com.zurrtum.create.AllBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;

@@ -6,7 +6,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.advancements.CriterionTrigger;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -23,7 +23,7 @@ public abstract class CriterionTriggerBase<T extends CriterionTriggerBase.Instan
         this.id = CreateConnected.asResource(id);
     }
 
-    private final ResourceLocation id;
+    private final Identifier id;
     protected final Map<PlayerAdvancements, Set<Listener<T>>> listeners = Maps.newHashMap();
 
     @Override
@@ -49,7 +49,7 @@ public abstract class CriterionTriggerBase<T extends CriterionTriggerBase.Instan
         this.listeners.remove(playerAdvancementsIn);
     }
 
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 

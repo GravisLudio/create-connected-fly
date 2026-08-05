@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.content.copycat;
 
-import com.simibubi.create.foundation.model.BakedModelHelper;
+import com.zurrtum.create.client.foundation.model.BakedModelHelper;
 import com.simibubi.create.foundation.model.BakedQuadHelper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.core.Direction;

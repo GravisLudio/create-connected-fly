@@ -3,13 +3,13 @@ package com.hlysine.create_connected.content.inventorybridge;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.inventoryaccessport.WrappedItemHandler;
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
-import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
-import com.simibubi.create.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
-import com.simibubi.create.foundation.blockEntity.behaviour.inventory.CapManipulationBehaviourBase;
-import com.simibubi.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
-import net.createmod.catnip.math.BlockFace;
+import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
+import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
+import com.zurrtum.create.foundation.blockEntity.behaviour.inventory.CapManipulationBehaviourBase;
+import com.zurrtum.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
+import com.zurrtum.create.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -21,7 +21,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.items.IItemHandler;
+import com.zurrtum.create.infrastructure.items.ItemInventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +33,7 @@ import static com.hlysine.create_connected.content.inventorybridge.InventoryBrid
 
 @EventBusSubscriber(modid = CreateConnected.MODID)
 public class InventoryBridgeBlockEntity extends SmartBlockEntity {
-    protected IItemHandler itemCapability;
+    protected ItemInventory itemCapability;
     private InvManipulationBehaviour negativeInventory;
     private InvManipulationBehaviour positiveInventory;
 
@@ -140,16 +140,16 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         tag.putBoolean("Powered", powered);
     }
 
-    private IItemHandler getNegativeHandler() {
+    private ItemInventory getNegativeHandler() {
         if (powered) return null;
-        IItemHandler handler = negativeInventory.getInventory();
+        ItemInventory handler = negativeInventory.getInventory();
         if (handler instanceof WrappedItemHandler) return null;
         return handler;
     }
 
-    private IItemHandler getPositiveHandler() {
+    private ItemInventory getPositiveHandler() {
         if (powered) return null;
-        IItemHandler handler = positiveInventory.getInventory();
+        ItemInventory handler = positiveInventory.getInventory();
         if (handler instanceof WrappedItemHandler) return null;
         return handler;
     }
@@ -174,8 +174,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public int getSlots() {
             return preventRecursion(() -> {
-                IItemHandler handler1 = getNegativeHandler();
-                IItemHandler handler2 = getPositiveHandler();
+                ItemInventory handler1 = getNegativeHandler();
+                ItemInventory handler2 = getPositiveHandler();
                 if (handler1 == null && handler2 == null) {
                     return 0;
                 } else if (handler1 == null) {
@@ -191,8 +191,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public @NotNull ItemStack getStackInSlot(int slot) {
             return preventRecursion(() -> {
-                IItemHandler handler1 = getNegativeHandler();
-                IItemHandler handler2 = getPositiveHandler();
+                ItemInventory handler1 = getNegativeHandler();
+                ItemInventory handler2 = getPositiveHandler();
                 if (handler1 == null && handler2 == null) {
                     return ItemStack.EMPTY;
                 } else if (handler1 == null) {
@@ -233,8 +233,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
             return preventRecursion(() -> {
-                IItemHandler handler1 = getNegativeHandler();
-                IItemHandler handler2 = getPositiveHandler();
+                ItemInventory handler1 = getNegativeHandler();
+                ItemInventory handler2 = getPositiveHandler();
                 if (handler1 == null && handler2 == null) {
                     return stack;
                 } else if (handler1 == null) {
@@ -274,8 +274,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
             return preventRecursion(() -> {
-                IItemHandler handler1 = getNegativeHandler();
-                IItemHandler handler2 = getPositiveHandler();
+                ItemInventory handler1 = getNegativeHandler();
+                ItemInventory handler2 = getPositiveHandler();
                 if (handler1 == null && handler2 == null) {
                     return ItemStack.EMPTY;
                 } else if (handler1 == null) {
@@ -316,8 +316,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public int getSlotLimit(int slot) {
             return preventRecursion(() -> {
-                IItemHandler handler1 = getNegativeHandler();
-                IItemHandler handler2 = getPositiveHandler();
+                ItemInventory handler1 = getNegativeHandler();
+                ItemInventory handler2 = getPositiveHandler();
                 if (handler1 == null && handler2 == null) {
                     return 0;
                 } else if (handler1 == null) {
@@ -334,8 +334,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             return preventRecursion(() -> {
-                IItemHandler handler1 = getNegativeHandler();
-                IItemHandler handler2 = getPositiveHandler();
+                ItemInventory handler1 = getNegativeHandler();
+                ItemInventory handler2 = getPositiveHandler();
                 if (handler1 == null && handler2 == null) {
                     return false;
                 } else if (handler1 == null) {

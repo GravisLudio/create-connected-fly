@@ -4,29 +4,27 @@ import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.registries.PreciseItemUseOverrides;
 import com.hlysine.create_connected.content.linkedtransmitter.*;
 import com.hlysine.create_connected.datagen.CCBlockStateGen;
-import com.simibubi.create.AllTags;
-import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.tterrag.registrate.util.entry.BlockEntityEntry;
-import com.tterrag.registrate.util.entry.BlockEntry;
+import com.zurrtum.create.AllBlockTags;
+import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
+import com.hlysine.create_connected.foundation.registrate.BlockEntityEntry;
+import com.hlysine.create_connected.foundation.registrate.BlockEntry;
 import dev.simulated_team.simulated.Simulated;
 import dev.simulated_team.simulated.content.blocks.throttle_lever.ThrottleLeverVisual;
 import dev.simulated_team.simulated.index.SimBlocks;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.level.block.Blocks;
 
 public class SimCompatRegistry {
-    private static final CreateRegistrate REGISTRATE = CreateConnected.getRegistrate();
+    private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
 
     public static final BlockEntry<LinkedThrottleLeverBlock> LINKED_THROTTLE_LEVER = REGISTRATE
             .block("linked_throttle_lever", properties -> new LinkedThrottleLeverBlock(properties, SimBlocks.THROTTLE_LEVER))
             .initialProperties(() -> Blocks.LEVER)
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .tag(AllBlockTags.SAFE_NBT)
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(LinkedTransmitterItem.register())
             .onRegister(PreciseItemUseOverrides::addBlock)
-            .blockstate(CCBlockStateGen.linkedLeverNoPower(
-                    Simulated.path("block/throttle_lever/block")
-            ))
+
             .asOptional()
             .register();
 

@@ -5,17 +5,17 @@ import com.hlysine.create_connected.registries.CCDataComponents;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateItemModelProvider;
 import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 
 public class KineticBatteryOverrides {
 
-    public static final ResourceLocation ID = CreateConnected.asResource("kinetic_battery_level");
+    public static final Identifier ID = CreateConnected.asResource("kinetic_battery_level");
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public static void registerModelOverridesClient(KineticBatteryBlockItem item) {
         ItemProperties.register(item, ID, (pStack, pLevel, pEntity, pSeed) -> {
             double level = pStack.getOrDefault(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0);

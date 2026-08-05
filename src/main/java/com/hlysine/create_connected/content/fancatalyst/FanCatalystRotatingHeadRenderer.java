@@ -3,11 +3,11 @@ package com.hlysine.create_connected.content.fancatalyst;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.blockEntity.renderer.SafeBlockEntityRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class FanCatalystRotatingHeadRenderer extends SafeBlockEntityRenderer<FanCatalystRotatingHeadBlockEntity> {
     private final SkullTypes skullType;
@@ -26,7 +26,7 @@ public class FanCatalystRotatingHeadRenderer extends SafeBlockEntityRenderer<Fan
     }
 
     public RenderType getRenderType() {
-        ResourceLocation resourcelocation = SkullBlockRenderer.SKIN_BY_TYPE.get(skullType.getTexture());
+        Identifier resourcelocation = SkullBlockRenderer.SKIN_BY_TYPE.get(skullType.getTexture());
         return RenderType.entityCutoutNoCullZOffset(resourcelocation);
     }
 

@@ -5,7 +5,7 @@ import com.firemerald.additionalplacements.generation.Registration;
 import com.firemerald.additionalplacements.generation.RegistrationInitializer;
 import com.hlysine.create_connected.content.copycat.ICopycatWithWrappedBlock;
 import com.hlysine.create_connected.content.copycat.IWrappedBlock;
-import com.simibubi.create.content.decoration.copycat.CopycatBlock;
+import com.zurrtum.create.content.decoration.copycat.CopycatBlock;
 import net.minecraft.world.level.block.Block;
 
 import java.util.function.Consumer;

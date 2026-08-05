@@ -1,5 +1,6 @@
 package com.hlysine.create_connected.registries;
 
+import com.hlysine.create_connected.foundation.registrate.SharedProperties;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.brake.BrakeBlockEntity;
 import com.hlysine.create_connected.content.brasschute.BrassChuteBlockEntity;
@@ -42,22 +43,22 @@ import com.hlysine.create_connected.content.shearpin.ShearPinVisual;
 import com.hlysine.create_connected.content.sixwaygearbox.SixWayGearboxBlockEntity;
 import com.hlysine.create_connected.content.sixwaygearbox.SixWayGearboxRenderer;
 import com.hlysine.create_connected.content.sixwaygearbox.SixWayGearboxVisual;
-import com.simibubi.create.content.decoration.copycat.CopycatBlockEntity;
-import com.simibubi.create.content.kinetics.crank.HandCrankRenderer;
-import com.simibubi.create.content.kinetics.simpleRelays.BracketedKineticBlockEntityRenderer;
-import com.simibubi.create.content.kinetics.simpleRelays.SimpleKineticBlockEntity;
+import com.zurrtum.create.content.decoration.copycat.CopycatBlockEntity;
+import com.zurrtum.create.client.content.kinetics.crank.HandCrankRenderer;
+import com.zurrtum.create.client.content.kinetics.simpleRelays.BracketedKineticBlockEntityRenderer;
+import com.zurrtum.create.content.kinetics.simpleRelays.SimpleKineticBlockEntity;
 import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedCogRenderer;
-import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedCogVisual;
-import com.simibubi.create.content.kinetics.transmission.SplitShaftRenderer;
-import com.simibubi.create.content.kinetics.transmission.SplitShaftVisual;
-import com.simibubi.create.content.logistics.chute.ChuteRenderer;
-import com.simibubi.create.content.redstone.analogLever.AnalogLeverVisual;
-import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
-import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.tterrag.registrate.util.entry.BlockEntityEntry;
+import com.zurrtum.create.client.content.kinetics.simpleRelays.encased.EncasedCogVisual;
+import com.zurrtum.create.client.content.kinetics.transmission.SplitShaftRenderer;
+import com.zurrtum.create.client.content.kinetics.transmission.SplitShaftVisual;
+import com.zurrtum.create.client.content.logistics.chute.ChuteRenderer;
+import com.zurrtum.create.client.content.redstone.analogLever.AnalogLeverVisual;
+import com.zurrtum.create.client.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
+import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
+import com.hlysine.create_connected.foundation.registrate.BlockEntityEntry;
 
 public class CCBlockEntityTypes {
-    private static final CreateRegistrate REGISTRATE = CreateConnected.getRegistrate();
+    private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
 
     public static final BlockEntityEntry<SimpleKineticBlockEntity> ENCASED_CHAIN_COGWHEEL = REGISTRATE
             .blockEntity("encased_chain_cogwheel", SimpleKineticBlockEntity::new)

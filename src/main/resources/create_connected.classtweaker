@@ -1,0 +1,43 @@
+classTweaker v1 official
+
+# Portado desde META-INF/accesstransformer.cfg (NeoForge, MC 1.21.1).
+#
+# Las 6 entradas originales estan abajo comentadas con su traduccion tentativa.
+# NO se activan de entrada: Loom valida cada entrada contra el jar de 26.2 y
+# falla el build entera si un descriptor no matchea. Varias de estas firmas
+# cambiaron o desaparecieron despues de 1.21.1.
+#
+# Procedimiento: activar una a la vez cuando el compilador la reclame, y
+# verificar el descriptor real contra el MC 26.2 que baje Loom.
+
+# --- 1. RecipeProvider.getName() ---
+# Original: public-f net.minecraft.data.recipes.RecipeProvider getName()Ljava/lang/String;
+# Era solo para datagen. Como los 1025 JSONs ya estan generados y se migran a
+# mano, lo mas probable es que esta entrada no haga falta nunca.
+# accessible method net/minecraft/data/recipes/RecipeProvider getName ()Ljava/lang/String;
+# extendable method net/minecraft/data/recipes/RecipeProvider getName ()Ljava/lang/String;
+
+# --- 2/3. ButtonBlock (para los copycat button) ---
+# Original: public net.minecraft.world.level.block.ButtonBlock type
+# Original: public net.minecraft.world.level.block.ButtonBlock ticksToStayPressed
+# Descriptores a verificar contra 26.2.
+# accessible field net/minecraft/world/level/block/ButtonBlock type Lnet/minecraft/world/level/block/state/properties/BlockSetType;
+# accessible field net/minecraft/world/level/block/ButtonBlock ticksToStayPressed I
+
+# --- 4. JukeboxBlockEntity.jukeboxSongPlayer ---
+# Original: public net.minecraft.world.level.block.entity.JukeboxBlockEntity jukeboxSongPlayer
+# accessible field net/minecraft/world/level/block/entity/JukeboxBlockEntity jukeboxSongPlayer Lnet/minecraft/world/level/block/entity/JukeboxSongPlayer;
+
+# --- 5. LevelRenderer.notifyNearbyEntities(...) ---
+# Original: public net.minecraft.client.renderer.LevelRenderer notifyNearbyEntities(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V
+# RIESGO ALTO: LevelRenderer se reorganizo fuerte en el rework de render.
+# Ademas es codigo de cliente, asi que iria en un classtweaker aparte si Loom
+# lo exige con split source sets.
+# accessible method net/minecraft/client/renderer/LevelRenderer notifyNearbyEntities (Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V
+
+# --- 6. Ingredient(Stream) ---
+# Original: public net.minecraft.world.item.crafting.Ingredient <init>(Ljava/util/stream/Stream;)V
+# RIESGO ALTO: Ingredient se reescribio entero despues de 1.21.1 (ahora va por
+# HolderSet). Este constructor casi con certeza ya no existe; el codigo que lo
+# usaba hay que reescribirlo, no destrabarlo.
+# accessible method net/minecraft/world/item/crafting/Ingredient <init> (Ljava/util/stream/Stream;)V

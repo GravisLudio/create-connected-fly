@@ -4,11 +4,11 @@ import com.hlysine.create_connected.registries.CCBlocks;
 import com.hlysine.create_connected.registries.CCItems;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.config.CCConfigs;
-import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.entry.ItemEntry;
-import net.createmod.catnip.registry.RegisteredObjectsHelper;
+import com.hlysine.create_connected.foundation.registrate.BlockEntry;
+import com.hlysine.create_connected.foundation.registrate.ItemEntry;
+import com.zurrtum.create.catnip.registry.RegisteredObjectsHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
@@ -41,7 +41,7 @@ public class CopycatsManager {
     }
 
     public static Block convert(Block self) {
-        ResourceLocation key = RegisteredObjectsHelper.getKeyOrThrow(self);
+        Identifier key = RegisteredObjectsHelper.getKeyOrThrow(self);
         if (!validateNamespace(key)) return self;
         BlockEntry<?> result = BLOCK_MAP.get(key.getPath());
         if (result != null) return result.get();
@@ -49,7 +49,7 @@ public class CopycatsManager {
     }
 
     public static Item convert(Item self) {
-        ResourceLocation key = RegisteredObjectsHelper.getKeyOrThrow(self);
+        Identifier key = RegisteredObjectsHelper.getKeyOrThrow(self);
         if (!validateNamespace(key)) return self;
         ItemEntry<?> result = ITEM_MAP.get(key.getPath());
         if (result != null) return result.get();
@@ -77,7 +77,7 @@ public class CopycatsManager {
     }
 
     public static Block convertIfEnabled(Block block) {
-        ResourceLocation key = RegisteredObjectsHelper.getKeyOrThrow(block);
+        Identifier key = RegisteredObjectsHelper.getKeyOrThrow(block);
         if (!validateNamespace(key)) return block;
         if (isFeatureEnabled(key))
             return convert(block);
@@ -85,7 +85,7 @@ public class CopycatsManager {
     }
 
     public static BlockState convertIfEnabled(BlockState state) {
-        ResourceLocation key = RegisteredObjectsHelper.getKeyOrThrow(state.getBlock());
+        Identifier key = RegisteredObjectsHelper.getKeyOrThrow(state.getBlock());
         if (!validateNamespace(key)) return state;
         if (isFeatureEnabled(key))
             return convert(state);
@@ -93,25 +93,25 @@ public class CopycatsManager {
     }
 
     public static ItemLike convertIfEnabled(ItemLike item) {
-        ResourceLocation key = RegisteredObjectsHelper.getKeyOrThrow(item.asItem());
+        Identifier key = RegisteredObjectsHelper.getKeyOrThrow(item.asItem());
         if (!validateNamespace(key)) return item;
         if (isFeatureEnabled(key))
             return convert(item);
         return item;
     }
 
-    private static boolean validateNamespace(ResourceLocation key) {
+    private static boolean validateNamespace(Identifier key) {
         return key.getNamespace().equals(CreateConnected.MODID) || key.getNamespace().equals(Mods.COPYCATS.id());
     }
 
-    public static boolean existsInCopycats(ResourceLocation key) {
+    public static boolean existsInCopycats(Identifier key) {
         if (!validateNamespace(key)) return false;
         if (BLOCK_MAP.containsKey(key.getPath())) return true;
         if (ITEM_MAP.containsKey(key.getPath())) return true;
         return false;
     }
 
-    public static boolean isFeatureEnabled(ResourceLocation key) {
+    public static boolean isFeatureEnabled(Identifier key) {
         if (!existsInCopycats(key))
             return false;
         return com.copycatsplus.copycats.config.FeatureToggle.isEnabled(Mods.COPYCATS.rl(key.getPath()));

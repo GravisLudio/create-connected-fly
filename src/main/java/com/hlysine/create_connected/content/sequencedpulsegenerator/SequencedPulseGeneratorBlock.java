@@ -3,12 +3,12 @@ package com.hlysine.create_connected.content.sequencedpulsegenerator;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.datagen.advancements.AdvancementBehaviour;
 import com.mojang.serialization.MapCodec;
-import com.simibubi.create.AllItems;
-import com.simibubi.create.content.redstone.diodes.AbstractDiodeBlock;
-import com.simibubi.create.content.redstone.diodes.BrassDiodeBlock;
-import com.simibubi.create.content.redstone.diodes.PoweredLatchBlock;
-import com.simibubi.create.foundation.block.IBE;
-import net.createmod.catnip.gui.ScreenOpener;
+import com.zurrtum.create.AllItems;
+import com.zurrtum.create.content.redstone.diodes.AbstractDiodeBlock;
+import com.zurrtum.create.content.redstone.diodes.BrassDiodeBlock;
+import com.zurrtum.create.content.redstone.diodes.PoweredLatchBlock;
+import com.zurrtum.create.foundation.block.IBE;
+import com.zurrtum.create.client.catnip.gui.ScreenOpener;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -32,8 +32,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.NotNull;
 
 public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements IBE<SequencedPulseGeneratorBlockEntity> {
@@ -165,7 +165,7 @@ public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements 
         return InteractionResult.SUCCESS;
     }
 
-    @OnlyIn(value = Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     protected void displayScreen(SequencedPulseGeneratorBlockEntity be, Player player) {
         if (player instanceof LocalPlayer)
             ScreenOpener.open(new SequencedPulseGeneratorScreen(be));

@@ -1,8 +1,6 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
-import com.simibubi.create.Create;
-import com.simibubi.create.foundation.data.AssetLookup;
-import com.simibubi.create.foundation.data.SpecialBlockStateGen;
+import com.zurrtum.create.Create;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
 import net.minecraft.world.level.block.Block;
@@ -68,7 +66,7 @@ public class FluidVesselGenerator extends SpecialBlockStateGen {
                     .texture("7", prov.modLoc("block/" + prefix + "fluid_container_window_single"))
                     .texture("particle", Create.asResource("block/" + prefix + "fluid_tank"));
 
-        return AssetLookup.partialBaseModel(ctx, prov, modelName);
+        return AssetLookup;
     }
 
 }

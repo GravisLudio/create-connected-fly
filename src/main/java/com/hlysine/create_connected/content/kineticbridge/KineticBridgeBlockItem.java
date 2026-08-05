@@ -1,8 +1,8 @@
 package com.hlysine.create_connected.content.kineticbridge;
 
 import com.hlysine.create_connected.ConnectedLang;
-import net.createmod.catnip.data.Pair;
-import net.createmod.catnip.outliner.Outliner;
+import com.zurrtum.create.catnip.data.Pair;
+import com.zurrtum.create.client.catnip.outliner.Outliner;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -12,8 +12,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 public class KineticBridgeBlockItem extends BlockItem {
 
@@ -29,7 +29,7 @@ public class KineticBridgeBlockItem extends BlockItem {
         return result;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void showBounds(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();
         Direction facing = ((KineticBridgeBlock) getBlock()).getDirectionForPlacement(context);

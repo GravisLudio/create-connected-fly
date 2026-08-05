@@ -1,3 +1,15 @@
+> ## ⚠️ Unofficial work-in-progress port
+>
+> This is a **fork** of [hlysine/create_connected](https://github.com/hlysine/create_connected),
+> porting it from NeoForge 1.21.1 to **Fabric on Minecraft 26.2**, targeting
+> [Create Fly](https://github.com/ZurrTum/Create-Fly) by ZurrTum.
+>
+> **It does not build yet.** This repository is published so the work is visible, not because it
+> is usable. Do not report bugs here that belong upstream.
+>
+> All credit for the mod itself goes to **Lysine** and the Create: Connected contributors, and for
+> the 26.2 Create port to **ZurrTum**. Licensed AGPL-3.0, same as upstream.
+
 <p align="center"><img src="https://raw.githubusercontent.com/hlysine/create_connected/main/src/main/resources/create_connected_icon.png" alt="Logo" width="128"></p>
 
 <h1 align="center">Create: Connected</h1>

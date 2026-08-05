@@ -1,8 +1,8 @@
 package com.hlysine.create_connected.content.copycat.stairs;
 
 import com.hlysine.create_connected.content.copycat.ISimpleCopycatModel;
-import com.simibubi.create.content.decoration.copycat.CopycatModel;
-import net.minecraft.client.renderer.RenderType;
+import com.zurrtum.create.client.infrastructure.model.CopycatModel;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;

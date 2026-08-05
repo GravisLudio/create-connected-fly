@@ -1,8 +1,8 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.content.redstone.link.LinkRenderer;
-import com.simibubi.create.foundation.blockEntity.behaviour.filtering.FilteringRenderer;
+import com.zurrtum.create.client.content.redstone.link.LinkRenderer;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.FilteringRenderer;
 import dev.simulated_team.simulated.content.blocks.throttle_lever.ThrottleLeverBlockEntity;
 import dev.simulated_team.simulated.content.blocks.throttle_lever.ThrottleLeverRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;

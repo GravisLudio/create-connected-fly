@@ -4,103 +4,75 @@ import com.hlysine.create_connected.compat.AdditionalPlacementsCompat;
 import com.hlysine.create_connected.compat.CopycatsManager;
 import com.hlysine.create_connected.compat.Mods;
 import com.hlysine.create_connected.config.CCConfigs;
-import com.hlysine.create_connected.datagen.CCDatagen;
 import com.hlysine.create_connected.datagen.advancements.CCAdvancements;
 import com.hlysine.create_connected.datagen.advancements.CCTriggers;
+import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
 import com.hlysine.create_connected.registries.*;
 import com.mojang.logging.LogUtils;
-import com.simibubi.create.api.registry.CreateBuiltInRegistries;
-import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.simibubi.create.foundation.item.ItemDescription;
-import com.simibubi.create.foundation.item.KineticStats;
-import com.simibubi.create.foundation.item.TooltipModifier;
-import net.createmod.catnip.lang.FontHelper;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTab;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.registries.RegisterEvent;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
-// The value here should match an entry in the META-INF/mods.toml file
-@Mod(CreateConnected.MODID)
-public class CreateConnected {
-    // Define mod id in a common place for everything to reference
+/**
+ * Fabric main entrypoint (was a NeoForge {@code @Mod} class).
+ * <p>
+ * NeoForge deferred everything through an event bus: registries fired on {@code RegisterEvent},
+ * setup on {@code FMLCommonSetupEvent}. Fabric has no such bus -- {@code onInitialize} already runs
+ * at the right point in load, and {@link CCRegistrate} registers eagerly, so those phases collapse
+ * into straight-line calls here. Order still matters: blocks before block entities, because
+ * {@code validBlocks} resolves actual Block instances.
+ * <p>
+ * TODO: {@code setTooltipModifierFactory} and {@code setCreativeTab} came from Create's
+ * CreateRegistrate. Both are presentation concerns -- tooltips are client-side, and creative tab
+ * contents go through Fabric's {@code ItemGroupEvents} -- so they are not wired here yet.
+ */
+public class CreateConnected implements ModInitializer {
     public static final String MODID = "create_connected";
-    // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static IEventBus modEventBus;
-    private static final CreateRegistrate REGISTRATE = CreateRegistrate.create(MODID);
+    private static final CCRegistrate REGISTRATE = CCRegistrate.create(MODID);
 
-    static {
-        REGISTRATE
-                .defaultCreativeTab((ResourceKey<CreativeModeTab>) null)
-                .setTooltipModifierFactory(item -> new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE)
-                        .andThen(TooltipModifier.mapNull(KineticStats.create(item))));
-    }
+    @Override
+    public void onInitialize() {
+        CCConfigs.register();
 
-    public CreateConnected(IEventBus eventBus, ModContainer modContainer) {
-        modEventBus = eventBus;
-        REGISTRATE.registerEventListeners(modEventBus);
-
-        // Register the commonSetup method for mod loading
-        modEventBus.addListener(this::commonSetup);
-        modEventBus.addListener(this::onRegister);
-
-        REGISTRATE.setCreativeTab(CCCreativeTabs.MAIN);
         CCSoundEvents.prepare();
-        CCDataComponents.register(modEventBus);
+        CCDataComponents.register();
         CCBlocks.register();
         CCItems.register();
         CCBlockEntityTypes.register();
-        CCCreativeTabs.register(modEventBus);
+        CCCreativeTabs.register();
         CCPackets.register();
-        CCCraftingConditions.register(modEventBus);
-        CCArmInteractionPointTypes.register(modEventBus);
+        CCCraftingConditions.register();
+        CCArmInteractionPointTypes.register();
+        CCSoundEvents.register();
 
-        CCConfigs.register(modContainer);
+        // Previously ran from FMLCommonSetupEvent. Nothing here needs a deferred phase on Fabric:
+        // every registry these touch is already populated by the calls above.
+        CCInteractionBehaviours.register();
+        CCMovementBehaviours.register();
+        CCMountedStorageTypes.register();
+        CCDisplaySources.register();
+        CCDisplayTargets.register();
 
-        if (Mods.COPYCATS.isLoaded())
-            NeoForge.EVENT_BUS.addListener(CopycatsManager::onLevelTick);
+        // Were keyed off RegisterEvent for a specific registry; now called directly.
+        CCItemAttributes.register();
+        CCAdvancements.register();
+        CCTriggers.register();
 
-        modEventBus.addListener(EventPriority.HIGHEST, CCDatagen::gatherDataHighPriority);
-        modEventBus.addListener(EventPriority.LOWEST, CCDatagen::gatherData);
-        modEventBus.addListener(CCSoundEvents::register);
+        if (Mods.COPYCATS.isLoaded()) {
+            ServerTickEvents.END_WORLD_TICK.register(CopycatsManager::onLevelTick);
+        }
 
         Mods.ADDITIONAL_PLACEMENTS.executeIfInstalled(() -> AdditionalPlacementsCompat::register);
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            CCInteractionBehaviours.register();
-            CCMovementBehaviours.register();
-            CCMountedStorageTypes.register();
-            CCDisplaySources.register();
-            CCDisplayTargets.register();
-        });
-    }
-
-    public void onRegister(final RegisterEvent event) {
-        if (event.getRegistry() == CreateBuiltInRegistries.ITEM_ATTRIBUTE_TYPE) {
-            CCItemAttributes.register();
-        } else if (event.getRegistry() == BuiltInRegistries.TRIGGER_TYPES) {
-            CCAdvancements.register();
-            CCTriggers.register();
-        }
-    }
-
-    public static CreateRegistrate getRegistrate() {
+    public static CCRegistrate getRegistrate() {
         return REGISTRATE;
     }
 
-    public static ResourceLocation asResource(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    public static Identifier asResource(String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 }

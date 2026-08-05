@@ -3,15 +3,15 @@ package com.hlysine.create_connected.registries;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.fluidvessel.FluidVesselMountedStorageType;
 import com.hlysine.create_connected.content.itemsilo.ItemSiloMountedStorageType;
-import com.simibubi.create.api.contraption.storage.fluid.MountedFluidStorageType;
-import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
-import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.zurrtum.create.api.contraption.storage.fluid.MountedFluidStorageType;
+import com.zurrtum.create.api.contraption.storage.item.MountedItemStorageType;
+import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 
 import java.util.function.Supplier;
 
 public class CCMountedStorageTypes {
-    private static final CreateRegistrate REGISTRATE = CreateConnected.getRegistrate();
+    private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
 
     public static final RegistryEntry<MountedItemStorageType<?>, ItemSiloMountedStorageType> SILO = simpleItem("silo", ItemSiloMountedStorageType::new);
     public static final RegistryEntry<MountedFluidStorageType<?>, FluidVesselMountedStorageType> FLUID_VESSEL = simpleFluid("fluid_vessel", FluidVesselMountedStorageType::new);

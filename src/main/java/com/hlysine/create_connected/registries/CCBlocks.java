@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.registries;
 
+import com.hlysine.create_connected.foundation.registrate.SharedProperties;
+import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.compat.DyeDepotCompat;
 import com.hlysine.create_connected.compat.Mods;
@@ -71,34 +73,33 @@ import com.hlysine.create_connected.content.sequencedpulsegenerator.SequencedPul
 import com.hlysine.create_connected.content.shearpin.ShearPinBlock;
 import com.hlysine.create_connected.content.sixwaygearbox.SixWayGearboxBlock;
 import com.hlysine.create_connected.datagen.CCBlockStateGen;
-import com.simibubi.create.AllBlocks;
-import com.simibubi.create.AllSpriteShifts;
-import com.simibubi.create.AllTags;
-import com.simibubi.create.Create;
-import com.simibubi.create.api.behaviour.display.DisplaySource;
-import com.simibubi.create.api.connectivity.ConnectivityHandler;
-import com.simibubi.create.api.contraption.BlockMovementChecks;
-import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
-import com.simibubi.create.api.stress.BlockStressValues;
-import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour;
-import com.simibubi.create.content.decoration.encasing.EncasingRegistry;
-import com.simibubi.create.content.fluids.tank.FluidTankMovementBehavior;
+import com.zurrtum.create.AllBlocks;
+import com.zurrtum.create.client.AllSpriteShifts;
+import com.zurrtum.create.AllBlockTags;
+import com.zurrtum.create.Create;
+import com.zurrtum.create.api.behaviour.display.DisplaySource;
+import com.zurrtum.create.api.connectivity.ConnectivityHandler;
+import com.zurrtum.create.api.contraption.BlockMovementChecks;
+import com.zurrtum.create.api.contraption.storage.item.MountedItemStorageType;
+import com.zurrtum.create.api.stress.BlockStressValues;
+import com.zurrtum.create.client.content.decoration.encasing.EncasedCTBehaviour;
+import com.zurrtum.create.content.decoration.encasing.EncasingRegistry;
+import com.zurrtum.create.content.fluids.tank.FluidTankMovementBehavior;
 import com.simibubi.create.content.kinetics.chainDrive.ChainDriveGenerator;
-import com.simibubi.create.content.kinetics.simpleRelays.BracketedKineticBlockModel;
+import com.zurrtum.create.client.infrastructure.model.BracketedKineticBlockModel;
 import com.simibubi.create.content.logistics.chute.ChuteGenerator;
-import com.simibubi.create.content.logistics.chute.ChuteItem;
+import com.zurrtum.create.content.logistics.chute.ChuteItem;
 import com.simibubi.create.foundation.block.render.ReducedDestroyEffects;
-import com.simibubi.create.foundation.data.*;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
 import com.tterrag.registrate.providers.RegistrateLangProvider;
-import com.tterrag.registrate.util.entry.BlockEntry;
-import net.createmod.catnip.data.Iterate;
-import net.createmod.catnip.registry.RegisteredObjectsHelper;
+import com.hlysine.create_connected.foundation.registrate.BlockEntry;
+import com.zurrtum.create.catnip.data.Iterate;
+import com.zurrtum.create.catnip.registry.RegisteredObjectsHelper;
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Rarity;
@@ -124,20 +125,16 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import static com.simibubi.create.api.behaviour.display.DisplaySource.displaySource;
-import static com.simibubi.create.api.behaviour.display.DisplayTarget.displayTarget;
-import static com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour;
-import static com.simibubi.create.api.contraption.storage.fluid.MountedFluidStorageType.mountedFluidStorage;
-import static com.simibubi.create.foundation.data.AssetLookup.partialBaseModel;
-import static com.simibubi.create.foundation.data.BlockStateGen.axisBlock;
-import static com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures;
-import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
-import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
-import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
+import static com.zurrtum.create.api.behaviour.display.DisplaySource.displaySource;
+import static com.zurrtum.create.api.behaviour.display.DisplayTarget.displayTarget;
+import static com.zurrtum.create.api.behaviour.movement.MovementBehaviour.movementBehaviour;
+import static com.zurrtum.create.api.contraption.storage.fluid.MountedFluidStorageType.mountedFluidStorage;
+import static com.hlysine.create_connected.foundation.registrate.TagGen.axeOrPickaxe;
+import static com.hlysine.create_connected.foundation.registrate.TagGen.pickaxeOnly;
 
 @SuppressWarnings("removal")
 public class CCBlocks {
-    private static final CreateRegistrate REGISTRATE = CreateConnected.getRegistrate();
+    private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
 
     public static final BlockEntry<ChainCogwheelBlock> ENCASED_CHAIN_COGWHEEL =
             REGISTRATE.block("encased_chain_cogwheel", ChainCogwheelBlock::new)
@@ -147,36 +144,35 @@ public class CCBlocks {
                     .transform(CStress.setNoImpact())
                     .transform(FeatureToggle.register(FeatureCategory.KINETIC))
                     .transform(axeOrPickaxe())
-                    .blockstate((c, p) -> new ChainDriveGenerator((state, suffix) -> p.models()
-                            .getExistingFile(p.modLoc("block/" + c.getName() + "/" + suffix))).generate(c, p))
+
                     .item()
-                    .transform(customItemModel())
+
                     .register();
 
     public static final BlockEntry<CrankWheelBlock.Small> CRANK_WHEEL = REGISTRATE.block("crank_wheel", CrankWheelBlock.Small::new)
             .initialProperties(SharedProperties::wooden)
             .properties(p -> p.mapColor(MapColor.PODZOL))
             .transform(axeOrPickaxe())
-            .blockstate(BlockStateGen.directionalBlockProvider(true))
+
             .transform(CStress.setCapacity(8.0))
             .onRegister(BlockStressValues.setGeneratorSpeed(32))
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
-            .tag(AllTags.AllBlockTags.BRITTLE.tag)
+            .tag(AllBlockTags.BRITTLE)
             .item(CrankWheelItem::new)
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<CrankWheelBlock.Large> LARGE_CRANK_WHEEL = REGISTRATE.block("large_crank_wheel", CrankWheelBlock.Large::new)
             .initialProperties(SharedProperties::wooden)
             .properties(p -> p.mapColor(MapColor.PODZOL))
             .transform(axeOrPickaxe())
-            .blockstate(BlockStateGen.directionalBlockProvider(true))
+
             .transform(CStress.setCapacity(8.0))
             .onRegister(BlockStressValues.setGeneratorSpeed(32))
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
-            .tag(AllTags.AllBlockTags.BRITTLE.tag)
+            .tag(AllBlockTags.BRITTLE)
             .item(CrankWheelItem::new)
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<ParallelGearboxBlock> PARALLEL_GEARBOX = REGISTRATE.block("parallel_gearbox", ParallelGearboxBlock::new)
@@ -185,12 +181,12 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
-            .onRegister(CreateRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.ANDESITE_CASING,
+            .onRegister(CCRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
+            .onRegister(CCRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.ANDESITE_CASING,
                     (s, f) -> f.getAxis() == s.getValue(ParallelGearboxBlock.AXIS))))
-            .blockstate(CCBlockStateGen.axisBlock())
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<SixWayGearboxBlock> SIX_WAY_GEARBOX = REGISTRATE.block("six_way_gearbox", SixWayGearboxBlock::new)
@@ -201,9 +197,9 @@ public class CCBlocks {
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
             .lang("6-way Gearbox")
-            .blockstate((c, p) -> axisBlock(c, p, $ -> partialBaseModel(c, p), false))
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<CrossConnectorBlock> CROSS_CONNECTOR = REGISTRATE.block("cross_connector", CrossConnectorBlock::new)
@@ -212,9 +208,9 @@ public class CCBlocks {
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .blockstate((c, p) -> axisBlock(c, p, $ -> partialBaseModel(c, p), false))
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
 
@@ -244,24 +240,9 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .blockstate((c, p) -> BlockStateGen.axisBlock(c, p, state -> {
-                        if (state.getValue(OverstressClutchBlock.STATE) == OverstressClutchBlock.ClutchState.UNCOUPLED) {
-                            if (state.getValue(OverstressClutchBlock.POWERED)) {
-                                return partialBaseModel(c, p, "uncoupled", "powered");
-                            } else {
-                                return partialBaseModel(c, p, "uncoupled");
-                            }
-                        } else {
-                            if (state.getValue(OverstressClutchBlock.POWERED)) {
-                                return partialBaseModel(c, p, "powered");
-                            } else {
-                                return partialBaseModel(c, p);
-                            }
-                        }
-                    })
-            )
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
 
@@ -271,8 +252,8 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(pickaxeOnly())
-            .blockstate(BlockStateGen.axisBlockProvider(false))
-            .onRegister(CreateRegistrate.blockModel(() -> BracketedKineticBlockModel::new))
+
+            .onRegister(CCRegistrate)
             .simpleItem()
             .register();
 
@@ -283,9 +264,9 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .blockstate((c, p) -> BlockStateGen.axisBlock(c, p, AssetLookup.forPowered(c, p)))
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<InvertedGearshiftBlock> INVERTED_GEARSHIFT = REGISTRATE.block("inverted_gearshift", InvertedGearshiftBlock::new)
@@ -295,9 +276,9 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .blockstate((c, p) -> BlockStateGen.axisBlock(c, p, AssetLookup.forPowered(c, p)))
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
 
@@ -308,9 +289,9 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .blockstate((c, p) -> p.directionalBlock(c.get(), forBoolean(c, state -> state.getValue(CentrifugalClutchBlock.UNCOUPLED), "uncoupled", p)))
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
 
@@ -321,9 +302,9 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .blockstate((c, p) -> p.directionalBlock(c.get(), forBoolean(c, state -> state.getValue(FreewheelClutchBlock.UNCOUPLED), "uncoupled", p)))
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
 
@@ -345,9 +326,9 @@ public class CCBlocks {
                     return BlockMovementChecks.CheckResult.PASS;
                 return BlockMovementChecks.CheckResult.SUCCESS;
             }))
-            .blockstate((c, p) -> p.directionalBlock(c.get(), $ -> partialBaseModel(c, p)))
+
             .item(KineticBridgeBlockItem::new)
-            .transform(customItemModel())
+
             .register();
 
 
@@ -364,9 +345,7 @@ public class CCBlocks {
                     return BlockMovementChecks.CheckResult.PASS;
                 return BlockMovementChecks.CheckResult.SUCCESS;
             }))
-            .blockstate((c, p) -> p.directionalBlock(c.get(),
-                    $ -> p.models().getExistingFile(p.modLoc("block/kinetic_bridge/block_destination"))
-            ))
+
             .lang("Kinetic Bridge")
             .register();
 
@@ -376,12 +355,12 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.BRASS_CASING)))
-            .onRegister(CreateRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.BRASS_CASING,
+            .onRegister(CCRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.BRASS_CASING)))
+            .onRegister(CCRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.BRASS_CASING,
                     (s, f) -> f.getAxis() == s.getValue(BrassGearboxBlock.AXIS))))
-            .blockstate(CCBlockStateGen.brassGearbox())
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<BrakeBlock> BRAKE = REGISTRATE.block("brake", BrakeBlock::new)
@@ -391,9 +370,9 @@ public class CCBlocks {
             .transform(CStress.setNoImpact()) // active stress is a separate config
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .blockstate((c, p) -> BlockStateGen.axisBlock(c, p, AssetLookup.forPowered(c, p)))
+
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<KineticBatteryBlock> KINETIC_BATTERY = REGISTRATE.block("kinetic_battery", KineticBatteryBlock::new)
@@ -405,7 +384,7 @@ public class CCBlocks {
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(DisplaySource.displaySource(CCDisplaySources.KINETIC_BATTERY))
             .transform(axeOrPickaxe())
-            .blockstate(new KineticBatteryGenerator()::generate)
+
             .loot((lt, block) -> {
                 LootTable.Builder builder = LootTable.lootTable();
                 LootItemCondition.Builder survivesExplosion = ExplosionCondition.survivesExplosion();
@@ -426,8 +405,8 @@ public class CCBlocks {
     public static final BlockEntry<SequencedPulseGeneratorBlock> SEQUENCED_PULSE_GENERATOR =
             REGISTRATE.block("sequenced_pulse_generator", SequencedPulseGeneratorBlock::new)
                     .initialProperties(() -> Blocks.REPEATER)
-                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-                    .blockstate(CCBlockStateGen.sequencedPulseGenerator())
+                    .tag(AllBlockTags.SAFE_NBT)
+
                     .transform(FeatureToggle.register(FeatureCategory.REDSTONE))
                     .addLayer(() -> RenderType::cutoutMipped)
                     .simpleItem()
@@ -437,7 +416,7 @@ public class CCBlocks {
 
     static {
         BlockSetType.values().forEach(type -> {
-            Block button = RegisteredObjectsHelper.getBlock(ResourceLocation.parse(type.name() + "_button"));
+            Block button = RegisteredObjectsHelper.getBlock(Identifier.parse(type.name() + "_button"));
             if (button == null) return;
             if (!(button instanceof ButtonBlock buttonBlock))
                 return;
@@ -445,14 +424,11 @@ public class CCBlocks {
             LINKED_BUTTONS.put(type, REGISTRATE
                     .block("linked_" + namePath + "_button", properties -> new LinkedButtonBlock(properties, buttonBlock))
                     .initialProperties(() -> buttonBlock)
-                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+                    .tag(AllBlockTags.SAFE_NBT)
                     .addLayer(() -> RenderType::cutoutMipped)
                     .transform(LinkedTransmitterItem.register())
                     .onRegister(PreciseItemUseOverrides::addBlock)
-                    .blockstate(CCBlockStateGen.linkedButton(
-                            ResourceLocation.withDefaultNamespace("block/" + namePath + "_button"),
-                            ResourceLocation.withDefaultNamespace("block/" + namePath + "_button_pressed")
-                    ))
+
                     .register());
         });
     }
@@ -460,26 +436,21 @@ public class CCBlocks {
     public static final BlockEntry<LinkedLeverBlock> LINKED_LEVER = REGISTRATE
             .block("linked_lever", properties -> new LinkedLeverBlock(properties, (LeverBlock) Blocks.LEVER))
             .initialProperties(() -> Blocks.LEVER)
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .tag(AllBlockTags.SAFE_NBT)
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(LinkedTransmitterItem.register())
             .onRegister(PreciseItemUseOverrides::addBlock)
-            .blockstate(CCBlockStateGen.linkedLever(
-                    ResourceLocation.withDefaultNamespace("block/lever"),
-                    ResourceLocation.withDefaultNamespace("block/lever_on")
-            ))
+
             .register();
 
     public static final BlockEntry<LinkedAnalogLeverBlock> LINKED_ANALOG_LEVER = REGISTRATE
             .block("linked_analog_lever", properties -> new LinkedAnalogLeverBlock(properties, AllBlocks.ANALOG_LEVER))
             .initialProperties(() -> Blocks.LEVER)
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .tag(AllBlockTags.SAFE_NBT)
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(LinkedTransmitterItem.register())
             .onRegister(PreciseItemUseOverrides::addBlock)
-            .blockstate(CCBlockStateGen.linkedLeverNoPower(
-                    Create.asResource("block/analog_lever/block")
-            ))
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> EMPTY_FAN_CATALYST = REGISTRATE.block("empty_fan_catalyst", WrenchableBlock::new)
@@ -493,10 +464,10 @@ public class CCBlocks {
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(pickaxeOnly())
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_BLASTING_CATALYST = REGISTRATE.block("fan_blasting_catalyst", WrenchableBlock::new)
@@ -511,11 +482,11 @@ public class CCBlocks {
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-            .tag(AllTags.AllBlockTags.FAN_PROCESSING_CATALYSTS_BLASTING.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
+            .tag(AllBlockTags.FAN_PROCESSING_CATALYSTS_BLASTING)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_SMOKING_CATALYST = REGISTRATE.block("fan_smoking_catalyst", WrenchableBlock::new)
@@ -530,11 +501,11 @@ public class CCBlocks {
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-            .tag(AllTags.AllBlockTags.FAN_PROCESSING_CATALYSTS_SMOKING.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
+            .tag(AllBlockTags.FAN_PROCESSING_CATALYSTS_SMOKING)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_SPLASHING_CATALYST = REGISTRATE.block("fan_splashing_catalyst", WrenchableBlock::new)
@@ -547,14 +518,14 @@ public class CCBlocks {
             )
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
+
             .color(() -> CCColorHandlers::waterBlockTint)
             .lang("Fan Washing Catalyst")
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-            .tag(AllTags.AllBlockTags.FAN_PROCESSING_CATALYSTS_SPLASHING.tag)
+            .tag(AllBlockTags.FAN_TRANSPARENT)
+            .tag(AllBlockTags.FAN_PROCESSING_CATALYSTS_SPLASHING)
             .item()
             .color(() -> CCColorHandlers::waterItemTint)
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_HAUNTING_CATALYST = REGISTRATE.block("fan_haunting_catalyst", WrenchableBlock::new)
@@ -569,11 +540,11 @@ public class CCBlocks {
             .addLayer(() -> RenderType::cutoutMipped)
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
-            .tag(AllTags.AllBlockTags.FAN_PROCESSING_CATALYSTS_HAUNTING.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
+            .tag(AllBlockTags.FAN_PROCESSING_CATALYSTS_HAUNTING)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_FREEZING_CATALYST = REGISTRATE.block("fan_freezing_catalyst", WrenchableBlock::new)
@@ -588,10 +559,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(() -> Mods.GARNISHED.isLoaded() || Mods.DREAMS_DESIRES.isLoaded() || Mods.DRAGONS_PLUS.isLoaded()))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_SEETHING_CATALYST = REGISTRATE.block("fan_seething_catalyst", WrenchableBlock::new)
@@ -607,10 +578,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.DREAMS_DESIRES::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_SANDING_CATALYST = REGISTRATE.block("fan_sanding_catalyst", WrenchableBlock::new)
@@ -625,10 +596,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(() -> Mods.DREAMS_DESIRES.isLoaded() || Mods.DRAGONS_PLUS.isLoaded()))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_ENRICHED_CATALYST = REGISTRATE.block("fan_enriched_catalyst", WrenchableBlock::new)
@@ -644,10 +615,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.NUCLEAR::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_ENDING_CATALYST_DRAGONS_BREATH = REGISTRATE.block("fan_ending_catalyst_dragons_breath", WrenchableBlock::new)
@@ -663,11 +634,11 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.DRAGONS_PLUS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .lang("Fan Ending Catalyst with Dragon's Breath")
             .item()
-            .transform(customItemModel())
+
             .lang("Fan Ending Catalyst with Dragon's Breath")
             .register();
 
@@ -685,11 +656,11 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.DRAGONS_PLUS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().getExistingFile(p.modLoc("block/empty_fan_catalyst/block"))))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .lang("Fan Ending Catalyst with Dragon Head")
             .item()
-            .transform(customItemModel())
+
             .lang("Fan Ending Catalyst with Dragon Head")
             .register();
 
@@ -706,10 +677,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(() -> false)) // No mods support bulk withering in 1.21.1
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_CHOCOLATE_COATING_CATALYST = REGISTRATE.block("fan_chocolate_coating_catalyst", WrenchableBlock::new)
@@ -724,10 +695,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.MORE_CATALYSTS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_HONEY_COATING_CATALYST = REGISTRATE.block("fan_honey_coating_catalyst", WrenchableBlock::new)
@@ -742,10 +713,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.MORE_CATALYSTS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<FanCatalystRotatingHeadBlock> FAN_EXPLODING_CATALYST = REGISTRATE
@@ -761,10 +732,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.MORE_CATALYSTS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().getExistingFile(p.modLoc("block/empty_fan_catalyst/block"))))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_RESONANCE_CATALYST = REGISTRATE.block("fan_resonance_catalyst", WrenchableBlock::new)
@@ -780,10 +751,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.MORE_CATALYSTS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_SCULKING_CATALYST = REGISTRATE.block("fan_sculking_catalyst", WrenchableBlock::new)
@@ -799,10 +770,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.MORE_CATALYSTS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_PURIFYING_CATALYST = REGISTRATE.block("fan_purifying_catalyst", WrenchableBlock::new)
@@ -818,10 +789,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.MORE_CATALYSTS::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_TRANSMUTATION_CATALYST = REGISTRATE.block("fan_transmutation_catalyst", WrenchableBlock::new)
@@ -837,10 +808,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.SHIMMER::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_GLOOMING_CATALYST = REGISTRATE.block("fan_glooming_catalyst", WrenchableBlock::new)
@@ -856,10 +827,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.SHIMMER::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final BlockEntry<WrenchableBlock> FAN_SOUL_STRIPPING_CATALYST = REGISTRATE.block("fan_soul_stripping_catalyst", WrenchableBlock::new)
@@ -874,10 +845,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
             .transform(FeatureToggle.addCondition(Mods.NETHER_INDUSTRY::isLoaded))
-            .blockstate((c, p) -> p.simpleBlock(c.getEntry(), AssetLookup.partialBaseModel(c, p)))
-            .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+
+            .tag(AllBlockTags.FAN_TRANSPARENT)
             .item()
-            .transform(customItemModel())
+
             .register();
 
     public static final Map<DyeColor, BlockEntry<WrenchableBlock>> FAN_DYEING_CATALYSTS = new TreeMap<>();
@@ -885,7 +856,7 @@ public class CCBlocks {
     static {
         for (DyeColor color : DyeColor.values()) {
             String namespace = DyeDepotCompat.getColorNamespace(color);
-            boolean isVanilla = namespace.equals(ResourceLocation.DEFAULT_NAMESPACE);
+            boolean isVanilla = namespace.equals(Identifier.DEFAULT_NAMESPACE);
             FAN_DYEING_CATALYSTS.put(color, REGISTRATE.block((isVanilla ? "" : (namespace + "_")) + color.getName() + "_fan_dyeing_catalyst", WrenchableBlock::new)
                     .initialProperties(() -> Blocks.IRON_BLOCK)
                     .properties(p -> p
@@ -898,11 +869,9 @@ public class CCBlocks {
                     .transform(pickaxeOnly())
                     .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
                     .transform(FeatureToggle.addCondition(() -> (Mods.DRAGONS_PLUS.isLoaded() || Mods.GARNISHED.isLoaded()) && (isVanilla || Mods.DYE_DEPOT.isLoaded())))
-                    .blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().withExistingParent(c.getName(), p.modLoc("block/fan_catalyst/with_content"))
-                            .texture("content", ResourceLocation.fromNamespaceAndPath(DyeDepotCompat.getColorNamespace(color), "block/" + color.getName() + "_concrete_powder"))
-                    ))
+
                     .lang(RegistrateLangProvider.toEnglishName(color.getName() + "_fan_dyeing_catalyst"))
-                    .tag(AllTags.AllBlockTags.FAN_TRANSPARENT.tag)
+                    .tag(AllBlockTags.FAN_TRANSPARENT)
                     .asOptional()
                     .simpleItem()
                     .register());
@@ -915,10 +884,7 @@ public class CCBlocks {
                     .explosionResistance(1200))
             .transform(pickaxeOnly())
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
-            .blockstate((c, p) -> p.getVariantBuilder(c.get())
-                    .forAllStates(s -> ConfiguredModel.builder()
-                            .modelFile(AssetLookup.standardModel(c, p))
-                            .build()))
+
             .onRegister(connectedTextures(ItemSiloCTBehaviour::new))
             .transform(MountedItemStorageType.mountedItemStorage(CCMountedStorageTypes.SILO))
             .onRegister(b -> BlockMovementChecks.registerAttachedCheck((state, world, pos, direction) -> {
@@ -935,8 +901,8 @@ public class CCBlocks {
             .properties(p -> p.noOcclusion().isRedstoneConductor((p1, p2, p3) -> true))
             .transform(pickaxeOnly())
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
-            .blockstate(new FluidVesselGenerator()::generate)
-            .onRegister(CreateRegistrate.blockModel(() -> FluidVesselModel::standard))
+
+            .onRegister(CCRegistrate)
             .onRegister(b -> BlockMovementChecks.registerAttachedCheck((state, world, pos, direction) -> {
                 if (state.getBlock() instanceof FluidVesselBlock)
                     return BlockMovementChecks.CheckResult.of(ConnectivityHandler.isConnected(world, pos, pos.relative(direction)));
@@ -947,7 +913,7 @@ public class CCBlocks {
             .onRegister(movementBehaviour(new FluidTankMovementBehavior()))
             .addLayer(() -> RenderType::cutoutMipped)
             .item(FluidVesselItem::new)
-            .model(AssetLookup.customBlockItemModel("_", "block_x_single_window"))
+            .model(AssetLookup)
             .build()
             .register();
 
@@ -957,9 +923,9 @@ public class CCBlocks {
                     .properties(p -> p.noOcclusion().mapColor(MapColor.COLOR_PURPLE))
                     .transform(pickaxeOnly())
                     .transform(FeatureToggle.registerDependent(FLUID_VESSEL))
-                    .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-                    .blockstate(new FluidVesselGenerator("creative_")::generate)
-                    .onRegister(CreateRegistrate.blockModel(() -> FluidVesselModel::creative))
+                    .tag(AllBlockTags.SAFE_NBT)
+
+                    .onRegister(CCRegistrate)
                     .addLayer(() -> RenderType::cutoutMipped)
                     .item(FluidVesselItem::new)
                     .properties(p -> p.rarity(Rarity.EPIC))
@@ -980,9 +946,9 @@ public class CCBlocks {
                     .properties(p -> p.mapColor(MapColor.TERRACOTTA_BROWN).noOcclusion())
                     .transform(axeOrPickaxe())
                     .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
-                    .blockstate(new InventoryAccessPortGenerator()::generate)
+
                     .item()
-                    .transform(customItemModel("_", "block_wall"))
+
                     .register();
 
     public static final BlockEntry<InventoryBridgeBlock> INVENTORY_BRIDGE =
@@ -991,19 +957,9 @@ public class CCBlocks {
                     .properties(p -> p.mapColor(MapColor.TERRACOTTA_BROWN).noOcclusion())
                     .transform(axeOrPickaxe())
                     .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
-                    .blockstate((c, p) -> BlockStateGen.axisBlock(c, p, state -> {
-                        boolean negative = state.getValue(InventoryBridgeBlock.ATTACHED_NEGATIVE);
-                        boolean positive = state.getValue(InventoryBridgeBlock.ATTACHED_POSITIVE);
-                        if (negative && positive)
-                            return AssetLookup.partialBaseModel(c, p, "both");
-                        if (negative)
-                            return AssetLookup.partialBaseModel(c, p, "negative");
-                        if (positive)
-                            return AssetLookup.partialBaseModel(c, p, "positive");
-                        return AssetLookup.partialBaseModel(c, p);
-                    }))
+
                     .item()
-                    .transform(customItemModel())
+
                     .register();
 
     public static final BlockEntry<BrassChuteBlock> BRASS_CHUTE = REGISTRATE.block("brass_chute", BrassChuteBlock::new)
@@ -1016,9 +972,9 @@ public class CCBlocks {
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
             .addLayer(() -> RenderType::cutoutMipped)
             .clientExtension(() -> () -> new ReducedDestroyEffects())
-            .blockstate(new ChuteGenerator()::generate)
+
             .item(ChuteItem::new)
-            .transform(customItemModel("_", "block"))
+
             .register();
 
     public static final BlockEntry<DashboardBlock> DASHBOARD =
@@ -1029,13 +985,9 @@ public class CCBlocks {
                     .transform(axeOrPickaxe())
                     .transform(FeatureToggle.register(FeatureCategory.KINETIC))
                     .transform(displayTarget(CCDisplayTargets.DASHBOARD))
-                    .blockstate((c, p) -> p.horizontalBlock(c.get(), s -> {
-                        if (s.getValue(DashboardBlock.OPEN))
-                            return AssetLookup.partialBaseModel(c, p, "open");
-                        return AssetLookup.partialBaseModel(c, p);
-                    }))
+
                     .item()
-                    .transform(customItemModel("_", "block_open"))
+
                     .register();
 
     public static final BlockEntry<CopycatSlabBlock> COPYCAT_SLAB =
@@ -1044,40 +996,40 @@ public class CCBlocks {
                     .tag(BlockTags.SLABS)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
                     .loot((lt, block) -> lt.add(block, lt.createSlabItemTable(block)))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatSlabModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_SLAB.tag)
-                    .transform(customItemModel("copycat_base", "slab"))
+
                     .register();
 
     public static final BlockEntry<CopycatBlockBlock> COPYCAT_BLOCK =
             REGISTRATE.block("copycat_block", CopycatBlockBlock::new)
                     .transform(BuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatBlockModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_BLOCK.tag)
-                    .transform(customItemModel("copycat_base", "block"))
+
                     .register();
 
     public static final BlockEntry<CopycatBeamBlock> COPYCAT_BEAM =
             REGISTRATE.block("copycat_beam", CopycatBeamBlock::new)
                     .transform(BuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatBeamModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_BEAM.tag)
-                    .transform(customItemModel("copycat_base", "beam"))
+
                     .register();
 
     public static final BlockEntry<CopycatVerticalStepBlock> COPYCAT_VERTICAL_STEP =
             REGISTRATE.block("copycat_vertical_step", CopycatVerticalStepBlock::new)
                     .transform(BuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatVerticalStepModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_VERTICAL_STEP.tag)
-                    .transform(customItemModel("copycat_base", "vertical_step"))
+
                     .register();
 
     public static final BlockEntry<CopycatStairsBlock> COPYCAT_STAIRS =
@@ -1085,10 +1037,10 @@ public class CCBlocks {
                     .transform(BuilderTransformers.copycat())
                     .tag(BlockTags.STAIRS)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatStairsModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_STAIRS.tag)
-                    .transform(customItemModel("copycat_base", "stairs"))
+
                     .register();
 
     public static final BlockEntry<WrappedStairsBlock> WRAPPED_COPYCAT_STAIRS =
@@ -1096,7 +1048,7 @@ public class CCBlocks {
                     .initialProperties(() -> Blocks.STONE_STAIRS)
                     .onRegister(b -> CopycatStairsBlock.stairs = b)
                     .tag(BlockTags.STAIRS)
-                    .blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().withExistingParent("wrapped_copycat_stairs", "block/barrier")))
+
                     .register();
 
     public static final BlockEntry<CopycatFenceBlock> COPYCAT_FENCE =
@@ -1104,10 +1056,10 @@ public class CCBlocks {
                     .transform(BuilderTransformers.copycat())
                     .tag(BlockTags.FENCES, Tags.Blocks.FENCES)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatFenceModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_FENCE.tag)
-                    .transform(customItemModel("copycat_base", "fence"))
+
                     .register();
 
     public static final BlockEntry<WrappedFenceBlock> WRAPPED_COPYCAT_FENCE =
@@ -1115,7 +1067,7 @@ public class CCBlocks {
                     .initialProperties(() -> Blocks.OAK_FENCE)
                     .onRegister(b -> CopycatFenceBlock.fence = b)
                     .tag(BlockTags.FENCES, Tags.Blocks.FENCES)
-                    .blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().withExistingParent("wrapped_copycat_fence", "block/barrier")))
+
                     .register();
 
     public static final BlockEntry<CopycatWallBlock> COPYCAT_WALL =
@@ -1124,10 +1076,10 @@ public class CCBlocks {
                     .properties(p -> p.forceSolidOn())
                     .tag(BlockTags.WALLS)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatWallModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_WALL.tag)
-                    .transform(customItemModel("copycat_base", "wall"))
+
                     .register();
 
     public static final BlockEntry<WrappedWallBlock> WRAPPED_COPYCAT_WALL =
@@ -1135,34 +1087,34 @@ public class CCBlocks {
                     .initialProperties(() -> Blocks.COBBLESTONE_WALL)
                     .onRegister(b -> CopycatWallBlock.wall = b)
                     .tag(BlockTags.WALLS)
-                    .blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().withExistingParent("wrapped_copycat_wall", "block/barrier")))
+
                     .register();
 
     public static final BlockEntry<CopycatFenceGateBlock> COPYCAT_FENCE_GATE =
             REGISTRATE.block("copycat_fence_gate", CopycatFenceGateBlock::new)
                     .transform(BuilderTransformers.copycat())
                     .properties(p -> p.forceSolidOn())
-                    .tag(BlockTags.FENCE_GATES, Tags.Blocks.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllTags.AllBlockTags.MOVABLE_EMPTY_COLLIDER.tag)
+                    .tag(BlockTags.FENCE_GATES, Tags.Blocks.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatFenceGateModel::new))
+                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_FENCE_GATE.tag)
-                    .transform(customItemModel("copycat_base", "fence_gate"))
+
                     .register();
 
     public static final BlockEntry<WrappedFenceGateBlock> WRAPPED_COPYCAT_FENCE_GATE =
             REGISTRATE.block("wrapped_copycat_fence_gate", p -> new WrappedFenceGateBlock(WoodType.OAK, p))
                     .initialProperties(() -> Blocks.OAK_FENCE_GATE)
                     .onRegister(b -> CopycatFenceGateBlock.fenceGate = b)
-                    .tag(BlockTags.FENCE_GATES, Tags.Blocks.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllTags.AllBlockTags.MOVABLE_EMPTY_COLLIDER.tag)
-                    .blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().withExistingParent("wrapped_copycat_fence_gate", "block/barrier")))
+                    .tag(BlockTags.FENCE_GATES, Tags.Blocks.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
+
                     .register();
 
     public static final BlockEntry<CopycatBoardBlock> COPYCAT_BOARD =
             REGISTRATE.block("copycat_board", CopycatBoardBlock::new)
                     .transform(BuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CreateRegistrate.blockModel(() -> CopycatBoardModel::new))
+                    .onRegister(CCRegistrate)
                     .loot((lt, block) -> {
                         LootTable.Builder builder = LootTable.lootTable();
                         for (Direction direction : Iterate.directions) {
@@ -1180,7 +1132,7 @@ public class CCBlocks {
                     })
                     .item()
                     .tag(CCTags.Items.COPYCAT_BOARD.tag)
-                    .transform(customItemModel("copycat_base", "board"))
+
                     .register();
 
     public static void register() {
