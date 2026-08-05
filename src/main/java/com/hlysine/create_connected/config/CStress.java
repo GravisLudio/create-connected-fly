@@ -3,7 +3,7 @@ package com.hlysine.create_connected.config;
 import com.hlysine.create_connected.CreateConnected;
 import com.zurrtum.create.Create;
 import com.hlysine.create_connected.foundation.registrate.BlockBuilder;
-import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
+import java.util.function.UnaryOperator;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import com.zurrtum.create.catnip.config.ConfigBase;
@@ -61,11 +61,11 @@ public class CStress extends ConfigBase {
         return value == null ? null : value::get;
     }
 
-    public static <B extends Block, P> NonNullUnaryOperator<BlockBuilder<B, P>> setNoImpact() {
+    public static <B extends Block, P> UnaryOperator<BlockBuilder<B, P>> setNoImpact() {
         return setImpact(0);
     }
 
-    public static <B extends Block, P> NonNullUnaryOperator<BlockBuilder<B, P>> setImpact(double value) {
+    public static <B extends Block, P> UnaryOperator<BlockBuilder<B, P>> setImpact(double value) {
         return builder -> {
             assertFromCC(builder);
             Identifier id = CreateConnected.asResource(builder.getName());
@@ -74,7 +74,7 @@ public class CStress extends ConfigBase {
         };
     }
 
-    public static <B extends Block, P> NonNullUnaryOperator<BlockBuilder<B, P>> setCapacity(double value) {
+    public static <B extends Block, P> UnaryOperator<BlockBuilder<B, P>> setCapacity(double value) {
         return builder -> {
             assertFromCC(builder);
             Identifier id = CreateConnected.asResource(builder.getName());

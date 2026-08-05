@@ -6,7 +6,7 @@ import com.zurrtum.create.AllSoundEvents;
 import com.zurrtum.create.api.schematic.requirement.SpecialBlockItemRequirement;
 import com.zurrtum.create.content.equipment.wrench.IWrenchable;
 import com.zurrtum.create.content.schematics.requirement.ItemRequirement;
-import com.tterrag.registrate.util.nullness.NonNullSupplier;
+import java.util.function.Supplier;
 import dev.simulated_team.simulated.content.blocks.throttle_lever.ThrottleLeverBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -40,9 +40,9 @@ public class LinkedThrottleLeverBlock extends ThrottleLeverBlock implements Spec
     public static BooleanProperty LOCKED = BlockStateProperties.LOCKED;
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
-    private final NonNullSupplier<ThrottleLeverBlock> baseSupplier;
+    private final Supplier<ThrottleLeverBlock> baseSupplier;
 
-    public LinkedThrottleLeverBlock(Properties pProperties, NonNullSupplier<ThrottleLeverBlock> baseSupplier) {
+    public LinkedThrottleLeverBlock(Properties pProperties, Supplier<ThrottleLeverBlock> baseSupplier) {
         super(pProperties);
         registerDefaultState(defaultBlockState().setValue(POWERED, false).setValue(LOCKED, false));
         this.baseSupplier = baseSupplier;

@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
  * <p>
  * Two things changed from the Registrate version. Registrate's builders carried a parent type
  * parameter for the fluent chain ({@code BlockBuilder<B, P>}); the replacement builder has no
- * parent to return to, so it takes one type argument. And {@code NonNullUnaryOperator} was only an
+ * parent to return to, so it takes one type argument. And {@code UnaryOperator} was only an
  * annotated {@link UnaryOperator}, so it maps straight across.
  * <p>
  * Dropped from these transformers: the loot table (data, already generated), the item model (same),

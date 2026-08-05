@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
 import com.hlysine.create_connected.foundation.registrate.BlockBuilder;
-import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
+import java.util.function.UnaryOperator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +18,7 @@ import java.util.List;
 public class LinkedTransmitterItem extends Item {
     public static final List<LinkedTransmitterBlock> MODULE_BLOCKS = new LinkedList<>();
 
-    public static <T extends Block & LinkedTransmitterBlock, P, S extends BlockBuilder<T, P>> NonNullUnaryOperator<S> register() {
+    public static <T extends Block & LinkedTransmitterBlock, P, S extends BlockBuilder<T, P>> UnaryOperator<S> register() {
         return b -> {
             b.onRegister(MODULE_BLOCKS::add);
             return b;

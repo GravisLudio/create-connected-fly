@@ -53,6 +53,12 @@ sourceSets.main.java {
     // cadenas de registro; se conservan por si algun dia se regeneran los JSON contra 26.2.
     exclude 'com/hlysine/create_connected/datagen/CCBlockStateGen.java'
     exclude 'com/hlysine/create_connected/datagen/CCDatagen.java'
+    exclude 'com/hlysine/create_connected/datagen/advancements/CCAdvancement.java'
+    // Generadores de blockstate/modelo por feature. Quedaron sin referencias al sacar el datagen
+    // de las cadenas de registro.
+    exclude 'com/hlysine/create_connected/content/fluidvessel/FluidVesselGenerator.java'
+    exclude 'com/hlysine/create_connected/content/inventoryaccessport/InventoryAccessPortGenerator.java'
+    exclude 'com/hlysine/create_connected/content/kineticbattery/KineticBatteryGenerator.java'
 }
 
 // Los 1025 JSONs que Registrate genero en 1.21.1. Se conservan y se migran a los

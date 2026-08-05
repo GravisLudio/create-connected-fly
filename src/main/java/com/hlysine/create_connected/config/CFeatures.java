@@ -39,15 +39,17 @@ public class CFeatures extends SyncConfigBase {
         return true;
     }
 
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        FeatureToggle.refreshItemVisibility();
-    }
-
-    @Override
-    public void onReload() {
-        super.onReload();
+    /**
+     * Refreshes which items are visible after config values change.
+     * <p>
+     * Was an override of ConfigBase.onLoad/onReload. Create Fly's ConfigBase has no lifecycle
+     * hooks at all -- it gives each config its own reload method and calls it from a resource
+     * reload listener, the way AllConfigs does. This mirrors that shape.
+     * <p>
+     * NOTE: nothing calls this yet. It needs hooking to the same reload path as the deferred
+     * config sync; until then a config change does not refresh item visibility until restart.
+     */
+    public void reload() {
         FeatureToggle.refreshItemVisibility();
     }
 

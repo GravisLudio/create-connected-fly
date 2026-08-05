@@ -81,12 +81,16 @@ public final class BlockBuilder<T extends Block> {
 
     // --- accepted and ignored; see class docs ---
 
-    public BlockBuilder<T> tag(TagKey<Block> ignored) {
+    /**
+     * Takes {@code TagKey<?>} rather than {@code TagKey<Block>} because Registrate's chain applied
+     * item tags after {@code item()} as well, and both erase to {@code TagKey} -- they cannot be
+     * separate overloads. Since this is a no-op either way, one permissive signature covers both.
+     */
+    public BlockBuilder<T> tag(TagKey<?> ignored) {
         return this;
     }
 
-    @SafeVarargs
-    public final BlockBuilder<T> tag(TagKey<Block>... ignored) {
+    public final BlockBuilder<T> tag(TagKey<?>... ignored) {
         return this;
     }
 

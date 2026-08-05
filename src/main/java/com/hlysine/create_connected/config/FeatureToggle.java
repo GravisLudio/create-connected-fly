@@ -5,7 +5,7 @@ import com.hlysine.create_connected.compat.Mods;
 import com.hlysine.create_connected.mixin.featuretoggle.CreativeModeTabsAccessor;
 import com.tterrag.registrate.builders.Builder;
 import com.hlysine.create_connected.foundation.registrate.BlockEntry;
-import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
+import java.util.function.UnaryOperator;
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
@@ -47,7 +47,7 @@ public class FeatureToggle {
     /**
      * Register this object to be a feature that is toggleable by the user
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> NonNullUnaryOperator<S> register() {
+    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> register() {
         return b -> {
             register(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()));
             return b;
@@ -57,7 +57,7 @@ public class FeatureToggle {
     /**
      * Register this object to be a feature that is toggleable by the user
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> NonNullUnaryOperator<S> register(FeatureCategory... categories) {
+    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> register(FeatureCategory... categories) {
         return b -> {
             register(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), categories);
             return b;
@@ -68,7 +68,7 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> NonNullUnaryOperator<S> registerDependent(Identifier dependency) {
+    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(Identifier dependency) {
         return b -> {
             registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency);
             return b;
@@ -79,7 +79,7 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> NonNullUnaryOperator<S> registerDependent(Identifier dependency, FeatureCategory... categories) {
+    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(Identifier dependency, FeatureCategory... categories) {
         return b -> {
             registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency, categories);
             return b;
@@ -90,7 +90,7 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> NonNullUnaryOperator<S> registerDependent(BlockEntry<?> dependency) {
+    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(BlockEntry<?> dependency) {
         return b -> {
             registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency.getId());
             return b;
@@ -101,7 +101,7 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> NonNullUnaryOperator<S> registerDependent(BlockEntry<?> dependency, FeatureCategory... categories) {
+    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(BlockEntry<?> dependency, FeatureCategory... categories) {
         return b -> {
             registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency.getId(), categories);
             return b;
@@ -111,7 +111,7 @@ public class FeatureToggle {
     /**
      * Add a condition to this feature.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> NonNullUnaryOperator<S> addCondition(Supplier<Boolean> condition) {
+    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> addCondition(Supplier<Boolean> condition) {
         return b -> {
             addCondition(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), condition);
             return b;

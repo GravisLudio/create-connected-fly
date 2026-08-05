@@ -7,7 +7,7 @@ import com.zurrtum.create.api.schematic.requirement.SpecialBlockItemRequirement;
 import com.zurrtum.create.content.equipment.wrench.IWrenchable;
 import com.zurrtum.create.content.redstone.analogLever.AnalogLeverBlock;
 import com.zurrtum.create.content.schematics.requirement.ItemRequirement;
-import com.tterrag.registrate.util.nullness.NonNullSupplier;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -40,9 +40,9 @@ public class LinkedAnalogLeverBlock extends AnalogLeverBlock implements SpecialB
     public static BooleanProperty LOCKED = BlockStateProperties.LOCKED;
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
-    private final NonNullSupplier<AnalogLeverBlock> baseSupplier;
+    private final Supplier<AnalogLeverBlock> baseSupplier;
 
-    public LinkedAnalogLeverBlock(Properties pProperties, NonNullSupplier<AnalogLeverBlock> baseSupplier) {
+    public LinkedAnalogLeverBlock(Properties pProperties, Supplier<AnalogLeverBlock> baseSupplier) {
         super(pProperties);
         registerDefaultState(defaultBlockState().setValue(POWERED, false).setValue(LOCKED, false));
         this.baseSupplier = baseSupplier;

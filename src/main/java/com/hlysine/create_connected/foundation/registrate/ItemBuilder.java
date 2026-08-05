@@ -47,12 +47,11 @@ public final class ItemBuilder<T extends Item> {
 
     // --- accepted and ignored ---
 
-    public ItemBuilder<T> tag(TagKey<Item> ignored) {
+    public ItemBuilder<T> tag(TagKey<?> ignored) {
         return this;
     }
 
-    @SafeVarargs
-    public final ItemBuilder<T> tag(TagKey<Item>... ignored) {
+    public final ItemBuilder<T> tag(TagKey<?>... ignored) {
         return this;
     }
 

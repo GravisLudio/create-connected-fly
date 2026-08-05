@@ -1,39 +1,28 @@
 package com.hlysine.create_connected.content.kineticbattery;
 
 import com.hlysine.create_connected.CreateConnected;
-import com.hlysine.create_connected.registries.CCDataComponents;
-import com.tterrag.registrate.providers.DataGenContext;
-import com.tterrag.registrate.providers.RegistrateItemModelProvider;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 
+/**
+ * Identifier for the kinetic battery's charge-level model property.
+ *
+ * <h2>Currently inert</h2>
+ * This class used to do two things, and 26.2 removed the basis for both:
+ * <ul>
+ *   <li>{@code registerModelOverridesClient} called {@code ItemProperties.register} to expose the
+ *       charge as a model property. {@code ItemProperties} no longer exists; item model properties
+ *       are registered through the item model definition system now.</li>
+ *   <li>{@code addOverrideModels} generated the six level models and their {@code overrides}
+ *       entries at datagen time. {@code overrides} was removed from the model format, and the
+ *       models are already committed, so there is nothing to generate.</li>
+ * </ul>
+ * The identifier is kept because a replacement needs the same property name, and the six
+ * {@code kinetic_battery_level_N} models are still present.
+ * <p>
+ * Consequence: the battery renders as empty at every charge level. See the TODO in
+ * {@code assets/create_connected/items/kinetic_battery.json}.
+ */
 public class KineticBatteryOverrides {
 
     public static final Identifier ID = CreateConnected.asResource("kinetic_battery_level");
-
-    @Environment(EnvType.CLIENT)
-    public static void registerModelOverridesClient(KineticBatteryBlockItem item) {
-        ItemProperties.register(item, ID, (pStack, pLevel, pEntity, pSeed) -> {
-            double level = pStack.getOrDefault(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0);
-            return KineticBatteryBlockEntity.getCrudeBatteryLevel(level, 5);
-        });
-    }
-
-    public static ItemModelBuilder addOverrideModels(DataGenContext<Item, KineticBatteryBlockItem> c,
-                                                     RegistrateItemModelProvider p) {
-        ItemModelBuilder builder = p.getBuilder(c.getName());
-        for (int i = 0; i <= 5; i++) {
-            builder.override()
-                    .predicate(ID, i)
-                    .model(p.withExistingParent("kinetic_battery_level_" + i, CreateConnected.asResource("block/kinetic_battery/item"))
-                            .texture("level", CreateConnected.asResource("block/kinetic_battery/level_" + i + "_discharge")))
-                    .end();
-        }
-        return builder;
-    }
 }
-

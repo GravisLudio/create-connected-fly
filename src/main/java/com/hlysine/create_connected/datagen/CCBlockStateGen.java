@@ -6,8 +6,8 @@ import com.hlysine.create_connected.content.sequencedpulsegenerator.SequencedPul
 import com.zurrtum.create.content.kinetics.base.RotatedPillarKineticBlock;
 import com.tterrag.registrate.providers.DataGenContext;
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
-import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
-import com.tterrag.registrate.util.nullness.NonNullFunction;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import com.zurrtum.create.catnip.data.Iterate;
 import net.minecraft.client.model.dragon.DragonHeadModel;
 import net.minecraft.core.Direction;
@@ -23,11 +23,10 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
 import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class CCBlockStateGen {
 
-    public static <B extends Block & LinkedTransmitterBlock> NonNullBiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> linkedButton(Identifier buttonOff, Identifier buttonOn) {
+    public static <B extends Block & LinkedTransmitterBlock> BiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> linkedButton(Identifier buttonOff, Identifier buttonOn) {
         return (DataGenContext<Block, B> c, RegistrateBlockstateProvider p) -> {
             linkedTransmitter(
                     p, c.get(),
@@ -46,7 +45,7 @@ public class CCBlockStateGen {
         };
     }
 
-    public static <B extends Block & LinkedTransmitterBlock> NonNullBiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> linkedLever(Identifier leverOff, Identifier leverOn) {
+    public static <B extends Block & LinkedTransmitterBlock> BiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> linkedLever(Identifier leverOff, Identifier leverOn) {
         return (DataGenContext<Block, B> c, RegistrateBlockstateProvider p) -> {
             linkedTransmitter(
                     p, c.get(),
@@ -65,7 +64,7 @@ public class CCBlockStateGen {
         };
     }
 
-    public static <B extends Block & LinkedTransmitterBlock> NonNullBiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> linkedLeverNoPower(Identifier lever) {
+    public static <B extends Block & LinkedTransmitterBlock> BiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> linkedLeverNoPower(Identifier lever) {
         return (DataGenContext<Block, B> c, RegistrateBlockstateProvider p) -> {
             linkedTransmitterNoPower(
                     p, c.get(),
@@ -83,7 +82,7 @@ public class CCBlockStateGen {
     }
 
 
-    public static void linkedTransmitter(RegistrateBlockstateProvider prov, Block block, NonNullFunction<BlockState, ModelFile> baseModel, NonNullFunction<BlockState, ModelFile> moduleModel, NonNullFunction<BlockState, Boolean> uvLock) {
+    public static void linkedTransmitter(RegistrateBlockstateProvider prov, Block block, Function<BlockState, ModelFile> baseModel, Function<BlockState, ModelFile> moduleModel, Function<BlockState, Boolean> uvLock) {
         MultiPartBlockStateBuilder builder = prov.getMultipartBuilder(block);
 
         Set<LinkedTransmitterState> processedStates = new HashSet<>();
@@ -125,7 +124,7 @@ public class CCBlockStateGen {
         }
     }
 
-    public static void linkedTransmitterNoPower(RegistrateBlockstateProvider prov, Block block, NonNullFunction<BlockState, ModelFile> baseModel, NonNullFunction<BlockState, ModelFile> moduleModel, NonNullFunction<BlockState, Boolean> uvLock) {
+    public static void linkedTransmitterNoPower(RegistrateBlockstateProvider prov, Block block, Function<BlockState, ModelFile> baseModel, Function<BlockState, ModelFile> moduleModel, Function<BlockState, Boolean> uvLock) {
         MultiPartBlockStateBuilder builder = prov.getMultipartBuilder(block);
 
         Set<LinkedTransmitterState> processedStates = new HashSet<>();
@@ -169,7 +168,7 @@ public class CCBlockStateGen {
     private record LinkedTransmitterState(Direction facing, AttachFace face, boolean powered) {
     }
 
-    public static <B extends SequencedPulseGeneratorBlock> NonNullBiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> sequencedPulseGenerator() {
+    public static <B extends SequencedPulseGeneratorBlock> BiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> sequencedPulseGenerator() {
         return (c, p) -> {
             Map<Boolean, Identifier> baseOff = new HashMap<>();
             baseOff.put(false, p.modLoc("block/" + c.getName() + "_off"));
@@ -205,7 +204,7 @@ public class CCBlockStateGen {
         };
     }
 
-    public static <B extends BrassGearboxBlock> NonNullBiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> brassGearbox() {
+    public static <B extends BrassGearboxBlock> BiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> brassGearbox() {
         return (c, p) -> {
             Identifier sideTop = p.modLoc("block/" + c.getName() + "_top");
             Identifier sideBottom = p.modLoc("block/" + c.getName() + "_bottom");
@@ -251,7 +250,7 @@ public class CCBlockStateGen {
         };
     }
 
-    public static <B extends RotatedPillarKineticBlock> NonNullBiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> axisBlock() {
+    public static <B extends RotatedPillarKineticBlock> BiConsumer<DataGenContext<Block, B>, RegistrateBlockstateProvider> axisBlock() {
         return (c, p) -> {
             Vector<ModelFile> models = new Vector<>(16);
             for (Direction.Axis axis : Iterate.axes)

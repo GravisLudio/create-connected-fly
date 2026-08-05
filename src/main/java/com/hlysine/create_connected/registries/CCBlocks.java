@@ -42,12 +42,10 @@ import com.hlysine.create_connected.content.crossconnector.EncasedCrossConnector
 import com.hlysine.create_connected.content.dashboard.DashboardBlock;
 import com.hlysine.create_connected.content.fancatalyst.FanCatalystRotatingHeadBlock;
 import com.hlysine.create_connected.content.fluidvessel.FluidVesselBlock;
-import com.hlysine.create_connected.content.fluidvessel.FluidVesselGenerator;
 import com.hlysine.create_connected.content.fluidvessel.FluidVesselItem;
 import com.hlysine.create_connected.content.fluidvessel.FluidVesselModel;
 import com.hlysine.create_connected.content.freewheelclutch.FreewheelClutchBlock;
 import com.hlysine.create_connected.content.inventoryaccessport.InventoryAccessPortBlock;
-import com.hlysine.create_connected.content.inventoryaccessport.InventoryAccessPortGenerator;
 import com.hlysine.create_connected.content.inventorybridge.InventoryBridgeBlock;
 import com.hlysine.create_connected.content.invertedclutch.InvertedClutchBlock;
 import com.hlysine.create_connected.content.invertedgearshift.InvertedGearshiftBlock;
@@ -56,7 +54,6 @@ import com.hlysine.create_connected.content.itemsilo.ItemSiloCTBehaviour;
 import com.hlysine.create_connected.content.itemsilo.ItemSiloItem;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlock;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockItem;
-import com.hlysine.create_connected.content.kineticbattery.KineticBatteryGenerator;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryOverrides;
 import com.hlysine.create_connected.content.kineticbridge.KineticBridgeBlock;
 import com.hlysine.create_connected.content.kineticbridge.KineticBridgeBlockItem;
@@ -824,7 +821,9 @@ public class CCBlocks {
                     )
                     .transform(pickaxeOnly())
                     .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
-                    .transform(FeatureToggle.addCondition(() -> (Mods.DRAGONS_PLUS.isLoaded() || Mods.GARNISHED.isLoaded()) && (isVanilla || Mods.DYE_DEPOT.isLoaded())))
+                    // isVanilla is always true now: DyeDepotCompat is excluded, so every colour
+                    // uses the vanilla namespace. The second half of the condition collapses.
+                    .transform(FeatureToggle.addCondition(() -> Mods.DRAGONS_PLUS.isLoaded() || Mods.GARNISHED.isLoaded()))
 
                     .lang(RegistrateLangProvider.toEnglishName(color.getName() + "_fan_dyeing_catalyst"))
                     .tag(AllBlockTags.FAN_TRANSPARENT)

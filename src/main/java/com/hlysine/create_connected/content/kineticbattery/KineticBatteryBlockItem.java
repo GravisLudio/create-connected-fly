@@ -60,7 +60,11 @@ public class KineticBatteryBlockItem extends BlockItem {
                 .addTo(tooltipComponents);
     }
 
+    /**
+     * No-op. Registered the charge-level model property through {@code ItemProperties}, which 26.2
+     * removed; see {@link KineticBatteryOverrides}. Kept so the call site stays put for whoever
+     * wires up the replacement.
+     */
     public void registerModelOverrides() {
-        CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> KineticBatteryOverrides.registerModelOverridesClient(this));
     }
 }
