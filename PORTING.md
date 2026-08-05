@@ -8,7 +8,7 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**1,277 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**802 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
 
 Every number in this document was produced by running `gradlew compileJava`, not estimated.
 
@@ -17,14 +17,14 @@ Every number in this document was produced by running `gradlew compileJava`, not
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 7 commits of port work on top of upstream history |
+| Branch | `main`, 11 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
 
 - **JDK 25** required (Create Fly demands it). Installed at `C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot`, pointed at via `org.gradle.java.home` in `gradle.properties` so the system `JAVA_HOME` can stay on 21.
 - Gradle 9.4.1, Fabric Loom 1.16.3, MC 26.2-rc-2, fabric-api 0.152.0, Create Fly 6.0.9-1.
-- Everything is cached. **Compiling needs no network.** Do not run `--refresh-dependencies` on a flaky connection — that is the one command that revalidates against remote repos.
+- Everything is cached. **Compiling needs no network.** Do not run `--refresh-dependencies` on a flaky connection — that is the one command that revalidates against remote repos. Adding a new `fabricApi.module(...)` line does need the network once, to fetch that module.
 
 ---
 
@@ -75,6 +75,14 @@ Deliberate omissions, each one there to make javac point at work that has to mov
 
 `tag()` takes `TagKey<?>` rather than `TagKey<Block>`: Registrate applied block tags before `item()` and item tags after, on the same chain, and the two erase to the same signature so they cannot be overloads.
 
+`item()` returns a `BlockItemBuilder` rather than the block builder, because `.properties(...)` after `.item(...)` was configuring the *item*, and the two `Properties` types cannot share one method. Chains end either `build().register()` or with a bare `register()` — Registrate allowed both, since the datagen transforms that used to sit between closed the sub-builder themselves. Both return the block entry.
+
+`BlockEntry` and `ItemEntry` implement a small `ItemProvider` interface, standing in for Registrate's `ItemProviderEntry<?, ?>`, so the creative tab and the ponder plugin can hold one list of either.
+
+### Block-keyed behaviours
+
+Create exposed these as static transforms on the registrate chain (`DisplaySource.displaySource(...)`). Create Fly dropped them and fills the block-keyed registries directly after registration instead. `foundation/registrate/CCBehaviours` reproduces the chained spelling over those registries, so the call sites in `CCBlocks` read as they did.
+
 ### Single source set
 
 `splitEnvironmentSourceSets()` was tried and **abandoned**. It would have required surgery on 49 files that mix registration with rendering. With one source set the whole Create Fly jar — main and client — is on the classpath. Environment isolation stays as it was under NeoForge: `@Environment(EnvType.CLIENT)` plus a separate client mixin config.
@@ -124,6 +132,10 @@ In Loom 1.16 / MC 26.2 the production namespace is already mojmap, so there is n
 
 A generated sed script full of `<BS>com.simibubi...<BS>` matches nothing, and the script cheerfully reports success. The first mass rename did nothing at all and I nearly built on top of it. **Always count before and after.**
 
+### An unregistered resource condition means *true*, not false
+
+Fabric skips condition ids it does not know and treats the resource as loading normally. So deleting a condition that should have been switched off silently **enables** the recipes it guarded. `FeatureEnabledInCopycatsCondition` can only ever return false while Copycats+ is excluded, and it is still registered for exactly this reason.
+
 ### The datagen stripper corrupted nested calls
 
 `strip-datagen.pl` removed datagen calls nested inside *other* calls' arguments, leaving dangling receivers like `.onRegister(CCRegistrate)` — broken Java, not merely wrong. Twelve sites. Its drop list also named `blockModel` but not bare `model`, so those chains survived whole. Both fixed, but if the script is ever re-run:
@@ -135,6 +147,26 @@ grep -nE "\.(onRegister|transform)\((CCRegistrate|AssetLookup|BuilderTransformer
 ### Fluid amounts changed by a factor of 81
 
 Fabric counts droplets at 81 per mB. NeoForge's `1000` is `81000`. Nothing fails at load time — the recipe just quietly asks for 81× less fluid. Spotted because a Create Fly recipe used `8100` where the NeoForge one used `100`.
+
+### The fabric-api artifact contains no classes
+
+`net.fabricmc.fabric-api:fabric-api` is a container: 53 nested jars and nothing of its own. Declared as plain `implementation` it puts **nothing** on the compile classpath, and every `net.fabricmc.fabric` import fails with *package does not exist* — an error that names no jar and reads like the import is simply wrong. `modImplementation` would have unpacked it, but those configurations are gone (see above), so each module has to be named:
+
+```groovy
+implementation fabricApi.module("fabric-creative-tab-api-v1", fabric_version)
+```
+
+**Artifact names do not follow package names.** `net.fabricmc.fabric.api.itemgroup.v1` was renamed to `net.fabricmc.fabric.api.creativetab.v1` and ships in `fabric-creative-tab-api-v1` — guessing `fabric-item-group-api-v1` fails at configuration time. To find the right one, list the nested jars:
+
+```bash
+unzip -l ~/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/*/*/fabric-api-*.jar
+```
+
+Then read the module's own `-sources.jar` before writing against it — several of these APIs were reshaped, not just moved.
+
+### Private fields with public getters of the same name
+
+`Level.isClientSide` is a private field now, with a public `isClientSide()`. The error is `isClientSide has private access in Level`, which reads like a missing classtweaker entry — it is not. Same story elsewhere; check for a same-named getter before widening anything.
 
 ### `javax.annotation` does not exist here
 
@@ -173,12 +205,23 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 - `ResourceLocation` → `Identifier` (`net.minecraft.resources.Identifier`)
 - `RenderType` → `net.minecraft.client.renderer.rendertype.RenderType`; chunk layers are `ChunkSectionLayer`
 - `net.minecraft.references.BlockItemId` is new — pairs a block key with an item key
-- `Blocks.COPPER_BLOCK` is a `WeatheringCopperCollection`, reach the plain variant with `.weathering().unaffected()`
+- `Blocks.COPPER_BLOCK` **and `Items.COPPER_BLOCK`** are a `WeatheringCopperCollection`, reach the plain variant with `.weathering().unaffected()`
 - NBT getters return `Optional`; use `getXOr(key, default)` / `getXOrEmpty(key)`, and `getList` lost its type argument
 - Block entity `read`/`write` take `ValueInput` / `ValueOutput` instead of `(CompoundTag, HolderLookup.Provider)`; positions go through `view.read/store` with `BlockPos.CODEC`, sub-tags through `view.childOrEmpty`
+- **`ValueInput` has no `contains()`.** `read()` returns an `Optional`, so an absent key and a null value fall through the same `orElse` — the `if (contains) read` pairs collapse to one line. It also carries its own registry lookup (`view.lookup()`), which removes the `DynamicOps` plumbing and Catnip's `CatnipCodecUtils.encode/decode`, both of which existed only to thread a `HolderLookup.Provider` through
+- `ItemStack.saveOptional(provider)` is gone; the codec is the only route (`ItemStack.OPTIONAL_CODEC.encodeStart(ops, stack)`)
 - `JukeboxSong.fromStack` dropped its `RegistryAccess` parameter
 - `@OnlyIn(Dist.CLIENT)` → `@Environment(EnvType.CLIENT)`
 - Create's `AllTags` was flattened: `AllTags.AllBlockTags` → top-level `AllBlockTags`, and the `.tag` accessor is gone
+- `ItemInteractionResult` folded back into `InteractionResult`; `PASS_TO_DEFAULT_BLOCK_INTERACTION` → `TRY_WITH_EMPTY_HAND`. `InteractionResultHolder<ItemStack>` is gone — its payload lives on `InteractionResult.Success#heldItemTransformedTo`, which cannot express a stack alongside a *failure*
+- `BlockAndTintGetter` **split**: common code takes `net.minecraft.world.level.BlockAndLightGetter`, client code keeps `BlockAndTintGetter` under `net.minecraft.client.renderer.block`
+- `BakedQuad` → `net.minecraft.client.resources.model.geometry.BakedQuad`; `SkullModelBase` → `net.minecraft.client.model.object.skull.SkullModelBase`
+- `CreativeModeTab.builder()` takes a `(Row, int)` placement; `withTabsBefore` is gone, so a tab's position relative to another mod's is no longer expressible. Create Fly passes `(null, -1)`
+
+### Gone with no code equivalent
+
+- **`BlockColor` / `ItemColor`.** Tinting is data-driven: a `BlockTintSource` or `ItemTintSource` declared in the model JSON. Nothing to register from code — see `CCColorHandlers`, now a stub recording which two assets need entries.
+- **`BakedModel`, `MultiBufferSource`, `GuiGraphics`.** Replaced by `QuadCollection` / `BlockStateModel`, `SubmitNodeCollector`, and `GuiGraphicsExtractor` respectively. This is the largest piece of work left; see below.
 
 ### Data and asset formats
 
@@ -202,6 +245,9 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 | Battery charge level | Kinetic battery renders empty at every charge | `assets/.../items/kinetic_battery.json` |
 | Config reload hook | Toggling a feature does not refresh item visibility until restart | `config/CFeatures` |
 | Feature toggle UI | No in-game config screen; toggles are edited by file | Create Fly has no `catnip.config.ui` |
+| Fan washing catalyst tint | Renders grey instead of water-coloured | `CCColorHandlers` (stub) — needs tint entries in two JSONs |
+| Creative tab ordering | The tab no longer sits after Create's palettes tab | `withTabsBefore` was removed from the builder |
+| Copycats+ migration | Copycat blocks never convert to their Copycats+ equivalents | `CopycatsManager` excluded; the gated branches were collapsed to their fallbacks |
 
 The first two are stubs with the full mapping recorded in their class docs — block, sprite shift, predicate, renderer, visual. They are ready to implement, not ready to guess at.
 
@@ -217,20 +263,35 @@ Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated,
 
 ## What is next
 
-No systemic transformation is left. The first ~5,900 errors fell to six or seven sweeping passes; the remaining 1,277 will fall in tens.
+The `registries/` package is essentially done — every one of its files is now under five errors. What is left splits into one large redesign and a long tail.
 
-Ranked by size:
+### The rendering rewrite — the single biggest piece
+
+Roughly 90 errors, and the only remaining item that is a **redesign rather than a rename**. 26.2 replaced the whole client model and draw path:
+
+| Was | Is now |
+|---|---|
+| `BakedModel` | `QuadCollection` / `BlockStateModel`, under `client.resources.model` |
+| `MultiBufferSource` | `SubmitNodeCollector` / `OrderedSubmitNodeCollector` |
+| `GuiGraphics` | `GuiGraphicsExtractor` |
+| NeoForge `ModelData` | no equivalent — model state travels differently |
+
+This lands on the eight copycat `*Model` classes, `FluidVesselModel`, `FluidVesselRenderer`, `ISimpleCopycatModel` and the `BakedQuadHelper` reimplementation. Read Create Fly's `client/mixin/WrapperBlockStateModelMixin` and its copycat models before starting — it solves the same problem for the same blocks.
+
+### The tail
 
 | File | Errors | What it needs |
 |---|---|---|
-| `registries/CCBlocks` | 76 | Leftover datagen references, `Tags`, block API changes |
-| `content/kineticbattery/KineticBatteryBlock` | 66 | Vanilla block API |
-| `registries/CCPonderPlugin` | 60 | Create Fly's ponder API (`com.zurrtum.create.client.ponder`) |
-| `content/fluidvessel/FluidVesselBlock` | 56 | Vanilla block API |
-| `content/overstressclutch/OverstressClutchBlockEntity` | 52 | |
-| `content/copycat/wall/CopycatWallBlock` | 52 | |
+| `content/copycat/wall/CopycatWallBlock` | 23 | Vanilla block API: `updateShape`, `propagatesSkylightDown`, wall-property renames |
+| `content/overstressclutch/OverstressClutchBlockEntity` | 19 | Scroll-value behaviour API |
+| `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 17 | Inventory rewrite (see below) |
+| `datagen/advancements/CriterionTriggerBase` | 17 | `CriteriaTriggers` / `Listener` reshaped in vanilla |
+| `content/fluidvessel/FluidVesselBlock` | 17 | Last of the capability migration; `Level.random` is protected now |
+| `config/FeatureToggle` | 12 | `ModConfigSpec` → Catnip's `Builder` |
 
 Also outstanding: **16 Create classes with no Create Fly equivalent**, which need reimplementing rather than renaming — `BakedQuadHelper`, `SafeBlockEntityRenderer`, `SmartFluidTank`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `BlockEntityConfigurationPacket`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `CreateAdvancement`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
+
+Two capability migrations remain: `BrassChute` and `InventoryAccessPort` (`FluidVessel` is partly done). The pattern is under *Architecture decisions*.
 
 After it compiles, the real work starts: mixins that compile but do not apply fail **at launch**, not at build. A mixin whose signature no longer mirrors its target is silently inert.
 
