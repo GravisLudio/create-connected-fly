@@ -1,5 +1,10 @@
 package com.hlysine.create_connected.content.inventoryaccessport;
 
+import com.zurrtum.create.foundation.item.ItemHelper;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.Container;
+import com.zurrtum.create.infrastructure.items.ItemInventoryProvider;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.zurrtum.create.content.equipment.wrench.IWrenchable;
 import com.zurrtum.create.content.redstone.DirectedDirectionalBlock;
@@ -18,13 +23,13 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.common.extensions.IBlockExtension;
+import com.zurrtum.create.foundation.block.NeighborUpdateListeningBlock;
 import com.zurrtum.create.infrastructure.items.ItemInventory;
 import org.jetbrains.annotations.NotNull;
 
-public class InventoryAccessPortBlock extends DirectedDirectionalBlock implements IBE<InventoryAccessPortBlockEntity>, IWrenchable, IBlockExtension {
+public class InventoryAccessPortBlock extends DirectedDirectionalBlock
+        implements IBE<InventoryAccessPortBlockEntity>, IWrenchable,
+        NeighborUpdateListeningBlock, ItemInventoryProvider<InventoryAccessPortBlockEntity> {
 
     public static BooleanProperty ATTACHED = BlockStateProperties.ATTACHED;
 
@@ -41,14 +46,11 @@ public class InventoryAccessPortBlock extends DirectedDirectionalBlock implement
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = defaultBlockState();
-        BlockCapability<ItemInventory, Direction> itemCap = Capabilities.ItemHandler.BLOCK;
 
         Direction preferredFacing = null;
         for (Direction face : context.getNearestLookingDirections()) {
-            BlockEntity be = context.getLevel()
-                    .getBlockEntity(context.getClickedPos()
-                            .relative(face));
-            if (be != null && context.getLevel().getCapability(itemCap, be.getBlockPos(), null) != null) {
+            BlockPos neighbour = context.getClickedPos().relative(face);
+            if (ItemHelper.getInventory(context.getLevel(), neighbour, null) != null) {
                 preferredFacing = face;
                 break;
             }
@@ -73,10 +75,21 @@ public class InventoryAccessPortBlock extends DirectedDirectionalBlock implement
         withBlockEntityDo(worldIn, pos, InventoryAccessPortBlockEntity::updateConnectedInventory);
     }
 
+    /**
+     * Was {@code IBlockExtension#onNeighborChange}, a NeoForge extension. Create Fly's
+     * {@code NeighborUpdateListeningBlock} is the equivalent hook; it hands over the source block
+     * and the moving flag, which the old signature did not carry.
+     */
     @Override
-    public void onNeighborChange(@NotNull BlockState state, @NotNull LevelReader level, @NotNull BlockPos pos, @NotNull BlockPos neighbor) {
-        super.onNeighborChange(state, level, pos, neighbor);
-        withBlockEntityDo(level, pos, InventoryAccessPortBlockEntity::updateConnectedInventory);
+    public void neighborUpdate(
+            @NotNull BlockState state,
+            @NotNull Level world,
+            @NotNull BlockPos pos,
+            @NotNull Block sourceBlock,
+            @NotNull BlockPos fromPos,
+            boolean isMoving
+    ) {
+        withBlockEntityDo(world, pos, InventoryAccessPortBlockEntity::updateConnectedInventory);
     }
 
     @Override
@@ -103,5 +116,16 @@ public class InventoryAccessPortBlock extends DirectedDirectionalBlock implement
         return CCBlockEntityTypes.INVENTORY_ACCESS_PORT.get();
     }
 
+    /** Replaces the NeoForge capability registration that lived in the block entity. */
+    @Override
+    public @Nullable Container getInventory(
+            LevelAccessor world,
+            BlockPos pos,
+            BlockState state,
+            InventoryAccessPortBlockEntity blockEntity,
+            @Nullable Direction context
+    ) {
+        return blockEntity.getItemInventory();
+    }
 }
 

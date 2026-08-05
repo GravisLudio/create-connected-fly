@@ -72,7 +72,6 @@ import com.hlysine.create_connected.content.parallelgearbox.ParallelGearboxBlock
 import com.hlysine.create_connected.content.sequencedpulsegenerator.SequencedPulseGeneratorBlock;
 import com.hlysine.create_connected.content.shearpin.ShearPinBlock;
 import com.hlysine.create_connected.content.sixwaygearbox.SixWayGearboxBlock;
-import com.hlysine.create_connected.datagen.CCBlockStateGen;
 import com.zurrtum.create.AllBlocks;
 import com.zurrtum.create.client.AllSpriteShifts;
 import com.zurrtum.create.AllBlockTags;

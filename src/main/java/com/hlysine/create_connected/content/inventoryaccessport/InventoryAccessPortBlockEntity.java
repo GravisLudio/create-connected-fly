@@ -1,5 +1,6 @@
 package com.hlysine.create_connected.content.inventoryaccessport;
 
+import com.zurrtum.create.foundation.item.ItemHelper;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
 import com.zurrtum.create.content.redstone.DirectedDirectionalBlock;
@@ -14,10 +15,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import com.zurrtum.create.infrastructure.items.ItemInventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +24,6 @@ import java.util.function.Supplier;
 
 import static com.hlysine.create_connected.content.inventoryaccessport.InventoryAccessPortBlock.ATTACHED;
 
-@EventBusSubscriber(modid = CreateConnected.MODID)
 public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
     protected ItemInventory itemCapability;
     private InvManipulationBehaviour observedInventory;
@@ -46,17 +42,11 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         updateConnectedInventory();
     }
 
-    @SubscribeEvent
-    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                CCBlockEntityTypes.INVENTORY_ACCESS_PORT.get(),
-                (be, context) -> {
-                    if (be.itemCapability == null)
-                        be.refreshCapability();
-                    return be.itemCapability;
-                }
-        );
+    /** Exposed through {@code ItemInventoryProvider} on the block. */
+    public ItemInventory getItemInventory() {
+        if (itemCapability == null)
+            refreshCapability();
+        return itemCapability;
     }
 
     @Override
@@ -110,7 +100,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
 
     private void refreshCapability() {
         itemCapability = new InventoryAccessHandler();
-        invalidateCapabilities();
+        ItemHelper.invalidateInventoryCache(worldPosition);
     }
 
     private class InventoryAccessHandler implements WrappedItemHandler {

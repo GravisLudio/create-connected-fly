@@ -1,5 +1,8 @@
 package com.hlysine.create_connected.content.itemsilo;
 
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.Container;
+import com.zurrtum.create.infrastructure.items.ItemInventoryProvider;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.zurrtum.create.api.connectivity.ConnectivityHandler;
@@ -22,9 +25,10 @@ import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.neoforged.neoforge.common.util.DeferredSoundType;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
-public class ItemSiloBlock extends Block implements IWrenchable, IBE<ItemSiloBlockEntity> {
+public class ItemSiloBlock extends Block
+        implements IWrenchable, IBE<ItemSiloBlockEntity>, ItemInventoryProvider<ItemSiloBlockEntity> {
     public static final BooleanProperty LARGE = ItemVaultBlock.LARGE;
 
     public ItemSiloBlock(Properties p_i48440_1_) {
@@ -109,6 +113,18 @@ public class ItemSiloBlock extends Block implements IWrenchable, IBE<ItemSiloBlo
     @Override
     public Class<ItemSiloBlockEntity> getBlockEntityClass() {
         return ItemSiloBlockEntity.class;
+    }
+
+    /** Replaces the NeoForge capability registration that lived in the block entity. */
+    @Override
+    public @Nullable Container getInventory(
+            LevelAccessor world,
+            BlockPos pos,
+            BlockState state,
+            ItemSiloBlockEntity blockEntity,
+            @Nullable Direction context
+    ) {
+        return blockEntity.getItemInventory();
     }
 }
 

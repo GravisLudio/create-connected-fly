@@ -1,8 +1,5 @@
 package com.hlysine.create_connected;
 
-import com.hlysine.create_connected.compat.AdditionalPlacementsCompat;
-import com.hlysine.create_connected.compat.CopycatsManager;
-import com.hlysine.create_connected.compat.Mods;
 import com.hlysine.create_connected.config.CCConfigs;
 import com.hlysine.create_connected.datagen.advancements.CCAdvancements;
 import com.hlysine.create_connected.datagen.advancements.CCTriggers;
@@ -10,7 +7,6 @@ import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
 import com.hlysine.create_connected.registries.*;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
@@ -61,11 +57,9 @@ public class CreateConnected implements ModInitializer {
         CCAdvancements.register();
         CCTriggers.register();
 
-        if (Mods.COPYCATS.isLoaded()) {
-            ServerTickEvents.END_WORLD_TICK.register(CopycatsManager::onLevelTick);
-        }
-
-        Mods.ADDITIONAL_PLACEMENTS.executeIfInstalled(() -> AdditionalPlacementsCompat::register);
+        // Copycats+ and Additional Placements integrations are excluded from the build until
+        // those mods exist on 26.2 -- see the sourceSets excludes in build.gradle. Their source
+        // is still in compat/, so re-enabling is a one-line change per mod.
     }
 
     public static CCRegistrate getRegistrate() {

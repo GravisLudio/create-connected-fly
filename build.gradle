@@ -25,6 +25,22 @@ loom {
     }
 }
 
+// Integraciones con mods que todavia no existen en 26.2. El codigo se conserva en el repo
+// --no se borra-- para reactivarlo cuando cada mod se portee; solo se saca del compilado.
+sourceSets.main.java {
+    exclude 'com/hlysine/create_connected/compat/AdditionalPlacementsCompat.java'  // Additional Placements
+    exclude 'com/hlysine/create_connected/compat/CopycatsManager.java'             // Copycats+
+    exclude 'com/hlysine/create_connected/compat/DyeDepotCompat.java'              // Dye Depot
+    exclude 'com/hlysine/create_connected/compat/SimCompatRegistry.java'           // Simulated
+    exclude 'com/hlysine/create_connected/compat/CreateConnectedJEI.java'          // JEI
+    exclude 'com/hlysine/create_connected/mixin/compat/**'
+
+    // Generadores de blockstates/modelos. Quedaron sin referencias al sacar el datagen de las
+    // cadenas de registro; se conservan por si algun dia se regeneran los JSON contra 26.2.
+    exclude 'com/hlysine/create_connected/datagen/CCBlockStateGen.java'
+    exclude 'com/hlysine/create_connected/datagen/CCDatagen.java'
+}
+
 // Los 1025 JSONs que Registrate genero en 1.21.1. Se conservan y se migran a los
 // formatos de 26.2 a mano (tarea #8) en vez de regenerarlos: Create Fly no tiene
 // Registrate, asi que no hay datagen equivalente que los vuelva a producir.

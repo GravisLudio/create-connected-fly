@@ -8,12 +8,7 @@ import com.zurrtum.create.content.logistics.chute.ChuteItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
-@EventBusSubscriber(modid = CreateConnected.MODID)
 public class BrassChuteBlockEntity extends ChuteBlockEntity {
     public BrassChuteBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -26,14 +21,5 @@ public class BrassChuteBlockEntity extends ChuteBlockEntity {
 
     public ChuteItemHandler itemHandler() {
         return ((ChuteBlockEntityAccessor) this).getItemHandler();
-    }
-
-    @SubscribeEvent
-    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                CCBlockEntityTypes.BRASS_CHUTE.get(),
-                (be, context) -> be.itemHandler()
-        );
     }
 }

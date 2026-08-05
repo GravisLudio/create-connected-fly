@@ -17,12 +17,16 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.capabilities.Capabilities;
+import com.zurrtum.create.foundation.item.ItemHelper;
 import com.zurrtum.create.infrastructure.items.ItemInventory;
+import com.zurrtum.create.infrastructure.items.ItemInventoryProvider;
+import net.minecraft.world.Container;
+import net.minecraft.world.level.LevelAccessor;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 
-public class InventoryBridgeBlock extends Block implements IBE<InventoryBridgeBlockEntity>, IWrenchable {
+public class InventoryBridgeBlock extends Block
+        implements IBE<InventoryBridgeBlockEntity>, IWrenchable, ItemInventoryProvider<InventoryBridgeBlockEntity> {
 
     public static BooleanProperty ATTACHED_POSITIVE = BooleanProperty.create("attached_positive");
     public static BooleanProperty ATTACHED_NEGATIVE = BooleanProperty.create("attached_negative");
@@ -45,14 +49,13 @@ public class InventoryBridgeBlock extends Block implements IBE<InventoryBridgeBl
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = defaultBlockState();
-        BlockCapability<ItemInventory, Direction> itemCap = Capabilities.ItemHandler.BLOCK;
 
         Direction preferredFacing = null;
         for (Direction face : context.getNearestLookingDirections()) {
-            BlockEntity be = context.getLevel()
-                    .getBlockEntity(context.getClickedPos()
-                            .relative(face));
-            if (be != null && context.getLevel().getCapability(itemCap, be.getBlockPos(), null) != null) {
+            BlockPos neighbour = context.getClickedPos().relative(face);
+            // Was a capability lookup; Create Fly resolves inventories through ItemHelper, which
+            // covers both block entities and vanilla WorldlyContainerHolder blocks.
+            if (ItemHelper.getInventory(context.getLevel(), neighbour, null) != null) {
                 preferredFacing = face;
                 break;
             }
@@ -119,5 +122,21 @@ public class InventoryBridgeBlock extends Block implements IBE<InventoryBridgeBl
         return CCBlockEntityTypes.INVENTORY_BRIDGE.get();
     }
 
+    // --- ItemInventoryProvider ---
+    // Replaces the NeoForge capability registration that used to live in the block entity.
+
+    // getBlockEntityClass() comes from Create's IBE, which already satisfies
+    // ItemInventoryProvider's requirement -- no second declaration needed.
+
+    @Override
+    public @Nullable Container getInventory(
+            LevelAccessor world,
+            BlockPos pos,
+            BlockState state,
+            InventoryBridgeBlockEntity blockEntity,
+            @Nullable Direction context
+    ) {
+        return blockEntity.getItemInventory();
+    }
 }
 

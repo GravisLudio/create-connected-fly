@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
+import org.jetbrains.annotations.Nullable;
+import com.zurrtum.create.infrastructure.fluids.FluidInventoryProvider;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.ConnectedLang;
 import com.zurrtum.create.api.connectivity.ConnectivityHandler;
@@ -57,7 +59,8 @@ import net.neoforged.neoforge.common.util.DeferredSoundType;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory;
 
-public class FluidVesselBlock extends Block implements IWrenchable, IBE<FluidVesselBlockEntity> {
+public class FluidVesselBlock extends Block
+        implements IWrenchable, IBE<FluidVesselBlockEntity>, FluidInventoryProvider<FluidVesselBlockEntity> {
 
     public static final BooleanProperty POSITIVE = BooleanProperty.create("positive");
     public static final BooleanProperty NEGATIVE = BooleanProperty.create("negative");
@@ -390,4 +393,18 @@ public class FluidVesselBlock extends Block implements IWrenchable, IBE<FluidVes
         controllerBE.updateBoilerState();
     }
 
+    /**
+     * Replaces the two per-block-entity-type capability registrations that lived in the block
+     * entity: one declaration here covers the normal and creative vessels alike.
+     */
+    @Override
+    public @Nullable FluidInventory getFluidInventory(
+            LevelAccessor world,
+            BlockPos pos,
+            BlockState state,
+            FluidVesselBlockEntity blockEntity,
+            @Nullable Direction context
+    ) {
+        return blockEntity.getFluidInventory();
+    }
 }

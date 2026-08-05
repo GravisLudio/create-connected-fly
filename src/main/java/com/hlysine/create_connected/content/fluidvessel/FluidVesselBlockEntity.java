@@ -1,5 +1,6 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
+import com.zurrtum.create.foundation.item.ItemHelper;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
 import com.zurrtum.create.api.connectivity.ConnectivityHandler;
@@ -20,23 +21,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory.FluidAction;
 import com.zurrtum.create.foundation.fluid.FluidTank;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.hlysine.create_connected.content.fluidvessel.FluidVesselBlock.*;
 import static net.minecraft.core.Direction.Axis;
 
-@EventBusSubscriber(modid = CreateConnected.MODID)
 public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHaveGoggleInformation, IMultiBlockEntityContainer.Fluid {
 
     private static final int MAX_SIZE = 3;
@@ -54,26 +50,17 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         refreshCapability();
     }
 
-    @SubscribeEvent
-    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.FluidHandler.BLOCK,
-                CCBlockEntityTypes.FLUID_VESSEL.get(),
-                (be, context) -> {
-                    if (be.fluidCapability == null)
-                        be.refreshCapability();
-                    return be.fluidCapability;
-                }
-        );
-        event.registerBlockEntity(
-                Capabilities.FluidHandler.BLOCK,
-                CCBlockEntityTypes.CREATIVE_FLUID_VESSEL.get(),
-                (be, context) -> {
-                    if (be.fluidCapability == null)
-                        be.refreshCapability();
-                    return be.fluidCapability;
-                }
-        );
+    /**
+     * Exposed through {@code FluidInventoryProvider} on {@link FluidVesselBlock}.
+     * <p>
+     * NeoForge needed one registration per block entity type against
+     * {@code Capabilities.FluidHandler.BLOCK}; the provider is declared on the block instead, so
+     * the normal and creative vessels are covered by the same declaration.
+     */
+    public FluidInventory getFluidInventory() {
+        if (fluidCapability == null)
+            refreshCapability();
+        return fluidCapability;
     }
 
     @Override
@@ -351,7 +338,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
 
     protected void refreshCapability() {
         fluidCapability = handlerForCapability();
-        invalidateCapabilities();
+        ItemHelper.invalidateInventoryCache(worldPosition);
     }
 
     protected FluidInventory handlerForCapability() {
