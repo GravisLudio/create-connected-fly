@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.inventorybridge;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.inventoryaccessport.WrappedItemHandler;
@@ -126,14 +128,14 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
     }
 
     @Override
-    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(tag, registries, clientPacket);
-        powered = tag.getBoolean("Powered");
+    protected void read(ValueInput tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
+        powered = tag.getBooleanOr("Powered", false);
     }
 
     @Override
-    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.write(tag, registries, clientPacket);
+    protected void write(ValueOutput tag, boolean clientPacket) {
+        super.write(tag, clientPacket);
         tag.putBoolean("Powered", powered);
     }
 

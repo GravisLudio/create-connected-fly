@@ -32,7 +32,7 @@ public class PackagerBlockMixin {
         if (player != null && !(player instanceof FakePlayer)) {
             BlockPos targetPos = context.getClickedPos().relative(preferredFacing.getOpposite());
             BlockState targetState = context.getLevel().getBlockState(targetPos);
-            if (targetState.is(CCBlocks.INVENTORY_ACCESS_PORT) || targetState.is(CCBlocks.INVENTORY_BRIDGE)) {
+            if (targetState.is(CCBlocks.INVENTORY_ACCESS_PORT.get()) || targetState.is(CCBlocks.INVENTORY_BRIDGE.get())) {
                 BlockEntity targetBlockEntity = context.getLevel().getBlockEntity(targetPos);
                 if (targetBlockEntity == null) return;
                 if (targetBlockEntity instanceof InventoryAccessPortBlockEntity inventoryAccess) {

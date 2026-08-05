@@ -24,9 +24,10 @@ classTweaker v1 official
 # accessible field net/minecraft/world/level/block/ButtonBlock type Lnet/minecraft/world/level/block/state/properties/BlockSetType;
 # accessible field net/minecraft/world/level/block/ButtonBlock ticksToStayPressed I
 
-# --- 4. JukeboxBlockEntity.jukeboxSongPlayer ---
-# Original: public net.minecraft.world.level.block.entity.JukeboxBlockEntity jukeboxSongPlayer
-# accessible field net/minecraft/world/level/block/entity/JukeboxBlockEntity jukeboxSongPlayer Lnet/minecraft/world/level/block/entity/JukeboxSongPlayer;
+# --- 4. JukeboxBlockEntity.jukeboxSongPlayer --- NO HACE FALTA
+# 26.2 expone un getter publico, JukeboxBlockEntity.getSongPlayer(), asi que los call sites lo
+# usan y no hay nada que abrir. (De paso: el campo es del tipo net.minecraft.world.item
+# .JukeboxSongPlayer, no world.level.block.entity como decia la traduccion tentativa.)
 
 # --- 5. LevelRenderer.notifyNearbyEntities(...) ---
 # Original: public net.minecraft.client.renderer.LevelRenderer notifyNearbyEntities(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Z)V

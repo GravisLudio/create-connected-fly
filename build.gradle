@@ -35,6 +35,17 @@ sourceSets.main.java {
     exclude 'com/hlysine/create_connected/compat/CreateConnectedJEI.java'          // JEI
     exclude 'com/hlysine/create_connected/mixin/compat/**'
 
+    // Mixins cuyo target no existe en 26.2:
+    // ThrottleLeverBlock es del mod Simulated (dev.simulated_team.simulated), no de Create.
+    exclude 'com/hlysine/create_connected/mixin/linkedtransmitter/ThrottleLeverBlockMixin.java'
+    // La pantalla de config de catnip no fue porteada: Create Fly tiene catnip.config pero no
+    // catnip.config.ui. Consecuencia: no hay UI in-game para los feature toggles; se editan por
+    // archivo. Restaurar si catnip.config.ui aparece.
+    exclude 'com/hlysine/create_connected/mixin/featuretoggle/SubMenuConfigScreenMixin.java'
+    // Create Fly no tiene ItemUseOverrides; el mecanismo completo desaparecio, no fue renombrado.
+    // Ver PreciseItemUseOverrides para la consecuencia de comportamiento.
+    exclude 'com/hlysine/create_connected/mixin/ItemUseOverridesMixin.java'
+
     // Generadores de blockstates/modelos. Quedaron sin referencias al sacar el datagen de las
     // cadenas de registro; se conservan por si algun dia se regeneran los JSON contra 26.2.
     exclude 'com/hlysine/create_connected/datagen/CCBlockStateGen.java'

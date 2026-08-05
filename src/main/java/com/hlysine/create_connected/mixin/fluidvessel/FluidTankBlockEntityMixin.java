@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.mixin.fluidvessel;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.content.fluidvessel.FluidVesselBlockEntity;
 import com.zurrtum.create.content.fluids.tank.FluidTankBlockEntity;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
@@ -40,10 +42,10 @@ public abstract class FluidTankBlockEntityMixin extends SmartBlockEntity {
             method = "read",
             cancellable = true
     )
-    private void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
+    private void read(ValueInput compound, boolean clientPacket, CallbackInfo ci) {
         FluidTankBlockEntity self = (FluidTankBlockEntity) (Object) this;
         if (self instanceof FluidVesselBlockEntity) {
-            super.read(compound, registries, clientPacket);
+            super.read(compound, clientPacket);
             ci.cancel();
         }
     }
@@ -54,10 +56,10 @@ public abstract class FluidTankBlockEntityMixin extends SmartBlockEntity {
             method = "write",
             cancellable = true
     )
-    private void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
+    private void write(ValueOutput compound, boolean clientPacket, CallbackInfo ci) {
         FluidTankBlockEntity self = (FluidTankBlockEntity) (Object) this;
         if (self instanceof FluidVesselBlockEntity) {
-            super.write(compound, registries, clientPacket);
+            super.write(compound, clientPacket);
             ci.cancel();
         }
     }

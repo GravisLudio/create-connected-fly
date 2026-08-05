@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.datagen.advancements;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
@@ -93,15 +95,15 @@ public class AdvancementBehaviour extends BlockEntityBehaviour {
     }
 
     @Override
-    public void write(CompoundTag nbt, HolderLookup.Provider registries, boolean clientPacket) {
-        super.write(nbt, registries, clientPacket);
+    public void write(ValueOutput nbt, boolean clientPacket) {
+        super.write(nbt, clientPacket);
         if (playerId != null)
             nbt.putUUID("Owner", playerId);
     }
 
     @Override
-    public void read(CompoundTag nbt, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(nbt, registries, clientPacket);
+    public void read(ValueInput nbt, boolean clientPacket) {
+        super.read(nbt, clientPacket);
         if (nbt.contains("Owner"))
             playerId = nbt.getUUID("Owner");
     }

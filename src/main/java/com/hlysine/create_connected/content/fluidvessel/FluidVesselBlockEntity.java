@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.zurrtum.create.foundation.item.ItemHelper;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
@@ -385,8 +387,8 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
     }
 
     @Override
-    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(compound, registries, clientPacket);
+    protected void read(ValueInput compound, boolean clientPacket) {
+        super.read(compound, clientPacket);
 
         BlockPos controllerBefore = controller;
         int prevWidth = width;
@@ -394,29 +396,29 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         int prevLum = luminosity;
 
         updateConnectivity = compound.contains("Uninitialized");
-        luminosity = compound.getInt("Luminosity");
+        luminosity = compound.getIntOr("Luminosity", 0);
 
         lastKnownPos = null;
         if (compound.contains("LastKnownPos"))
-            lastKnownPos = NBTHelper.readBlockPos(compound, "LastKnownPos");
+            lastKnownPos = compound.read("LastKnownPos", BlockPos.CODEC).orElse(null);
 
         controller = null;
         if (compound.contains("Controller"))
-            controller = NBTHelper.readBlockPos(compound, "Controller");
+            controller = compound.read("Controller", BlockPos.CODEC).orElse(null);
 
         if (isController()) {
-            window = compound.getBoolean("Window");
-            windowType = NBTHelper.readEnum(compound, "WindowType", WindowType.class);
-            width = compound.getInt("Size");
-            height = compound.getInt("Height");
+            window = compound.getBooleanOr("Window", false);
+            windowType = WindowType.valueOf(compound.getStringOr("WindowType", WindowType.SIDE_WIDE.name()));
+            width = compound.getIntOr("Size", 0);
+            height = compound.getIntOr("Height", 0);
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
 
-            tankInventory.readFromNBT(registries, compound.getCompound("TankContent"));
+            tankInventory.read(compound);
             if (tankInventory.getSpace() < 0)
                 tankInventory.drain(-tankInventory.getSpace(), FluidAction.EXECUTE);
         }
 
-        boiler.read(compound.getCompound("Boiler"), width * width * height);
+        boiler.read(compound.getCompoundOrEmpty("Boiler"), width * width * height);
 
         if (compound.contains("ForceFluidLevel") || fluidLevel == null)
             fluidLevel = LerpedFloat.linear()
@@ -453,23 +455,23 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
     }
 
     @Override
-    public void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+    public void write(ValueOutput compound, boolean clientPacket) {
         if (updateConnectivity)
             compound.putBoolean("Uninitialized", true);
         compound.put("Boiler", boiler.write());
         if (lastKnownPos != null)
-            compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            compound.store("LastKnownPos", BlockPos.CODEC, lastKnownPos);
         if (!isController())
-            compound.put("Controller", NbtUtils.writeBlockPos(controller));
+            compound.store("Controller", BlockPos.CODEC, controller);
         if (isController()) {
             compound.putBoolean("Window", window);
-            NBTHelper.writeEnum(compound, "WindowType", windowType);
-            compound.put("TankContent", tankInventory.writeToNBT(registries, new CompoundTag()));
+            compound.putString("WindowType", windowType.name());
+            tankInventory.write(compound);
             compound.putInt("Size", width);
             compound.putInt("Height", height);
         }
         compound.putInt("Luminosity", luminosity);
-        super.write(compound, registries, clientPacket);
+        super.write(compound, clientPacket);
 
         if (!clientPacket)
             return;

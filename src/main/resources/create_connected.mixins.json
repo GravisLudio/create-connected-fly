@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_25",
   "plugin": "com.hlysine.create_connected.mixin.MixinPlugin",
   "mixins": [
-    "ItemUseOverridesMixin",
     "KineticBlockAdvancementMixin",
     "ManualApplicationRecipeMixin",
     "RotationPropagatorAccessor",
@@ -43,7 +42,6 @@
     "kineticbattery.KineticNetworkAccessor",
     "linkedtransmitter.AnalogLeverBlockEntityAccessor",
     "linkedtransmitter.AnalogLeverBlockMixin",
-    "linkedtransmitter.ThrottleLeverBlockMixin",
     "nestedschematics.FilesHelperMixin",
     "nestedschematics.SchematicExportMixin",
     "nestedschematics.ServerSchematicLoaderMixin",

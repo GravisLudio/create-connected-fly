@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.dashboard;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.ConnectedLang;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
@@ -169,19 +171,19 @@ public class DashboardBlockEntity extends SmartBlockEntity {
     }
 
     @Override
-    public void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.write(tag, registries, clientPacket);
+    public void write(ValueOutput tag, boolean clientPacket) {
+        super.write(tag, clientPacket);
         DynamicOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         DataResult<Tag> result = SignText.DIRECT_CODEC.encodeStart(ops, this.text);
         result.result().ifPresent((tagResult) -> tag.put("text", tagResult));
     }
 
     @Override
-    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(tag, registries, clientPacket);
+    protected void read(ValueInput tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
         DynamicOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         if (tag.contains("text")) {
-            DataResult<SignText> result = SignText.DIRECT_CODEC.parse(ops, tag.getCompound("text"));
+            DataResult<SignText> result = SignText.DIRECT_CODEC.parse(ops, tag.getCompoundOrEmpty("text"));
             result.result().ifPresent((signText) -> this.text = signText);
         }
     }

@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.sequencedpulsegenerator;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.content.sequencedpulsegenerator.instructions.*;
 import com.hlysine.create_connected.datagen.advancements.AdvancementBehaviour;
 import com.hlysine.create_connected.datagen.advancements.CCAdvancements;
@@ -183,23 +185,23 @@ public class SequencedPulseGeneratorBlockEntity extends SmartBlockEntity {
     }
 
     @Override
-    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+    protected void write(ValueOutput tag, boolean clientPacket) {
         tag.putInt("InstructionIndex", currentInstruction);
         tag.putInt("PrevInput", previousInput);
         tag.putInt("CurrentInput", currentInput);
         tag.putInt("CurrentSignal", currentSignal);
         tag.put("Instructions", Instruction.serializeAll(instructions));
-        super.write(tag, registries, clientPacket);
+        super.write(tag, clientPacket);
     }
 
     @Override
-    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        currentInstruction = tag.getInt("InstructionIndex");
-        previousInput = tag.getInt("PrevInput");
-        currentInput = tag.getInt("CurrentInput");
-        currentSignal = tag.getInt("CurrentSignal");
-        ListTag list = tag.getList("Instructions", Tag.TAG_COMPOUND);
+    protected void read(ValueInput tag, boolean clientPacket) {
+        currentInstruction = tag.getIntOr("InstructionIndex", 0);
+        previousInput = tag.getIntOr("PrevInput", 0);
+        currentInput = tag.getIntOr("CurrentInput", 0);
+        currentSignal = tag.getIntOr("CurrentSignal", 0);
+        ListTag list = tag.getListOrEmpty("Instructions");
         instructions = Instruction.deserializeAll(list);
-        super.read(tag, registries, clientPacket);
+        super.read(tag, clientPacket);
     }
 }

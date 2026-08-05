@@ -56,7 +56,7 @@ public class CFeatures extends SyncConfigBase {
         synchronizedToggles = new HashMap<>();
         for (String key : nbt.getAllKeys()) {
             Identifier location = Identifier.parse(key);
-            synchronizedToggles.put(location, nbt.getBoolean(key));
+            synchronizedToggles.put(location, nbt.getBooleanOr(key, false));
         }
         FeatureToggle.refreshItemVisibility();
     }

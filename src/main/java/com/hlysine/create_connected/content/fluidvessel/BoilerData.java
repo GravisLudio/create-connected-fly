@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.config.CServer;
 import com.zurrtum.create.AllBlocks;
 import com.zurrtum.create.AllSoundEvents;
@@ -461,13 +463,13 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
     }
 
     @Override
-    public void read(CompoundTag nbt, int boilerSize) {
-        waterSupply = nbt.getFloat("Supply");
-        activeHeat = nbt.getInt("ActiveHeat");
-        passiveHeat = nbt.getBoolean("PassiveHeat");
-        attachedEngines = nbt.getInt("Engines");
-        attachedWhistles = nbt.getInt("Whistles");
-        needsHeatLevelUpdate = nbt.getBoolean("Update");
+    public void read(ValueInput nbt, int boilerSize) {
+        waterSupply = nbt.getFloatOr("Supply", 0f);
+        activeHeat = nbt.getIntOr("ActiveHeat", 0);
+        passiveHeat = nbt.getBooleanOr("PassiveHeat", false);
+        attachedEngines = nbt.getIntOr("Engines", 0);
+        attachedWhistles = nbt.getIntOr("Whistles", 0);
+        needsHeatLevelUpdate = nbt.getBooleanOr("Update", false);
         Arrays.fill(supplyOverTime, (int) waterSupply);
 
         int forBoilerSize = getMaxHeatLevelForBoilerSize(boilerSize);

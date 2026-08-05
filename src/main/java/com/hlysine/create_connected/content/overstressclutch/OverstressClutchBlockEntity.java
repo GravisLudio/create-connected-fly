@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.overstressclutch;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.hlysine.create_connected.ConnectedLang;
 import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlock.ClutchState;
@@ -157,15 +159,15 @@ public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
     }
 
     @Override
-    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
-        delay = compound.getInt("Delay");
-        super.read(compound, registries, clientPacket);
+    protected void read(ValueInput compound, boolean clientPacket) {
+        delay = compound.getIntOr("Delay", 0);
+        super.read(compound, clientPacket);
     }
 
     @Override
-    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+    protected void write(ValueOutput compound, boolean clientPacket) {
         compound.putInt("Delay", delay);
-        super.write(compound, registries, clientPacket);
+        super.write(compound, clientPacket);
     }
 
     public static class TimeDelayScrollValueBehaviour extends ScrollValueBehaviour {

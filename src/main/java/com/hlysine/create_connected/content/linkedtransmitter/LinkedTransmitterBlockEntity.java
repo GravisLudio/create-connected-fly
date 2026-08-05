@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.zurrtum.create.client.content.redstone.link.LinkBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
@@ -56,15 +58,15 @@ public class LinkedTransmitterBlockEntity extends SmartBlockEntity {
     }
 
     @Override
-    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+    protected void write(ValueOutput tag, boolean clientPacket) {
         tag.putInt("Transmit", transmittedSignal);
-        super.write(tag, registries, clientPacket);
+        super.write(tag, clientPacket);
     }
 
     @Override
-    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(tag, registries, clientPacket);
+    protected void read(ValueInput tag, boolean clientPacket) {
+        super.read(tag, clientPacket);
         if (level == null || level.isClientSide || !link.newPosition)
-            transmittedSignal = tag.getInt("Transmit");
+            transmittedSignal = tag.getIntOr("Transmit", 0);
     }
 }

@@ -113,7 +113,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
 
         withBlockEntityDo(worldIn, pos, be -> {
             //noinspection removal
-            if (stack.is(CCItems.CHARGED_KINETIC_BATTERY))
+            if (stack.is(CCItems.CHARGED_KINETIC_BATTERY.get()))
                 be.setBatteryLevel(KineticBatteryBlockEntity.getMaxBatteryLevel());
             else
                 be.setBatteryLevel(stack.getOrDefault(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0));

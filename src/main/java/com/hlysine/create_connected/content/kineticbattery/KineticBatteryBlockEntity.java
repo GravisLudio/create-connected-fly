@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.kineticbattery;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.ConnectedLang;
 import com.hlysine.create_connected.config.CServer;
 import com.hlysine.create_connected.content.ISplitShaftBlockEntity;
@@ -291,18 +293,18 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
     }
 
     @Override
-    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(compound, registries, clientPacket);
-        batteryLevel = compound.getFloat("batteryLevel");
-        queuedSync = compound.getBoolean("queuedSync");
-        consumedStress = compound.getFloat("consumedStress");
-        applyMinStress = compound.getBoolean("applyMinStress");
-        componentPatch = CatnipCodecUtils.decode(DataComponentPatch.CODEC, registries, compound.getCompound("Components")).orElse(DataComponentPatch.EMPTY);
+    protected void read(ValueInput compound, boolean clientPacket) {
+        super.read(compound, clientPacket);
+        batteryLevel = compound.getFloatOr("batteryLevel", 0f);
+        queuedSync = compound.getBooleanOr("queuedSync", false);
+        consumedStress = compound.getFloatOr("consumedStress", 0f);
+        applyMinStress = compound.getBooleanOr("applyMinStress", false);
+        componentPatch = CatnipCodecUtils.decode(DataComponentPatch.CODEC, registries, compound.getCompoundOrEmpty("Components")).orElse(DataComponentPatch.EMPTY);
     }
 
     @Override
-    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
-        super.write(compound, registries, clientPacket);
+    protected void write(ValueOutput compound, boolean clientPacket) {
+        super.write(compound, clientPacket);
         compound.putDouble("batteryLevel", batteryLevel);
         compound.putBoolean("queuedSync", queuedSync);
         compound.putFloat("consumedStress", consumedStress);

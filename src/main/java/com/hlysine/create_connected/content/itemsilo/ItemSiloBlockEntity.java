@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.itemsilo;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.zurrtum.create.foundation.item.ItemHelper;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
@@ -183,8 +185,8 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
     }
 
     @Override
-    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(compound, registries, clientPacket);
+    protected void read(ValueInput compound, boolean clientPacket) {
+        super.read(compound, clientPacket);
 
         BlockPos controllerBefore = controller;
         int prevSize = radius;
@@ -194,19 +196,19 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
 
         lastKnownPos = null;
         if (compound.contains("LastKnownPos"))
-            lastKnownPos = NBTHelper.readBlockPos(compound, "LastKnownPos");
+            lastKnownPos = compound.read("LastKnownPos", BlockPos.CODEC).orElse(null);
 
         controller = null;
         if (compound.contains("Controller"))
-            controller = NBTHelper.readBlockPos(compound, "Controller");
+            controller = compound.read("Controller", BlockPos.CODEC).orElse(null);
 
         if (isController()) {
-            radius = compound.getInt("Size");
-            length = compound.getInt("Length");
+            radius = compound.getIntOr("Size", 0);
+            length = compound.getIntOr("Length", 0);
         }
 
         if (!clientPacket) {
-            inventory.deserializeNBT(registries, compound.getCompound("Inventory"));
+            inventory.deserializeNBT(registries, compound.getCompoundOrEmpty("Inventory"));
             return;
         }
 
@@ -217,19 +219,19 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
     }
 
     @Override
-    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
+    protected void write(ValueOutput compound, boolean clientPacket) {
         if (updateConnectivity)
             compound.putBoolean("Uninitialized", true);
         if (lastKnownPos != null)
-            compound.put("LastKnownPos", NbtUtils.writeBlockPos(lastKnownPos));
+            compound.store("LastKnownPos", BlockPos.CODEC, lastKnownPos);
         if (!isController())
-            compound.put("Controller", NbtUtils.writeBlockPos(controller));
+            compound.store("Controller", BlockPos.CODEC, controller);
         if (isController()) {
             compound.putInt("Size", radius);
             compound.putInt("Length", length);
         }
 
-        super.write(compound, registries, clientPacket);
+        super.write(compound, clientPacket);
 
         if (!clientPacket) {
             compound.putString("StorageType", "CombinedInv");
