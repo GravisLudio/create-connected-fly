@@ -73,7 +73,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
     @Override
     protected void updateConnectivity() {
         updateConnectivity = false;
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         if (!isController())
             return;
@@ -142,7 +142,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
             }
         }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             setChanged();
             sendData();
         }
@@ -168,7 +168,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
 
     @Override
     public void removeController(boolean keepFluids) {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
         updateConnectivity = true;
         if (!keepFluids)
@@ -328,7 +328,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
 
     @Override
     public void setController(BlockPos controller) {
-        if (level.isClientSide && !isVirtual())
+        if (level.isClientSide() && !isVirtual())
             return;
         if (controller.equals(this.controller))
             return;
@@ -395,16 +395,13 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         int prevLength = height;
         int prevLum = luminosity;
 
-        updateConnectivity = compound.contains("Uninitialized");
+        updateConnectivity = compound.getBooleanOr("Uninitialized", false);
         luminosity = compound.getIntOr("Luminosity", 0);
 
-        lastKnownPos = null;
-        if (compound.contains("LastKnownPos"))
-            lastKnownPos = compound.read("LastKnownPos", BlockPos.CODEC).orElse(null);
+        // ValueInput has no contains(): an absent key and a null value both fall through orElse.
+        lastKnownPos = compound.read("LastKnownPos", BlockPos.CODEC).orElse(null);
 
-        controller = null;
-        if (compound.contains("Controller"))
-            controller = compound.read("Controller", BlockPos.CODEC).orElse(null);
+        controller = compound.read("Controller", BlockPos.CODEC).orElse(null);
 
         if (isController()) {
             window = compound.getBooleanOr("Window", false);
@@ -418,9 +415,9 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
                 tankInventory.drain(-tankInventory.getSpace(), FluidAction.EXECUTE);
         }
 
-        boiler.read(compound.getCompoundOrEmpty("Boiler"), width * width * height);
+        boiler.read(compound.childOrEmpty("Boiler"), width * width * height);
 
-        if (compound.contains("ForceFluidLevel") || fluidLevel == null)
+        if (compound.getBooleanOr("ForceFluidLevel", false) || fluidLevel == null)
             fluidLevel = LerpedFloat.linear()
                     .startWithValue(getFillState());
 
@@ -440,7 +437,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         }
         if (isController()) {
             float fillState = getFillState();
-            if (compound.contains("ForceFluidLevel") || fluidLevel == null)
+            if (compound.getBooleanOr("ForceFluidLevel", false) || fluidLevel == null)
                 fluidLevel = LerpedFloat.linear()
                         .startWithValue(fillState);
             fluidLevel.chase(fillState, 0.5f, LerpedFloat.Chaser.EXP);
@@ -450,7 +447,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
                     .getLightEngine()
                     .checkBlock(worldPosition);
 
-        if (compound.contains("LazySync"))
+        if (compound.getBooleanOr("LazySync", false))
             fluidLevel.chase(fluidLevel.getChaseTarget(), 0.125f, LerpedFloat.Chaser.EXP);
     }
 

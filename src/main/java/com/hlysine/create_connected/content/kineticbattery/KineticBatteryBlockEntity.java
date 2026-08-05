@@ -299,7 +299,9 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
         queuedSync = compound.getBooleanOr("queuedSync", false);
         consumedStress = compound.getFloatOr("consumedStress", 0f);
         applyMinStress = compound.getBooleanOr("applyMinStress", false);
-        componentPatch = CatnipCodecUtils.decode(DataComponentPatch.CODEC, registries, compound.getCompoundOrEmpty("Components")).orElse(DataComponentPatch.EMPTY);
+        // The view applies the codec against its own registry lookup, so Catnip's decode/encode
+        // helpers -- which existed to thread a HolderLookup.Provider through -- are not needed.
+        componentPatch = compound.read("Components", DataComponentPatch.CODEC).orElse(DataComponentPatch.EMPTY);
     }
 
     @Override
@@ -309,7 +311,7 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
         compound.putBoolean("queuedSync", queuedSync);
         compound.putFloat("consumedStress", consumedStress);
         compound.putBoolean("applyMinStress", applyMinStress);
-        compound.put("Components", CatnipCodecUtils.encode(DataComponentPatch.CODEC, registries, componentPatch).orElse(new CompoundTag()));
+        compound.store("Components", DataComponentPatch.CODEC, componentPatch);
     }
 
     @Override

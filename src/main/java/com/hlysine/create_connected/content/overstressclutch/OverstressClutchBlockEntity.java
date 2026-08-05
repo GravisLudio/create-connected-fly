@@ -155,7 +155,7 @@ public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
     @Override
     public void tick() {
         super.tick();
-        if (getBlockState().getValue(STATE) == ClutchState.UNCOUPLING && level != null && !level.isClientSide) {
+        if (getBlockState().getValue(STATE) == ClutchState.UNCOUPLING && level != null && !level.isClientSide()) {
             level.scheduleTick(getBlockPos(), CCBlocks.OVERSTRESS_CLUTCH.get(), 0, TickPriority.EXTREMELY_HIGH);
         }
     }

@@ -173,18 +173,14 @@ public class DashboardBlockEntity extends SmartBlockEntity {
     @Override
     public void write(ValueOutput tag, boolean clientPacket) {
         super.write(tag, clientPacket);
-        DynamicOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
-        DataResult<Tag> result = SignText.DIRECT_CODEC.encodeStart(ops, this.text);
-        result.result().ifPresent((tagResult) -> tag.put("text", tagResult));
+        // ValueOutput drives the codec itself, so the registry-aware DynamicOps this used to build
+        // by hand is gone -- the view already carries the lookup.
+        tag.store("text", SignText.DIRECT_CODEC, this.text);
     }
 
     @Override
     protected void read(ValueInput tag, boolean clientPacket) {
         super.read(tag, clientPacket);
-        DynamicOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
-        if (tag.contains("text")) {
-            DataResult<SignText> result = SignText.DIRECT_CODEC.parse(ops, tag.getCompoundOrEmpty("text"));
-            result.result().ifPresent((signText) -> this.text = signText);
-        }
+        tag.read("text", SignText.DIRECT_CODEC).ifPresent(signText -> this.text = signText);
     }
 }

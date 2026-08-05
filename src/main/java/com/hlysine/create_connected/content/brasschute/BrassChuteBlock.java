@@ -33,12 +33,12 @@ public class BrassChuteBlock extends ChuteBlock {
         if (shape == Shape.INTERSECTION)
             return InteractionResult.PASS;
         Level level = context.getLevel();
-        if (level.isClientSide)
+        if (level.isClientSide())
             return InteractionResult.SUCCESS;
         if (shape == Shape.ENCASED) {
             level.setBlockAndUpdate(context.getClickedPos(), state.setValue(SHAPE, Shape.NORMAL));
             level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, context.getClickedPos(),
-                    Block.getId(AllBlocks.BRASS_BLOCK.getDefaultState()));
+                    Block.getId(AllBlocks.BRASS_BLOCK.defaultBlockState()));
             return InteractionResult.SUCCESS;
         }
         if (down)
@@ -51,7 +51,7 @@ public class BrassChuteBlock extends ChuteBlock {
                                                  InteractionHand hand, BlockHitResult hitResult) {
         if (!stack.isEmpty())
             return InteractionResult.TRY_WITH_EMPTY_HAND;
-        if (level.isClientSide)
+        if (level.isClientSide())
             return InteractionResult.SUCCESS;
 
         return onBlockEntityUseItemOn(level, pos, be -> {
@@ -71,7 +71,7 @@ public class BrassChuteBlock extends ChuteBlock {
             return retrieveItem(stack, state, level, pos, player, hand, hitResult);
         if (shape == Shape.INTERSECTION || shape == Shape.ENCASED)
             return retrieveItem(stack, state, level, pos, player, hand, hitResult);
-        if (player == null || level.isClientSide)
+        if (player == null || level.isClientSide())
             return InteractionResult.SUCCESS;
 
         level.setBlockAndUpdate(pos, state.setValue(SHAPE, Shape.ENCASED));

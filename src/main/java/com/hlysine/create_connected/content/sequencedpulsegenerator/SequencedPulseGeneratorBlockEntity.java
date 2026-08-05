@@ -144,7 +144,7 @@ public class SequencedPulseGeneratorBlockEntity extends SmartBlockEntity {
 
         if (isIdle())
             return;
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
 
         executeInstruction(true, 0);

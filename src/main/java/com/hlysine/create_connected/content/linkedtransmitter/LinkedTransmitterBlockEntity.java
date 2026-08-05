@@ -66,7 +66,7 @@ public class LinkedTransmitterBlockEntity extends SmartBlockEntity {
     @Override
     protected void read(ValueInput tag, boolean clientPacket) {
         super.read(tag, clientPacket);
-        if (level == null || level.isClientSide || !link.newPosition)
+        if (level == null || level.isClientSide() || !link.newPosition)
             transmittedSignal = tag.getIntOr("Transmit", 0);
     }
 }

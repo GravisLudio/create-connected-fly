@@ -168,7 +168,7 @@ public class FluidVesselBlock extends Block
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        boolean onClient = level.isClientSide;
+        boolean onClient = level.isClientSide();
 
         if (stack.isEmpty())
             return InteractionResult.TRY_WITH_EMPTY_HAND;

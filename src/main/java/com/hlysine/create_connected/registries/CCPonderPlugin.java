@@ -5,10 +5,9 @@ import com.hlysine.create_connected.ponder.*;
 import com.zurrtum.create.Create;
 import com.zurrtum.create.client.infrastructure.ponder.AllCreatePonderTags;
 import com.zurrtum.create.client.infrastructure.ponder.scenes.ChuteScenes;
-import com.tterrag.registrate.util.entry.ItemProviderEntry;
-import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.hlysine.create_connected.foundation.registrate.ItemProvider;
 import com.zurrtum.create.client.ponder.api.level.PonderLevel;
-import net.createmod.ponder.api.registration.*;
+import com.zurrtum.create.client.ponder.api.registration.*;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +44,7 @@ public class CCPonderPlugin implements PonderPlugin {
     }
 
     public static void register(PonderSceneRegistrationHelper<Identifier> helper) {
-        PonderSceneRegistrationHelper<ItemProviderEntry<?, ?>> SCENE_HELPER = helper.withKeyFunction(RegistryEntry::getId);
+        PonderSceneRegistrationHelper<ItemProvider> SCENE_HELPER = helper.withKeyFunction(ItemProvider::getId);
 
         SCENE_HELPER.forComponents(CCBlocks.ENCASED_CHAIN_COGWHEEL)
                 .addStoryBoard("chain_cogwheel", ChainCogwheelScenes::chainCogwheelAsRelay, AllCreatePonderTags.KINETIC_RELAYS);
@@ -80,7 +79,7 @@ public class CCPonderPlugin implements PonderPlugin {
     }
 
     public static void register(PonderTagRegistrationHelper<Identifier> helper) {
-        PonderTagRegistrationHelper<RegistryEntry<?, ?>> TAG_HELPER = helper.withKeyFunction(RegistryEntry::getId);
+        PonderTagRegistrationHelper<ItemProvider> TAG_HELPER = helper.withKeyFunction(ItemProvider::getId);
 
         TAG_HELPER.addToTag(AllCreatePonderTags.KINETIC_SOURCES)
                 .add(CCBlocks.CRANK_WHEEL)

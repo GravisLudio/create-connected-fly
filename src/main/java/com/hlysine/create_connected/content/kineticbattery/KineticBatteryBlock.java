@@ -92,7 +92,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(worldIn, pos, state, placer, stack);
-        if (worldIn.isClientSide)
+        if (worldIn.isClientSide())
             return;
         if (stack == null)
             return;
@@ -169,7 +169,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
         ChargeTransfer res =
                 tryInsert(state, level, pos, stack, false, false);
         ItemStack leftover = res.leftover();
-        if (!level.isClientSide && !leftover.isEmpty()) {
+        if (!level.isClientSide() && !leftover.isEmpty()) {
             if (stack.isEmpty()) {
                 player.setItemInHand(hand, leftover);
             } else if (!player.getInventory().add(leftover)) {
@@ -228,7 +228,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
         }
 
         if (!doNotConsume) {
-            if (!world.isClientSide) {
+            if (!world.isClientSide()) {
                 stack.shrink(1);
             }
             if (simulate) {
@@ -271,7 +271,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
                                    @NotNull BlockPos fromPos,
                                    boolean isMoving) {
         super.neighborChanged(state, level, pos, block, fromPos, isMoving);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             updatePower(state, level, pos);
         }
     }
@@ -279,7 +279,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
-        if (!level.isClientSide && !state.is(oldState.getBlock())) {
+        if (!level.isClientSide() && !state.is(oldState.getBlock())) {
             updatePower(state, level, pos);
         }
     }

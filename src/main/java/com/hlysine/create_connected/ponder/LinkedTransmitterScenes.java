@@ -129,30 +129,30 @@ public class LinkedTransmitterScenes {
         scene.idle(7);
         scene.overlay().showControls(backSlot, Pointing.DOWN, 30).withItem(sapling);
         scene.world().modifyBlockEntityNBT(leverSelect, LinkedTransmitterBlockEntity.class,
-                nbt -> nbt.put("FrequencyLast", iron.saveOptional(scene.world().getHolderLookupProvider())));
+                nbt -> nbt.put("FrequencyLast", PonderNbt.saveStack(scene.world().getHolderLookupProvider(), iron)));
         scene.idle(7);
         scene.world().modifyBlockEntityNBT(leverSelect, LinkedTransmitterBlockEntity.class,
-                nbt -> nbt.put("FrequencyFirst", sapling.saveOptional(scene.world().getHolderLookupProvider())));
+                nbt -> nbt.put("FrequencyFirst", PonderNbt.saveStack(scene.world().getHolderLookupProvider(), sapling)));
         scene.idle(20);
 
         scene.overlay().showControls(bottom2Slot, Pointing.UP, 30).withItem(iron);
         scene.idle(7);
         scene.overlay().showControls(top2Slot, Pointing.DOWN, 30).withItem(sapling);
         scene.world().modifyBlockEntityNBT(linkRightSelect, RedstoneLinkBlockEntity.class,
-                nbt -> nbt.put("FrequencyLast", iron.saveOptional(scene.world().getHolderLookupProvider())));
+                nbt -> nbt.put("FrequencyLast", PonderNbt.saveStack(scene.world().getHolderLookupProvider(), iron)));
         scene.idle(7);
         scene.world().modifyBlockEntityNBT(linkRightSelect, RedstoneLinkBlockEntity.class,
-                nbt -> nbt.put("FrequencyFirst", sapling.saveOptional(scene.world().getHolderLookupProvider())));
+                nbt -> nbt.put("FrequencyFirst", PonderNbt.saveStack(scene.world().getHolderLookupProvider(), sapling)));
         scene.idle(20);
 
         scene.overlay().showControls(bottom3Slot, Pointing.UP, 30).withItem(gold);
         scene.idle(7);
         scene.overlay().showControls(top3Slot, Pointing.DOWN, 30).withItem(sapling);
         scene.world().modifyBlockEntityNBT(linkLeftSelect, RedstoneLinkBlockEntity.class,
-                nbt -> nbt.put("FrequencyLast", gold.saveOptional(scene.world().getHolderLookupProvider())));
+                nbt -> nbt.put("FrequencyLast", PonderNbt.saveStack(scene.world().getHolderLookupProvider(), gold)));
         scene.idle(7);
         scene.world().modifyBlockEntityNBT(linkLeftSelect, RedstoneLinkBlockEntity.class,
-                nbt -> nbt.put("FrequencyFirst", sapling.saveOptional(scene.world().getHolderLookupProvider())));
+                nbt -> nbt.put("FrequencyFirst", PonderNbt.saveStack(scene.world().getHolderLookupProvider(), sapling)));
         scene.idle(20);
 
         scene.world().toggleRedstonePower(leverSelect);

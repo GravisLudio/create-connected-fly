@@ -168,7 +168,7 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
 
     @Override
     public void setController(BlockPos controller) {
-        if (level.isClientSide && !isVirtual())
+        if (level.isClientSide() && !isVirtual())
             return;
         if (controller.equals(this.controller))
             return;
@@ -192,15 +192,13 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
         int prevSize = radius;
         int prevLength = length;
 
-        updateConnectivity = compound.contains("Uninitialized");
+        // ValueInput has no contains(): read() already returns an Optional, so an absent key and a
+        // null value collapse into the same orElse(null).
+        updateConnectivity = compound.getBooleanOr("Uninitialized", false);
 
-        lastKnownPos = null;
-        if (compound.contains("LastKnownPos"))
-            lastKnownPos = compound.read("LastKnownPos", BlockPos.CODEC).orElse(null);
+        lastKnownPos = compound.read("LastKnownPos", BlockPos.CODEC).orElse(null);
 
-        controller = null;
-        if (compound.contains("Controller"))
-            controller = compound.read("Controller", BlockPos.CODEC).orElse(null);
+        controller = compound.read("Controller", BlockPos.CODEC).orElse(null);
 
         if (isController()) {
             radius = compound.getIntOr("Size", 0);
@@ -208,7 +206,7 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
         }
 
         if (!clientPacket) {
-            inventory.deserializeNBT(registries, compound.getCompoundOrEmpty("Inventory"));
+            inventory.read(compound);
             return;
         }
 
@@ -235,7 +233,7 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
 
         if (!clientPacket) {
             compound.putString("StorageType", "CombinedInv");
-            compound.put("Inventory", inventory.serializeNBT(registries));
+            inventory.write(compound);
         }
     }
 

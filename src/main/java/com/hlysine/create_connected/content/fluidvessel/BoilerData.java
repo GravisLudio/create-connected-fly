@@ -81,7 +81,7 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
         configLevelCap = CServer.VesselMaxLevel.get();
 
         Level level = controller.getLevel();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             pools.values().forEach(p -> p.play(level));
             gauge.tickChaser();
             float current = gauge.getValue(1);
@@ -124,7 +124,7 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
             super.updateOcclusion(base);
             return;
         }
-        if (!controller.getLevel().isClientSide)
+        if (!controller.getLevel().isClientSide())
             return;
         if (attachedEngines + attachedWhistles == 0)
             return;
