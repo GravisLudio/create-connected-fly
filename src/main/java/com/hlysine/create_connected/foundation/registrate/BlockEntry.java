@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * Registrate's laziness existed to cope with Forge's deferred registration, which has no equivalent
  * here.
  */
-public final class BlockEntry<T extends Block> {
+public final class BlockEntry<T extends Block> implements ItemProvider {
     private final Identifier id;
     private final T block;
 

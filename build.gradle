@@ -99,7 +99,23 @@ repositories {
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    // The fabric-api artifact is a container: 53 nested jars, zero classes of its own. Depending on
+    // it as plain `implementation` puts nothing on the compile classpath, and the symptom is a
+    // package-does-not-exist on every fabric.api import -- not a missing-jar error. Loom's
+    // modImplementation would have unpacked it, but the mod* configurations no longer exist here
+    // (see the Create Fly note below), so the modules we actually use are named individually.
+    // Note the artifact names do not match the packages: `net.fabricmc.fabric.api.itemgroup.v1`
+    // ships in fabric-creative-tab-api-v1.
+    implementation fabricApi.module("fabric-creative-tab-api-v1", fabric_version)
+    implementation fabricApi.module("fabric-lifecycle-events-v1", fabric_version)
+    implementation fabricApi.module("fabric-networking-api-v1", fabric_version)
+    implementation fabricApi.module("fabric-resource-conditions-api-v1", fabric_version)
+    implementation fabricApi.module("fabric-model-loading-api-v1", fabric_version)
+    implementation fabricApi.module("fabric-renderer-api-v1", fabric_version)
+    implementation fabricApi.module("fabric-rendering-v1", fabric_version)
+    // Still needed at runtime for the rest of the API, and for the JiJ metadata.
+    runtimeOnly "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
     // Create Fly. Trae Flywheel, Ponder y Catnip embebidos, por eso no van por separado.
     // Va con `implementation` y no `modImplementation`: en Loom 1.16 / MC 26.2 el

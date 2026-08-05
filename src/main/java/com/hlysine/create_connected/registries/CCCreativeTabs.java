@@ -3,26 +3,28 @@ package com.hlysine.create_connected.registries;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.config.FeatureToggle;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockEntity;
-import com.zurrtum.create.AllCreativeModeTabs;
-import com.tterrag.registrate.util.entry.ItemProviderEntry;
+import com.hlysine.create_connected.foundation.registrate.ItemProvider;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTabOutput;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CCCreativeTabs {
-    private static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CreateConnected.MODID);
+    public static final ResourceKey<CreativeModeTab> MAIN = ResourceKey.create(
+            Registries.CREATIVE_MODE_TAB,
+            CreateConnected.asResource("main")
+    );
 
-    public static final List<ItemProviderEntry<?, ?>> ITEMS = new ArrayList<>();
+    public static final List<ItemProvider> ITEMS = new ArrayList<>();
 
     static {
         ITEMS.addAll(List.of(
@@ -96,48 +98,48 @@ public class CCCreativeTabs {
         ));
     }
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = CREATIVE_MODE_TABS.register("main", () -> CreativeModeTab.builder()
-            .title(Component.translatable("itemGroup.create_connected.main"))
-            .withTabsBefore(AllCreativeModeTabs.PALETTES_CREATIVE_TAB.getKey())
-            .icon(CCBlocks.BRASS_GEARBOX::asStack)
-            .displayItems(new DisplayItemsGenerator(ITEMS))
-            .build());
+    public static void register() {
+        // withTabsBefore is gone in 26.2 -- the builder now takes a (Row, column) placement instead,
+        // and Create Fly passes (null, -1) for "wherever". Ordering relative to Create's palettes tab
+        // is therefore no longer expressible here.
+        Registry.register(
+                BuiltInRegistries.CREATIVE_MODE_TAB,
+                MAIN,
+                CreativeModeTab.builder(null, -1)
+                        .title(Component.translatable("itemGroup.create_connected.main"))
+                        .icon(CCBlocks.BRASS_GEARBOX::asStack)
+                        .displayItems(CCCreativeTabs::collect)
+                        .build()
+        );
 
-    public static void hideItems(BuildCreativeModeTabContentsEvent event) {
-        if (Objects.equals(event.getTabKey(), MAIN.getKey()) || Objects.equals(event.getTabKey(), CreativeModeTabs.SEARCH)) {
-            Set<ItemStack> hiddenItems = ITEMS.stream()
-                    .filter(x -> !FeatureToggle.isEnabled(x.getId()))
-                    .map(entry -> event.getSearchEntries().stream().filter(stack -> stack.getItem() == entry.asItem()).findFirst()
-                            .orElse(event.getParentEntries().stream().filter(stack -> stack.getItem() == entry.asItem()).findFirst()
-                                    .orElse(null)))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-            for (ItemStack hiddenItem : hiddenItems) {
-                event.remove(hiddenItem, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+        // Replaces BuildCreativeModeTabContentsEvent. Upstream checked for its own tab or the search
+        // tab and removed with PARENT_AND_SEARCH_TABS; here one hook on MAIN covers both, because
+        // the output exposes the display and search stack lists separately.
+        CreativeModeTabEvents.modifyOutputEvent(MAIN).register(CCCreativeTabs::hideDisabled);
+    }
+
+    private static void collect(@NotNull CreativeModeTab.ItemDisplayParameters params, @NotNull CreativeModeTab.Output output) {
+        for (ItemProvider item : ITEMS) {
+            if (!FeatureToggle.isEnabled(item.getId()))
+                continue;
+
+            if (item.is(CCBlocks.KINETIC_BATTERY.asItem())) {
+                ItemStack stack = new ItemStack(item.asItem());
+                stack.set(CCDataComponents.KINETIC_BATTERY_CHARGE, KineticBatteryBlockEntity.getMaxBatteryLevel());
+                output.accept(stack);
+            } else {
+                output.accept(item);
             }
         }
     }
 
-    public static void register(IEventBus modEventBus) {
-        CREATIVE_MODE_TABS.register(modEventBus);
-        modEventBus.addListener(CCCreativeTabs::hideItems);
-    }
+    private static void hideDisabled(FabricCreativeModeTabOutput output) {
+        for (ItemProvider item : ITEMS) {
+            if (FeatureToggle.isEnabled(item.getId()))
+                continue;
 
-    private record DisplayItemsGenerator(
-            List<ItemProviderEntry<?, ?>> items) implements CreativeModeTab.DisplayItemsGenerator {
-        @Override
-        public void accept(@NotNull CreativeModeTab.ItemDisplayParameters params, @NotNull CreativeModeTab.Output output) {
-            for (ItemProviderEntry<?, ?> item : items) {
-                if (FeatureToggle.isEnabled(item.getId())) {
-                    if (item.is(CCBlocks.KINETIC_BATTERY.asItem())) {
-                        ItemStack stack = new ItemStack(item.asItem());
-                        stack.set(CCDataComponents.KINETIC_BATTERY_CHARGE, KineticBatteryBlockEntity.getMaxBatteryLevel());
-                        output.accept(stack);
-                    } else {
-                        output.accept(item);
-                    }
-                }
-            }
+            output.getDisplayStacks().removeIf(stack -> stack.is(item.asItem()));
+            output.getSearchTabStacks().removeIf(stack -> stack.is(item.asItem()));
         }
     }
 }

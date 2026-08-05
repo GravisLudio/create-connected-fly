@@ -79,18 +79,11 @@ import com.zurrtum.create.api.stress.BlockStressValues;
 import com.zurrtum.create.client.content.decoration.encasing.EncasedCTBehaviour;
 import com.zurrtum.create.content.decoration.encasing.EncasingRegistry;
 import com.zurrtum.create.content.fluids.tank.FluidTankMovementBehavior;
-import com.simibubi.create.content.kinetics.chainDrive.ChainDriveGenerator;
 import com.zurrtum.create.client.infrastructure.model.BracketedKineticBlockModel;
-import com.simibubi.create.content.logistics.chute.ChuteGenerator;
 import com.zurrtum.create.content.logistics.chute.ChuteItem;
-import com.simibubi.create.foundation.block.render.ReducedDestroyEffects;
-import com.tterrag.registrate.providers.DataGenContext;
-import com.tterrag.registrate.providers.RegistrateBlockstateProvider;
-import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.hlysine.create_connected.foundation.registrate.BlockEntry;
 import com.zurrtum.create.catnip.data.Iterate;
 import com.zurrtum.create.catnip.registry.RegisteredObjectsHelper;
-import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
@@ -109,19 +102,17 @@ import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.common.Tags;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import static com.zurrtum.create.api.behaviour.display.DisplaySource.displaySource;
-import static com.zurrtum.create.api.behaviour.display.DisplayTarget.displayTarget;
-import static com.zurrtum.create.api.behaviour.movement.MovementBehaviour.movementBehaviour;
-import static com.zurrtum.create.api.contraption.storage.fluid.MountedFluidStorageType.mountedFluidStorage;
+import static com.hlysine.create_connected.foundation.registrate.CCBehaviours.displaySource;
+import static com.hlysine.create_connected.foundation.registrate.CCBehaviours.displayTarget;
+import static com.hlysine.create_connected.foundation.registrate.CCBehaviours.movementBehaviour;
+import static com.hlysine.create_connected.foundation.registrate.CCBehaviours.mountedFluidStorage;
+import static com.hlysine.create_connected.foundation.registrate.CCBehaviours.mountedItemStorage;
 import static com.hlysine.create_connected.foundation.registrate.TagGen.axeOrPickaxe;
 import static com.hlysine.create_connected.foundation.registrate.TagGen.pickaxeOnly;
 
@@ -203,7 +194,7 @@ public class CCBlocks {
 
 
     public static final BlockEntry<EncasedCrossConnectorBlock> ANDESITE_ENCASED_CROSS_CONNECTOR =
-            REGISTRATE.block("andesite_encased_cross_connector", p -> new EncasedCrossConnectorBlock(p, AllBlocks.ANDESITE_CASING::get))
+            REGISTRATE.block("andesite_encased_cross_connector", p -> new EncasedCrossConnectorBlock(p, () -> AllBlocks.ANDESITE_CASING))
                     .properties(p -> p.mapColor(MapColor.PODZOL))
                     .transform(CCBuilderTransformers.encasedCrossConnector("andesite", () -> AllSpriteShifts.ANDESITE_CASING))
                     .transform(EncasingRegistry.addVariantTo(CCBlocks.CROSS_CONNECTOR))
@@ -212,7 +203,7 @@ public class CCBlocks {
                     .register();
 
     public static final BlockEntry<EncasedCrossConnectorBlock> BRASS_ENCASED_CROSS_CONNECTOR =
-            REGISTRATE.block("brass_encased_cross_connector", p -> new EncasedCrossConnectorBlock(p, AllBlocks.BRASS_CASING::get))
+            REGISTRATE.block("brass_encased_cross_connector", p -> new EncasedCrossConnectorBlock(p, () -> AllBlocks.BRASS_CASING))
                     .properties(p -> p.mapColor(MapColor.TERRACOTTA_BROWN))
                     .transform(CCBuilderTransformers.encasedCrossConnector("brass", () -> AllSpriteShifts.BRASS_CASING))
                     .transform(EncasingRegistry.addVariantTo(CCBlocks.CROSS_CONNECTOR))
@@ -358,19 +349,9 @@ public class CCBlocks {
             .transform(CStress.setCapacity(32.0))
             .transform(CStress.setImpact(64.0))
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
-            .transform(DisplaySource.displaySource(CCDisplaySources.KINETIC_BATTERY))
+            .transform(displaySource(CCDisplaySources.KINETIC_BATTERY))
             .transform(axeOrPickaxe())
 
-            .loot((lt, block) -> {
-                LootTable.Builder builder = LootTable.lootTable();
-                LootItemCondition.Builder survivesExplosion = ExplosionCondition.survivesExplosion();
-                lt.add(block, builder.withPool(LootPool.lootPool()
-                        .when(survivesExplosion)
-                        .setRolls(ConstantValue.exactly(1))
-                        .add(LootItem.lootTableItem(CCBlocks.KINETIC_BATTERY.asItem())
-                                .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
-                                        .include(CCDataComponents.KINETIC_BATTERY_CHARGE)))));
-            })
             .item(KineticBatteryBlockItem::new)
             .properties(p -> p.component(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0))
             .onRegister(KineticBatteryBlockItem::registerModelOverrides)
@@ -417,7 +398,7 @@ public class CCBlocks {
             .register();
 
     public static final BlockEntry<LinkedAnalogLeverBlock> LINKED_ANALOG_LEVER = REGISTRATE
-            .block("linked_analog_lever", properties -> new LinkedAnalogLeverBlock(properties, AllBlocks.ANALOG_LEVER))
+            .block("linked_analog_lever", properties -> new LinkedAnalogLeverBlock(properties, () -> AllBlocks.ANALOG_LEVER))
             .initialProperties(() -> Blocks.LEVER)
             .tag(AllBlockTags.SAFE_NBT)
             .transform(LinkedTransmitterItem.register())
@@ -488,12 +469,10 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.registerDependent(CCBlocks.EMPTY_FAN_CATALYST))
 
-            .color(() -> CCColorHandlers::waterBlockTint)
             .lang("Fan Washing Catalyst")
             .tag(AllBlockTags.FAN_TRANSPARENT)
             .tag(AllBlockTags.FAN_PROCESSING_CATALYSTS_SPLASHING)
             .item()
-            .color(() -> CCColorHandlers::waterItemTint)
 
             .register();
 
@@ -825,7 +804,7 @@ public class CCBlocks {
                     // uses the vanilla namespace. The second half of the condition collapses.
                     .transform(FeatureToggle.addCondition(() -> Mods.DRAGONS_PLUS.isLoaded() || Mods.GARNISHED.isLoaded()))
 
-                    .lang(RegistrateLangProvider.toEnglishName(color.getName() + "_fan_dyeing_catalyst"))
+                    .lang(color.getName() + "_fan_dyeing_catalyst")
                     .tag(AllBlockTags.FAN_TRANSPARENT)
                     .asOptional()
                     .simpleItem()
@@ -841,7 +820,7 @@ public class CCBlocks {
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
 
             // Connected textures moved to client/CCConnectedTextures (ItemSiloCTBehaviour).
-            .transform(MountedItemStorageType.mountedItemStorage(CCMountedStorageTypes.SILO))
+            .transform(mountedItemStorage(CCMountedStorageTypes.SILO))
             .onRegister(b -> BlockMovementChecks.registerAttachedCheck((state, world, pos, direction) -> {
                 if (state.getBlock() instanceof ItemSiloBlock)
                     return BlockMovementChecks.CheckResult.of(ConnectivityHandler.isConnected(world, pos, pos.relative(direction)));
@@ -913,7 +892,6 @@ public class CCBlocks {
                     .isSuffocating((state, level, pos) -> false))
             .transform(pickaxeOnly())
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
-            .clientExtension(() -> () -> new ReducedDestroyEffects())
 
             .item(ChuteItem::new)
 
@@ -936,7 +914,6 @@ public class CCBlocks {
                     .transform(CCBuilderTransformers.copycat())
                     .tag(BlockTags.SLABS)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .loot((lt, block) -> lt.add(block, lt.createSlabItemTable(block)))
                     .item()
                     .tag(CCTags.Items.COPYCAT_SLAB.tag)
 
@@ -990,7 +967,7 @@ public class CCBlocks {
     public static final BlockEntry<CopycatFenceBlock> COPYCAT_FENCE =
             REGISTRATE.block("copycat_fence", CopycatFenceBlock::new)
                     .transform(CCBuilderTransformers.copycat())
-                    .tag(BlockTags.FENCES, Tags.Blocks.FENCES)
+                    .tag(BlockTags.FENCES)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
                     .item()
                     .tag(CCTags.Items.COPYCAT_FENCE.tag)
@@ -1001,7 +978,7 @@ public class CCBlocks {
             REGISTRATE.block("wrapped_copycat_fence", WrappedFenceBlock::new)
                     .initialProperties(() -> Blocks.OAK_FENCE)
                     .onRegister(b -> CopycatFenceBlock.fence = b)
-                    .tag(BlockTags.FENCES, Tags.Blocks.FENCES)
+                    .tag(BlockTags.FENCES)
 
                     .register();
 
@@ -1028,7 +1005,7 @@ public class CCBlocks {
             REGISTRATE.block("copycat_fence_gate", CopycatFenceGateBlock::new)
                     .transform(CCBuilderTransformers.copycat())
                     .properties(p -> p.forceSolidOn())
-                    .tag(BlockTags.FENCE_GATES, Tags.Blocks.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
+                    .tag(BlockTags.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
                     .item()
                     .tag(CCTags.Items.COPYCAT_FENCE_GATE.tag)
@@ -1039,7 +1016,7 @@ public class CCBlocks {
             REGISTRATE.block("wrapped_copycat_fence_gate", p -> new WrappedFenceGateBlock(WoodType.OAK, p))
                     .initialProperties(() -> Blocks.OAK_FENCE_GATE)
                     .onRegister(b -> CopycatFenceGateBlock.fenceGate = b)
-                    .tag(BlockTags.FENCE_GATES, Tags.Blocks.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
+                    .tag(BlockTags.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
 
                     .register();
 
@@ -1047,21 +1024,6 @@ public class CCBlocks {
             REGISTRATE.block("copycat_board", CopycatBoardBlock::new)
                     .transform(CCBuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .loot((lt, block) -> {
-                        LootTable.Builder builder = LootTable.lootTable();
-                        for (Direction direction : Iterate.directions) {
-                            builder.withPool(
-                                    LootPool.lootPool()
-                                            .setRolls(ConstantValue.exactly(1.0F))
-                                            .when(ExplosionCondition.survivesExplosion())
-                                            .when(LootItemBlockStatePropertyCondition
-                                                    .hasBlockStateProperties(block)
-                                                    .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(CopycatBoardBlock.byDirection(direction), true)))
-                                            .add(LootItem.lootTableItem(block))
-                            );
-                        }
-                        lt.add(block, builder);
-                    })
                     .item()
                     .tag(CCTags.Items.COPYCAT_BOARD.tag)
 
@@ -1071,11 +1033,4 @@ public class CCBlocks {
         // Simulated integration is excluded from the build; see the excludes in build.gradle.
     }
 
-    private static Function<BlockState, ModelFile> forBoolean(DataGenContext<?, ?> ctx,
-                                                              Function<BlockState, Boolean> condition,
-                                                              String key,
-                                                              RegistrateBlockstateProvider prov) {
-        return state -> condition.apply(state) ? partialBaseModel(ctx, prov, key)
-                : partialBaseModel(ctx, prov);
-    }
 }

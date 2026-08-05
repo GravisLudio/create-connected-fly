@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Stand-in for Registrate's {@code ItemEntry}. See {@link BlockEntry} for why these are eager.
  */
-public final class ItemEntry<T extends Item> {
+public final class ItemEntry<T extends Item> implements ItemProvider {
     private final Identifier id;
     private final T item;
 
@@ -27,6 +27,11 @@ public final class ItemEntry<T extends Item> {
 
     public Identifier getKey() {
         return id;
+    }
+
+    @Override
+    public Item asItem() {
+        return item;
     }
 
     public ItemStack asStack() {

@@ -51,6 +51,8 @@ public final class BlockBuilder<T extends Block> {
 
     private boolean createItem;
     private BiFunction<Block, Item.Properties, ? extends BlockItem> itemFactory;
+    private UnaryOperator<Item.Properties> itemPropertyOps = UnaryOperator.identity();
+    private final List<Consumer<BlockItem>> onItemRegister = new ArrayList<>();
 
     BlockBuilder(CCRegistrate parent, String name, Function<Properties, T> factory) {
         this.parent = parent;
@@ -102,28 +104,49 @@ public final class BlockBuilder<T extends Block> {
         return this;
     }
 
+
     // --- item ---
 
     /** Registers a plain {@link BlockItem} alongside the block. */
-    public BlockBuilder<T> item() {
+    public BlockItemBuilder<T, BlockItem> item() {
+        this.createItem = true;
+        this.itemFactory = BlockItem::new;
+        return new BlockItemBuilder<>(this);
+    }
+
+    /** Registers a custom block item, e.g. {@code .item(CrankWheelItem::new)}. */
+    public <I extends BlockItem> BlockItemBuilder<T, I> item(BiFunction<Block, Item.Properties, I> custom) {
+        this.createItem = true;
+        this.itemFactory = custom;
+        return new BlockItemBuilder<>(this);
+    }
+
+    /** Registrate's shorthand for {@code item().build()}. */
+    public BlockBuilder<T> simpleItem() {
         this.createItem = true;
         this.itemFactory = BlockItem::new;
         return this;
     }
 
-    /** Registers a custom block item, e.g. {@code .item(CrankWheelItem::new)}. */
-    public BlockBuilder<T> item(BiFunction<Block, Item.Properties, ? extends BlockItem> custom) {
-        this.createItem = true;
-        this.itemFactory = custom;
+    /** Registrate marked entries whose registration was conditional; every one here is present. */
+    public BlockBuilder<T> asOptional() {
         return this;
     }
 
     /**
-     * Registrate returned an item sub-builder here that call sites closed with {@code build()}.
-     * Both are folded into this builder, so {@code build()} just hands it back.
+     * Kept so chains that never opened an item sub-builder still close cleanly.
      */
     public BlockBuilder<T> build() {
         return this;
+    }
+
+    void itemProperties(UnaryOperator<Item.Properties> op) {
+        UnaryOperator<Item.Properties> prev = this.itemPropertyOps;
+        this.itemPropertyOps = p -> op.apply(prev.apply(p));
+    }
+
+    void onItemRegister(Consumer<BlockItem> callback) {
+        onItemRegister.add(callback);
     }
 
     public BlockEntry<T> register() {
@@ -144,11 +167,14 @@ public final class BlockBuilder<T extends Block> {
         T block = (T) net.minecraft.world.level.block.Blocks.register(key, factory::apply, props);
 
         if (createItem) {
-            Registry.register(
+            BlockItem item = Registry.register(
                     BuiltInRegistries.ITEM,
                     id,
-                    itemFactory.apply(block, new Item.Properties())
+                    itemFactory.apply(block, itemPropertyOps.apply(new Item.Properties()))
             );
+            for (Consumer<BlockItem> callback : onItemRegister) {
+                callback.accept(item);
+            }
         }
 
         for (Consumer<T> callback : onRegister) {
