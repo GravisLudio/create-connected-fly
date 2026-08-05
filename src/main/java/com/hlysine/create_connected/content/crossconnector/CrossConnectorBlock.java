@@ -12,7 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -96,7 +96,7 @@ public class CrossConnectorBlock extends Block implements IWrenchable, IConnecti
     }
 
     @Override
-    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack,
+    protected @NotNull InteractionResult useItemOn(@NotNull ItemStack stack,
                                                        @NotNull BlockState state,
                                                        @NotNull Level level,
                                                        @NotNull BlockPos pos,
@@ -104,7 +104,7 @@ public class CrossConnectorBlock extends Block implements IWrenchable, IConnecti
                                                        @NotNull InteractionHand hand,
                                                        @NotNull BlockHitResult hitResult) {
         if (player.isShiftKeyDown() || !player.mayBuild())
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
 
         return tryEncase(state, level, pos, stack, player, hand, hitResult);
     }

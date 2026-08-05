@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.overstressclutch;
 
+import com.zurrtum.create.foundation.blockEntity.behaviour.ValueSettings;
+
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.registries.CCBlocks;

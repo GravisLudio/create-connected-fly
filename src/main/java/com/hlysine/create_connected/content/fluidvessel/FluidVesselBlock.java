@@ -26,7 +26,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -168,22 +167,22 @@ public class FluidVesselBlock extends Block
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         boolean onClient = level.isClientSide;
 
         if (stack.isEmpty())
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         if (!player.isCreative() && !creative)
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
 
         FluidExchange exchange = null;
         FluidVesselBlockEntity be = ConnectivityHandler.partAt(getBlockEntityType(), level, pos);
         if (be == null)
-            return ItemInteractionResult.FAIL;
+            return InteractionResult.FAIL;
 
         FluidInventory vesselCapability = level.getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
         if (vesselCapability == null)
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         FluidStack prevFluidInVessel = vesselCapability.getFluidInTank(0)
                 .copy();
 
@@ -195,8 +194,8 @@ public class FluidVesselBlock extends Block
         if (exchange == null) {
             if (GenericItemEmptying.canItemBeEmptied(level, stack)
                     || GenericItemFilling.canItemBeFilled(level, stack))
-                return ItemInteractionResult.SUCCESS;
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                return InteractionResult.SUCCESS;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
         SoundEvent soundevent = null;
@@ -260,7 +259,7 @@ public class FluidVesselBlock extends Block
                                 .scale(1 / 20f);
                         vec = vec.add(motion);
                         level.addParticle(blockParticleData, vec.x, vec.y, vec.z, motion.x, motion.y, motion.z);
-                        return ItemInteractionResult.SUCCESS;
+                        return InteractionResult.SUCCESS;
                     }
 
                     controllerBE.sendDataImmediately();
@@ -269,7 +268,7 @@ public class FluidVesselBlock extends Block
             }
         }
 
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override

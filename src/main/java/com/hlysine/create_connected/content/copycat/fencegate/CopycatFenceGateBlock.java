@@ -9,7 +9,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -116,13 +116,13 @@ public class CopycatFenceGateBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public boolean isIgnoredConnectivitySide(BlockAndTintGetter reader, BlockState state, Direction face,
+    public boolean isIgnoredConnectivitySide(BlockAndLightGetter reader, BlockState state, Direction face,
                                              @Nullable BlockPos fromPos, @Nullable BlockPos toPos) {
         return true;
     }
 
     @Override
-    public boolean canConnectTexturesToward(BlockAndTintGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
+    public boolean canConnectTexturesToward(BlockAndLightGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
         return false;
     }
 

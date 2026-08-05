@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -68,7 +68,7 @@ public class CopycatBoardBlock extends MigratingWaterloggedCopycatBlock implemen
     }
 
     @Override
-    public boolean isIgnoredConnectivitySide(BlockAndTintGetter reader, BlockState state, Direction face,
+    public boolean isIgnoredConnectivitySide(BlockAndLightGetter reader, BlockState state, Direction face,
                                              @Nullable BlockPos fromPos, @Nullable BlockPos toPos) {
         if (fromPos == null || toPos == null)
             return true;
@@ -77,7 +77,7 @@ public class CopycatBoardBlock extends MigratingWaterloggedCopycatBlock implemen
     }
 
     @Override
-    public boolean canConnectTexturesToward(BlockAndTintGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
+    public boolean canConnectTexturesToward(BlockAndLightGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
         return reader.getBlockState(toPos).is(this);
     }
 

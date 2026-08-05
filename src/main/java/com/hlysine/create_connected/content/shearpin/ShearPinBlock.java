@@ -14,14 +14,13 @@ import com.zurrtum.create.foundation.placement.PoleHelper;
 import com.zurrtum.create.catnip.placement.IPlacementHelper;
 import com.zurrtum.create.catnip.placement.PlacementHelpers;
 import com.zurrtum.create.catnip.placement.PlacementOffset;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -92,20 +91,19 @@ public class ShearPinBlock extends AbstractBEShaftBlock<ShearPinBlockEntity> {
     }
 
     @Override
-    public @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack item, @NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, Player player, @NotNull InteractionHand hand,
+    public @NotNull InteractionResult useItemOn(@NotNull ItemStack item, @NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, Player player, @NotNull InteractionHand hand,
                                                     @NotNull BlockHitResult ray) {
         if (player.isShiftKeyDown() || !player.mayBuild())
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
 
         IPlacementHelper helper = PlacementHelpers.get(placementHelperId);
         if (helper.matchesItem(item))
             return helper.getOffset(player, world, state, pos, ray)
                     .placeInWorld(world, (BlockItem) item.getItem(), player, hand, ray);
 
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
-    @MethodsReturnNonnullByDefault
     private static class PlacementHelper extends PoleHelper<Direction.Axis> {
         // used for extending a shaft in its axis, like the piston poles. works with
         // shafts and cogs

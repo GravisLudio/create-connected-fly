@@ -2,7 +2,7 @@ package com.hlysine.create_connected.content.fancatalyst;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.SkullModel;
-import net.minecraft.client.model.SkullModelBase;
+import net.minecraft.client.model.object.skull.SkullModelBase;
 import net.minecraft.client.model.dragon.DragonHeadModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;

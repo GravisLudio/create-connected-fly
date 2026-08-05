@@ -14,13 +14,11 @@ import com.zurrtum.create.catnip.data.Iterate;
 import com.zurrtum.create.catnip.placement.IPlacementHelper;
 import com.zurrtum.create.catnip.placement.PlacementHelpers;
 import com.zurrtum.create.catnip.placement.PlacementOffset;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -161,16 +159,16 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
     }
 
     @Override
-    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack,
+    protected @NotNull InteractionResult useItemOn(@NotNull ItemStack stack,
                                                        @NotNull BlockState state,
                                                        @NotNull Level level,
                                                        @NotNull BlockPos pos,
                                                        @NotNull Player player,
                                                        @NotNull InteractionHand hand,
                                                        @NotNull BlockHitResult hitResult) {
-        InteractionResultHolder<ItemStack> res =
+        ChargeTransfer res =
                 tryInsert(state, level, pos, stack, false, false);
-        ItemStack leftover = res.getObject();
+        ItemStack leftover = res.leftover();
         if (!level.isClientSide && !leftover.isEmpty()) {
             if (stack.isEmpty()) {
                 player.setItemInHand(hand, leftover);
@@ -179,30 +177,30 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
             }
         }
 
-        if (res.getResult().consumesAction())
-            return ItemInteractionResult.SUCCESS;
+        if (res.result().consumesAction())
+            return InteractionResult.SUCCESS;
 
         IPlacementHelper helper = PlacementHelpers.get(placementHelperId);
         if (helper.matchesItem(stack))
             return helper.getOffset(player, level, state, pos, hitResult)
                     .placeInWorld(level, (BlockItem) stack.getItem(), player, hand, hitResult);
 
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @SuppressWarnings("removal")
-    public static InteractionResultHolder<ItemStack> tryInsert(BlockState state, Level world, BlockPos pos,
+    public static ChargeTransfer tryInsert(BlockState state, Level world, BlockPos pos,
                                                                ItemStack stack, boolean doNotConsume, boolean simulate) {
         if (stack.isEmpty())
-            return InteractionResultHolder.fail(ItemStack.EMPTY);
+            return ChargeTransfer.fail();
         if (!state.hasBlockEntity())
-            return InteractionResultHolder.fail(ItemStack.EMPTY);
+            return ChargeTransfer.fail();
 
         BlockEntity be = world.getBlockEntity(pos);
         if (!(be instanceof KineticBatteryBlockEntity batteryBE))
-            return InteractionResultHolder.fail(ItemStack.EMPTY);
+            return ChargeTransfer.fail();
         if (!stack.is(CCBlocks.KINETIC_BATTERY.asItem()) && !stack.is(CCItems.CHARGED_KINETIC_BATTERY.asItem()))
-            return InteractionResultHolder.fail(ItemStack.EMPTY);
+            return ChargeTransfer.fail();
 
         double level = stack.getOrDefault(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0);
         if (stack.is(CCItems.CHARGED_KINETIC_BATTERY.asItem()))
@@ -212,7 +210,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
         if (isDischarging(state)) {
             double transfer = Math.min(KineticBatteryBlockEntity.getMaxBatteryLevel() - batteryBE.getBatteryLevel(), level);
             if (transfer <= 0)
-                return InteractionResultHolder.fail(ItemStack.EMPTY);
+                return ChargeTransfer.fail();
 
             if (!simulate)
                 batteryBE.setBatteryLevel(batteryBE.getBatteryLevel() + transfer);
@@ -221,7 +219,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
         } else {
             double transfer = Math.min(batteryBE.getBatteryLevel(), KineticBatteryBlockEntity.getMaxBatteryLevel() - level);
             if (transfer <= 0)
-                return InteractionResultHolder.fail(ItemStack.EMPTY);
+                return ChargeTransfer.fail();
 
             if (!simulate)
                 batteryBE.setBatteryLevel(batteryBE.getBatteryLevel() - transfer);
@@ -236,12 +234,12 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
             if (simulate) {
                 // a hack to force mechanical arm to interact, since it normally cancels the interaction
                 // if the returned item is the same as the input item
-                return InteractionResultHolder.success(ItemStack.EMPTY);
+                return ChargeTransfer.success(ItemStack.EMPTY);
             } else {
-                return InteractionResultHolder.success(returnedItem);
+                return ChargeTransfer.success(returnedItem);
             }
         }
-        return InteractionResultHolder.success(ItemStack.EMPTY);
+        return ChargeTransfer.success(ItemStack.EMPTY);
     }
 
     @Override
@@ -353,7 +351,6 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
         return CCBlockEntityTypes.KINETIC_BATTERY.get();
     }
 
-    @MethodsReturnNonnullByDefault
     private static class PlacementHelper extends PoleHelper<Direction> {
         private PlacementHelper() {
             super(state -> state.getBlock() instanceof KineticBatteryBlock && state.getValue(LEVEL) == 0, state -> state.getValue(FACING).getAxis(), FACING);

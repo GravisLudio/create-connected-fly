@@ -3,18 +3,21 @@ package com.hlysine.create_connected.registries;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.dashboard.DashboardDisplayTarget;
 import com.zurrtum.create.api.behaviour.display.DisplayTarget;
-import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
-import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.zurrtum.create.api.registry.CreateRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Supplier;
 
 public class CCDisplayTargets {
-    private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
+    public static final DashboardDisplayTarget DASHBOARD = simple("dashboard", DashboardDisplayTarget::new);
 
-    public static final RegistryEntry<DisplayTarget, DashboardDisplayTarget> DASHBOARD = simple("dashboard", DashboardDisplayTarget::new);
-
-    private static <T extends DisplayTarget> RegistryEntry<DisplayTarget, T> simple(String name, Supplier<T> supplier) {
-        return REGISTRATE.displayTarget(name, supplier).register();
+    private static <T extends DisplayTarget> T simple(String name, Supplier<T> supplier) {
+        return Registry.register(
+                CreateRegistries.DISPLAY_TARGET,
+                Identifier.fromNamespaceAndPath(CreateConnected.MODID, name),
+                supplier.get()
+        );
     }
 
     public static void register() {

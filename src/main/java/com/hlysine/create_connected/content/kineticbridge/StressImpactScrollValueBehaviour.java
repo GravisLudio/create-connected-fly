@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.kineticbridge;
 
+import com.zurrtum.create.foundation.blockEntity.behaviour.ValueSettings;
+
 
 import com.google.common.collect.ImmutableList;
 import com.hlysine.create_connected.ConnectedLang;

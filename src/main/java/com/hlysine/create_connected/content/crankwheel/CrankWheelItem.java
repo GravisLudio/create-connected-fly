@@ -11,7 +11,6 @@ import com.zurrtum.create.catnip.data.Iterate;
 import com.zurrtum.create.catnip.placement.IPlacementHelper;
 import com.zurrtum.create.catnip.placement.PlacementHelpers;
 import com.zurrtum.create.catnip.placement.PlacementOffset;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -75,7 +74,6 @@ public class CrankWheelItem extends BlockItem {
         return item.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof CrankWheelBlock;
     }
 
-    @MethodsReturnNonnullByDefault
     private static class SmallCogHelper extends DiagonalCogHelper {
 
         @Override
@@ -114,7 +112,6 @@ public class CrankWheelItem extends BlockItem {
         }
     }
 
-    @MethodsReturnNonnullByDefault
     private static class LargeCogHelper extends DiagonalCogHelper {
 
         @Override
@@ -154,7 +151,6 @@ public class CrankWheelItem extends BlockItem {
         }
     }
 
-    @MethodsReturnNonnullByDefault
     public abstract static class DiagonalCogHelper implements IPlacementHelper {
 
         @Override
@@ -198,7 +194,6 @@ public class CrankWheelItem extends BlockItem {
         }
     }
 
-    @MethodsReturnNonnullByDefault
     public static class IntegratedLargeCogHelper implements IPlacementHelper {
 
         @Override
@@ -253,7 +248,6 @@ public class CrankWheelItem extends BlockItem {
 
     }
 
-    @MethodsReturnNonnullByDefault
     public static class IntegratedSmallCogHelper implements IPlacementHelper {
 
         @Override

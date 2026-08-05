@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
+import com.zurrtum.create.catnip.math.VecHelper;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.zurrtum.create.api.connectivity.ConnectivityHandler;

@@ -10,7 +10,6 @@ import com.zurrtum.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -94,7 +93,7 @@ public class LinkedLeverBlock extends LeverBlock implements IBE<LinkedTransmitte
     }
 
     @Override
-    public @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack,
+    public @NotNull InteractionResult useItemOn(@NotNull ItemStack stack,
                                                     @NotNull BlockState state,
                                                     @NotNull Level level,
                                                     @NotNull BlockPos pos,

@@ -34,7 +34,7 @@ public class CreateConnected implements ModInitializer {
     public void onInitialize() {
         CCConfigs.register();
 
-        CCSoundEvents.prepare();
+        CCSoundEvents.register();
         CCDataComponents.register();
         CCBlocks.register();
         CCItems.register();
@@ -43,7 +43,6 @@ public class CreateConnected implements ModInitializer {
         CCPackets.register();
         CCCraftingConditions.register();
         CCArmInteractionPointTypes.register();
-        CCSoundEvents.register();
 
         // Previously ran from FMLCommonSetupEvent. Nothing here needs a deferred phase on Fabric:
         // every registry these touch is already populated by the calls above.

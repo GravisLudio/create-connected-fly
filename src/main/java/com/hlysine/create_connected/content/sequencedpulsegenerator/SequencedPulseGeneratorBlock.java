@@ -17,7 +17,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -136,7 +135,7 @@ public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements 
     }
 
     @Override
-    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack,
+    protected @NotNull InteractionResult useItemOn(@NotNull ItemStack stack,
                                                        @NotNull BlockState state,
                                                        @NotNull Level level,
                                                        @NotNull BlockPos pos,
@@ -144,14 +143,14 @@ public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements 
                                                        @NotNull InteractionHand hand,
                                                        @NotNull BlockHitResult hitResult) {
         if (AllItems.WRENCH.isIn(stack))
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         if (stack.getItem() instanceof BlockItem blockItem) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
         CatnipServices.PLATFORM.executeOnClientOnly(
                 () -> () -> withBlockEntityDo(level, pos, be -> this.displayScreen(be, player)));
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override

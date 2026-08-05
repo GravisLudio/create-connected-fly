@@ -9,7 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
@@ -102,7 +102,7 @@ public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public boolean isIgnoredConnectivitySide(BlockAndTintGetter reader, BlockState state, Direction face,
+    public boolean isIgnoredConnectivitySide(BlockAndLightGetter reader, BlockState state, Direction face,
                                              @Nullable BlockPos fromPos, @Nullable BlockPos toPos) {
         if (fromPos == null || toPos == null)
             return true;
@@ -121,7 +121,7 @@ public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public boolean canConnectTexturesToward(BlockAndTintGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
+    public boolean canConnectTexturesToward(BlockAndLightGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
         BlockState toState = reader.getBlockState(toPos);
         if (!toState.is(this)) return false;
 

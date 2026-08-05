@@ -43,20 +43,17 @@ public class CCItems {
 
     public static final ItemEntry<VerticalParallelGearboxItem> VERTICAL_PARALLEL_GEARBOX =
             REGISTRATE.item("vertical_parallel_gearbox", VerticalParallelGearboxItem::new)
-                    .model(AssetLookup)
                     .transform(FeatureToggle.registerDependent(CCBlocks.PARALLEL_GEARBOX))
                     .register();
 
     public static final ItemEntry<VerticalSixWayGearboxItem> VERTICAL_SIX_WAY_GEARBOX =
             REGISTRATE.item("vertical_six_way_gearbox", VerticalSixWayGearboxItem::new)
-                    .model(AssetLookup)
                     .transform(FeatureToggle.registerDependent(CCBlocks.SIX_WAY_GEARBOX))
                     .lang("Vertical 6-way Gearbox")
                     .register();
 
     public static final ItemEntry<VerticalBrassGearboxItem> VERTICAL_BRASS_GEARBOX =
             REGISTRATE.item("vertical_brass_gearbox", VerticalBrassGearboxItem::new)
-                    .model(AssetLookup)
                     .transform(FeatureToggle.registerDependent(CCBlocks.BRASS_GEARBOX))
                     .register();
 
@@ -64,25 +61,21 @@ public class CCItems {
     @Deprecated(forRemoval = true, since = "1.3.0")
     public static final ItemEntry<ChargedKineticBatteryItem> CHARGED_KINETIC_BATTERY =
             REGISTRATE.item("charged_kinetic_battery", ChargedKineticBatteryItem::new)
-                    .model(AssetLookup)
                     .transform(FeatureToggle.registerDependent(CCBlocks.KINETIC_BATTERY))
                     .register();
 
     public static final ItemEntry<LinkedTransmitterItem> LINKED_TRANSMITTER =
             REGISTRATE.item("linked_transmitter", LinkedTransmitterItem::new)
-                    .model(AssetLookup)
                     .transform(FeatureToggle.register(FeatureCategory.REDSTONE))
                     .register();
 
     public static final ItemEntry<CopycatBoxItem> COPYCAT_BOX =
             REGISTRATE.item("copycat_box", CopycatBoxItem::new)
-                    .model(AssetLookup)
                     .transform(FeatureToggle.registerDependent(CCBlocks.COPYCAT_BOARD))
                     .register();
 
     public static final ItemEntry<CopycatCatwalkItem> COPYCAT_CATWALK =
             REGISTRATE.item("copycat_catwalk", CopycatCatwalkItem::new)
-                    .model(AssetLookup)
                     .transform(FeatureToggle.registerDependent(CCBlocks.COPYCAT_BOARD))
                     .register();
 

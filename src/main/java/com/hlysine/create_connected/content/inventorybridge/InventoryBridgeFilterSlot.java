@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.inventorybridge;
 
+import com.zurrtum.create.client.catnip.math.VecHelper;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
 import com.zurrtum.create.client.flywheel.lib.transform.TransformStack;

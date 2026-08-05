@@ -123,7 +123,7 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public boolean isIgnoredConnectivitySide(BlockAndTintGetter reader, BlockState state, Direction face,
+    public boolean isIgnoredConnectivitySide(BlockAndLightGetter reader, BlockState state, Direction face,
                                              @Nullable BlockPos fromPos, @Nullable BlockPos toPos) {
         if (fromPos == null || toPos == null)
             return true;
@@ -158,7 +158,7 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public boolean canConnectTexturesToward(BlockAndTintGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
+    public boolean canConnectTexturesToward(BlockAndLightGetter reader, BlockPos fromPos, BlockPos toPos, BlockState state) {
         BlockState toState = reader.getBlockState(toPos);
         BlockPos diff = toPos.subtract(fromPos);
         if (diff.equals(Vec3i.ZERO)) {

@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.itemsilo;
 
+import com.zurrtum.create.catnip.math.VecHelper;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.zurrtum.create.api.connectivity.ConnectivityHandler;
 import com.zurrtum.create.content.equipment.symmetryWand.SymmetryWandItem;

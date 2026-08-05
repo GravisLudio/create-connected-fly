@@ -7,7 +7,6 @@ import com.zurrtum.create.content.kinetics.mechanicalArm.ArmInteractionPoint;
 import com.zurrtum.create.content.kinetics.mechanicalArm.ArmInteractionPointType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,9 +19,9 @@ public class KineticBatteryInteractionPoint extends AllArmInteractionPointTypes.
     @Override
     public ItemStack insert(ArmBlockEntity armBlockEntity, ItemStack stack, boolean simulate) {
         ItemStack input = stack.copy();
-        InteractionResultHolder<ItemStack> res =
+        ChargeTransfer res =
                 KineticBatteryBlock.tryInsert(cachedState, level, pos, input, false, simulate);
-        ItemStack remainder = res.getObject();
+        ItemStack remainder = res.leftover();
         if (input.isEmpty()) {
             return remainder;
         } else {

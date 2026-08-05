@@ -12,9 +12,7 @@ import net.createmod.ponder.api.registration.*;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 
-@ParametersAreNonnullByDefault
 public class CCPonderPlugin implements PonderPlugin {
     @Override
     public @NotNull String getModId() {
