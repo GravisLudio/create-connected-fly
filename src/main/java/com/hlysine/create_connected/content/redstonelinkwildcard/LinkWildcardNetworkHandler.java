@@ -10,8 +10,6 @@ import com.zurrtum.create.client.content.redstone.link.LinkBehaviour;
 import com.zurrtum.create.content.redstone.link.RedstoneLinkNetworkHandler;
 import com.zurrtum.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
-import dev.ryanhcode.sable.companion.SableCompanion;
-import dev.ryanhcode.sable.companion.SubLevelAccess;
 import com.zurrtum.create.catnip.data.Couple;
 import com.zurrtum.create.catnip.levelWrappers.WorldHelper;
 import net.minecraft.core.BlockPos;
@@ -245,27 +243,22 @@ public class LinkWildcardNetworkHandler {
         }
     }
 
-    // Implement a custom range check for compatibility with sable. Modified version of dev.ryanhcode.sable.neoforge.mixin.compatibility.create.redstone_links.RedstoneLinkNetworkHandlerMixin.sable$projectComparisons
+    /**
+     * Range check between two redstone links.
+     * <p>
+     * The version this was ported from also asked Sable whether either end sat inside a sub-level,
+     * and projected its position into world space before measuring. Sable has no 26.2 release, so
+     * that lookup is gone -- with no sub-levels in play the projection was the identity transform,
+     * which makes the plain distance check below exactly equivalent. Restore the projection if
+     * Sable is ever ported; see git history for the original.
+     */
     private static boolean withinRange(IRedstoneLinkable from, IRedstoneLinkable to, LevelAccessor levelAccessor) {
-        final Level level = (Level) levelAccessor;
-
         if (from == to) return true;
 
         final BlockPos fromLocation = from.getLocation();
         final Vector3d fromPos = new Vector3d(fromLocation.getX(), fromLocation.getY(), fromLocation.getZ());
         final BlockPos toLocation = to.getLocation();
         final Vector3d toPos = new Vector3d(toLocation.getX(), toLocation.getY(), toLocation.getZ());
-
-        final SableCompanion helper = SableCompanion.INSTANCE;
-        final SubLevelAccess fromSublevel = helper.getContaining(level, fromPos);
-        if (fromSublevel != null) {
-            fromSublevel.logicalPose().transformPosition(fromPos);
-        }
-
-        final SubLevelAccess toSublevel = helper.getContaining(level, toPos);
-        if (toSublevel != null) {
-            toSublevel.logicalPose().transformPosition(toPos);
-        }
 
         final int linkRange = AllConfigs.server().logistics.linkRange.get();
         return fromPos.distanceSquared(toPos) < linkRange * linkRange;

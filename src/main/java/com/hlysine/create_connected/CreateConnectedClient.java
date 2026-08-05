@@ -1,5 +1,7 @@
 package com.hlysine.create_connected;
 
+import com.hlysine.create_connected.client.CCConnectedTextures;
+import com.hlysine.create_connected.client.CCBlockEntityRenders;
 import com.hlysine.create_connected.registries.CCPartialModels;
 import com.hlysine.create_connected.registries.CCPonderPlugin;
 import com.zurrtum.create.client.ponder.foundation.PonderIndex;
@@ -20,6 +22,8 @@ public class CreateConnectedClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         CCPartialModels.register();
+        CCBlockEntityRenders.register();
+        CCConnectedTextures.register();
         PonderIndex.addPlugin(new CCPonderPlugin());
     }
 }

@@ -38,6 +38,9 @@ sourceSets.main.java {
     // Mixins cuyo target no existe en 26.2:
     // ThrottleLeverBlock es del mod Simulated (dev.simulated_team.simulated), no de Create.
     exclude 'com/hlysine/create_connected/mixin/linkedtransmitter/ThrottleLeverBlockMixin.java'
+    // El throttle lever vinculado extiende el bloque de Simulated y solo lo registra
+    // SimCompatRegistry, que ya esta excluido.
+    exclude 'com/hlysine/create_connected/content/linkedtransmitter/LinkedThrottleLever*.java'
     // La pantalla de config de catnip no fue porteada: Create Fly tiene catnip.config pero no
     // catnip.config.ui. Consecuencia: no hay UI in-game para los feature toggles; se editan por
     // archivo. Restaurar si catnip.config.ui aparece.

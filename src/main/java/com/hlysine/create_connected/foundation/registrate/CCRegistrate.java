@@ -62,7 +62,7 @@ public final class CCRegistrate {
 
     public <T extends BlockEntity> BlockEntityBuilder<T> blockEntity(
             String name,
-            BlockEntityType.BlockEntitySupplier<T> factory
+            BlockEntityBuilder.Factory<T> factory
     ) {
         return new BlockEntityBuilder<>(this, name, factory);
     }
