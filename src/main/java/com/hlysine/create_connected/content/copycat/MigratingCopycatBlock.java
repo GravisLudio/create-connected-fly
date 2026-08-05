@@ -47,38 +47,22 @@ public abstract class MigratingCopycatBlock extends CopycatBlock {
         return state;
     }
 
+    // Every branch below used to be gated on Mods.COPYCATS.runIfInstalled and fall back when the
+    // mod was absent. CopycatsManager is excluded from the build until Copycats+ ships for 26.2
+    // (see build.gradle), so only the fallback path can exist -- which is exactly what would run
+    // anyway. Restore these together with the exclude.
+
     protected static BlockState migrate(BlockState state) {
-        return Mods.COPYCATS.runIfInstalled(() -> () -> CopycatsManager.convertIfEnabled(state)).orElse(state);
+        return state;
     }
 
     protected boolean isSelfState(BlockState state) {
-        if (state.is(this)) return true;
-        return Mods.COPYCATS.runIfInstalled(() -> () -> state.is(CopycatsManager.convertIfEnabled(this))).orElse(false);
-    }
-
-    @Override
-    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
-        if (Mods.COPYCATS.runIfInstalled(() -> () -> {
-            Block oldBlock = CopycatsManager.convertIfEnabled(pState.getBlock());
-            Block newBlock = CopycatsManager.convertIfEnabled(pNewState.getBlock());
-            return oldBlock.equals(newBlock);
-        }).orElse(false)) return;
-        super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
+        return state.is(this);
     }
 
     @Override
     public @NotNull List<ItemStack> getDrops(@NotNull BlockState pState, LootParams.@NotNull Builder pParams) {
-        List<ItemStack> drops = super.getDrops(pState, pParams);
-        return Mods.COPYCATS.runIfInstalled(() -> () -> {
-            for (int i = 0; i < drops.size(); i++) {
-                ItemStack drop = drops.get(i);
-                Item converted = CopycatsManager.convert(drop.getItem());
-                if (!converted.equals(drop.getItem())) {
-                    drops.set(i, new ItemStack(converted, drop.getCount()));
-                }
-            }
-            return drops;
-        }).orElse(drops);
+        return super.getDrops(pState, pParams);
     }
 
     @Override
