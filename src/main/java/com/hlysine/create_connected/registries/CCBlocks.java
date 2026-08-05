@@ -3,9 +3,7 @@ package com.hlysine.create_connected.registries;
 import com.hlysine.create_connected.foundation.registrate.SharedProperties;
 import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
 import com.hlysine.create_connected.CreateConnected;
-import com.hlysine.create_connected.compat.DyeDepotCompat;
 import com.hlysine.create_connected.compat.Mods;
-import com.hlysine.create_connected.compat.SimCompatRegistry;
 import com.hlysine.create_connected.config.CStress;
 import com.hlysine.create_connected.config.FeatureCategory;
 import com.hlysine.create_connected.config.FeatureToggle;
@@ -180,9 +178,7 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .onRegister(CCRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
-            .onRegister(CCRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.ANDESITE_CASING,
-                    (s, f) -> f.getAxis() == s.getValue(ParallelGearboxBlock.AXIS))))
+            // Connected textures + casing connectivity moved to client/CCConnectedTextures.
 
             .item()
 
@@ -252,7 +248,6 @@ public class CCBlocks {
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(pickaxeOnly())
 
-            .onRegister(CCRegistrate)
             .simpleItem()
             .register();
 
@@ -354,9 +349,7 @@ public class CCBlocks {
             .transform(CStress.setNoImpact())
             .transform(FeatureToggle.register(FeatureCategory.KINETIC))
             .transform(axeOrPickaxe())
-            .onRegister(CCRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.BRASS_CASING)))
-            .onRegister(CCRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.BRASS_CASING,
-                    (s, f) -> f.getAxis() == s.getValue(BrassGearboxBlock.AXIS))))
+            // Connected textures + casing connectivity moved to client/CCConnectedTextures.
 
             .item()
 
@@ -397,7 +390,7 @@ public class CCBlocks {
             .item(KineticBatteryBlockItem::new)
             .properties(p -> p.component(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0))
             .onRegister(KineticBatteryBlockItem::registerModelOverrides)
-            .model(KineticBatteryOverrides::addOverrideModels)
+            
             .build()
             .register();
 
@@ -854,9 +847,11 @@ public class CCBlocks {
 
     static {
         for (DyeColor color : DyeColor.values()) {
-            String namespace = DyeDepotCompat.getColorNamespace(color);
-            boolean isVanilla = namespace.equals(Identifier.DEFAULT_NAMESPACE);
-            FAN_DYEING_CATALYSTS.put(color, REGISTRATE.block((isVanilla ? "" : (namespace + "_")) + color.getName() + "_fan_dyeing_catalyst", WrenchableBlock::new)
+            // DyeDepotCompat is excluded from the build (Dye Depot has no 26.2 release), and it
+            // only ever returned a non-vanilla namespace for that mod's extra dyes. With it gone
+            // every colour is vanilla, so the naming collapses to the vanilla branch. Restore the
+            // call along with the compat file if Dye Depot is ported.
+            FAN_DYEING_CATALYSTS.put(color, REGISTRATE.block(color.getName() + "_fan_dyeing_catalyst", WrenchableBlock::new)
                     .initialProperties(() -> Blocks.IRON_BLOCK)
                     .properties(p -> p
                             .mapColor(MapColor.TERRACOTTA_YELLOW)
@@ -884,7 +879,7 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
 
-            .onRegister(connectedTextures(ItemSiloCTBehaviour::new))
+            // Connected textures moved to client/CCConnectedTextures (ItemSiloCTBehaviour).
             .transform(MountedItemStorageType.mountedItemStorage(CCMountedStorageTypes.SILO))
             .onRegister(b -> BlockMovementChecks.registerAttachedCheck((state, world, pos, direction) -> {
                 if (state.getBlock() instanceof ItemSiloBlock)
@@ -901,7 +896,6 @@ public class CCBlocks {
             .transform(pickaxeOnly())
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
 
-            .onRegister(CCRegistrate)
             .onRegister(b -> BlockMovementChecks.registerAttachedCheck((state, world, pos, direction) -> {
                 if (state.getBlock() instanceof FluidVesselBlock)
                     return BlockMovementChecks.CheckResult.of(ConnectivityHandler.isConnected(world, pos, pos.relative(direction)));
@@ -912,7 +906,7 @@ public class CCBlocks {
             .onRegister(movementBehaviour(new FluidTankMovementBehavior()))
             .addLayer(() -> RenderType::cutoutMipped)
             .item(FluidVesselItem::new)
-            .model(AssetLookup)
+            
             .build()
             .register();
 
@@ -924,18 +918,10 @@ public class CCBlocks {
                     .transform(FeatureToggle.registerDependent(FLUID_VESSEL))
                     .tag(AllBlockTags.SAFE_NBT)
 
-                    .onRegister(CCRegistrate)
                     .addLayer(() -> RenderType::cutoutMipped)
                     .item(FluidVesselItem::new)
                     .properties(p -> p.rarity(Rarity.EPIC))
-                    .model((c, p) -> p.withExistingParent(c.getName(), p.modLoc("block/fluid_vessel/block_x_single_window"))
-                            .texture("5", Create.asResource("block/creative_fluid_tank_window_single"))
-                            .texture("1", Create.asResource("block/creative_fluid_tank"))
-                            .texture("particle", Create.asResource("block/creative_fluid_tank"))
-                            .texture("4", Create.asResource("block/creative_casing"))
-                            .texture("6", p.modLoc("block/fluid_container_window"))
-                            .texture("7", p.modLoc("block/creative_fluid_container_window_single"))
-                            .texture("0", Create.asResource("block/creative_casing")))
+                    
                     .build()
                     .register();
 
@@ -991,11 +977,10 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatSlabBlock> COPYCAT_SLAB =
             REGISTRATE.block("copycat_slab", CopycatSlabBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .tag(BlockTags.SLABS)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
                     .loot((lt, block) -> lt.add(block, lt.createSlabItemTable(block)))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_SLAB.tag)
 
@@ -1003,9 +988,8 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatBlockBlock> COPYCAT_BLOCK =
             REGISTRATE.block("copycat_block", CopycatBlockBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_BLOCK.tag)
 
@@ -1013,9 +997,8 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatBeamBlock> COPYCAT_BEAM =
             REGISTRATE.block("copycat_beam", CopycatBeamBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_BEAM.tag)
 
@@ -1023,9 +1006,8 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatVerticalStepBlock> COPYCAT_VERTICAL_STEP =
             REGISTRATE.block("copycat_vertical_step", CopycatVerticalStepBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_VERTICAL_STEP.tag)
 
@@ -1033,10 +1015,9 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatStairsBlock> COPYCAT_STAIRS =
             REGISTRATE.block("copycat_stairs", CopycatStairsBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .tag(BlockTags.STAIRS)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_STAIRS.tag)
 
@@ -1052,10 +1033,9 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatFenceBlock> COPYCAT_FENCE =
             REGISTRATE.block("copycat_fence", CopycatFenceBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .tag(BlockTags.FENCES, Tags.Blocks.FENCES)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_FENCE.tag)
 
@@ -1071,11 +1051,10 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatWallBlock> COPYCAT_WALL =
             REGISTRATE.block("copycat_wall", CopycatWallBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .properties(p -> p.forceSolidOn())
                     .tag(BlockTags.WALLS)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_WALL.tag)
 
@@ -1091,11 +1070,10 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatFenceGateBlock> COPYCAT_FENCE_GATE =
             REGISTRATE.block("copycat_fence_gate", CopycatFenceGateBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .properties(p -> p.forceSolidOn())
                     .tag(BlockTags.FENCE_GATES, Tags.Blocks.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .item()
                     .tag(CCTags.Items.COPYCAT_FENCE_GATE.tag)
 
@@ -1111,9 +1089,8 @@ public class CCBlocks {
 
     public static final BlockEntry<CopycatBoardBlock> COPYCAT_BOARD =
             REGISTRATE.block("copycat_board", CopycatBoardBlock::new)
-                    .transform(BuilderTransformers.copycat())
+                    .transform(CCBuilderTransformers.copycat())
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
-                    .onRegister(CCRegistrate)
                     .loot((lt, block) -> {
                         LootTable.Builder builder = LootTable.lootTable();
                         for (Direction direction : Iterate.directions) {
@@ -1135,7 +1112,7 @@ public class CCBlocks {
                     .register();
 
     public static void register() {
-        Mods.SIMULATED.executeIfInstalled(() -> SimCompatRegistry::register);
+        // Simulated integration is excluded from the build; see the excludes in build.gradle.
     }
 
     private static Function<BlockState, ModelFile> forBoolean(DataGenContext<?, ?> ctx,
