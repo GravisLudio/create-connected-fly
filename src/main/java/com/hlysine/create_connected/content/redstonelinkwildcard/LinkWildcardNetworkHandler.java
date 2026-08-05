@@ -1,5 +1,6 @@
 package com.hlysine.create_connected.content.redstonelinkwildcard;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import com.hlysine.create_connected.registries.CCItems;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.config.CServer;
@@ -17,34 +18,38 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.level.LevelEvent;
 import org.joml.Vector3d;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-@EventBusSubscriber(modid = CreateConnected.MODID)
 public class LinkWildcardNetworkHandler {
     static final Map<LevelAccessor, Map<Couple<Frequency>, Set<Couple<Frequency>>>> transmitter_connections =
             new IdentityHashMap<>();
     static final Map<LevelAccessor, Map<Couple<Frequency>, Set<Couple<Frequency>>>> receiver_connections =
             new IdentityHashMap<>();
 
-    @SubscribeEvent
-    public static void onLoadWorld(LevelEvent.Load event) {
-        transmitter_connections.put(event.getLevel(), new HashMap<>());
-        receiver_connections.put(event.getLevel(), new HashMap<>());
-        CreateConnected.LOGGER.debug("Link-Wildcard: Prepared Redstone Network Wildcards for {}", WorldHelper.getDimensionID(event.getLevel()));
-    }
-
-    @SubscribeEvent
-    public static void onUnloadWorld(LevelEvent.Unload event) {
-        transmitter_connections.remove(event.getLevel());
-        receiver_connections.remove(event.getLevel());
-        CreateConnected.LOGGER.debug("Link-Wildcard: Removed Redstone Network Wildcards for {}", WorldHelper.getDimensionID(event.getLevel()));
+    /**
+     * Called from the mod initializer.
+     * <p>
+     * Was {@code @SubscribeEvent} on {@code LevelEvent.Load}/{@code Unload}. Fabric has no
+     * annotation-driven bus, so the hooks are registered explicitly. Note the narrowing: the
+     * NeoForge events fired for client levels too, whereas {@code ServerWorldEvents} is
+     * server-only -- which is correct here, since these maps only ever back server-side redstone
+     * networks.
+     */
+    public static void register() {
+        ServerWorldEvents.LOAD.register((server, level) -> {
+            transmitter_connections.put(level, new HashMap<>());
+            receiver_connections.put(level, new HashMap<>());
+            CreateConnected.LOGGER.debug("Link-Wildcard: Prepared Redstone Network Wildcards for {}", WorldHelper.getDimensionID(level));
+        });
+        ServerWorldEvents.UNLOAD.register((server, level) -> {
+            transmitter_connections.remove(level);
+            receiver_connections.remove(level);
+            CreateConnected.LOGGER.debug("Link-Wildcard: Removed Redstone Network Wildcards for {}", WorldHelper.getDimensionID(level));
+        });
     }
 
     public static Map<Couple<Frequency>, Set<Couple<Frequency>>> transmittersIn(LevelAccessor world) {

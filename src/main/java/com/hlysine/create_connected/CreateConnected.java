@@ -1,5 +1,6 @@
 package com.hlysine.create_connected;
 
+import com.hlysine.create_connected.content.redstonelinkwildcard.LinkWildcardNetworkHandler;
 import com.hlysine.create_connected.config.CCConfigs;
 import com.hlysine.create_connected.datagen.advancements.CCAdvancements;
 import com.hlysine.create_connected.datagen.advancements.CCTriggers;
@@ -56,6 +57,9 @@ public class CreateConnected implements ModInitializer {
         CCItemAttributes.register();
         CCAdvancements.register();
         CCTriggers.register();
+
+        // Was an @EventBusSubscriber class; Fabric needs the level hooks registered explicitly.
+        LinkWildcardNetworkHandler.register();
 
         // Copycats+ and Additional Placements integrations are excluded from the build until
         // those mods exist on 26.2 -- see the sourceSets excludes in build.gradle. Their source

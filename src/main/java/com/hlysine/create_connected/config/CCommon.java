@@ -1,14 +1,8 @@
 package com.hlysine.create_connected.config;
 
 import com.hlysine.create_connected.CreateConnected;
-import net.minecraft.network.protocol.configuration.ServerConfigurationPacketListener;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.jetbrains.annotations.NotNull;
 
-@EventBusSubscriber(modid = CreateConnected.MODID)
 public class CCommon extends SyncConfigBase {
 
     @Override
@@ -24,15 +18,19 @@ public class CCommon extends SyncConfigBase {
 
     public final CFeatureCategories categories = nested(0, CFeatureCategories::new, Comments.categories);
 
-    @SubscribeEvent
-    public static void register(final RegisterPayloadHandlersEvent event) {
-        CCConfigs.common().registerAsSyncRoot(event, "2.0.0");
-    }
-
-    @SubscribeEvent
-    public static void register(final RegisterConfigurationTasksEvent event) {
-        event.register(new CommonSyncConfigTask(event.getListener()));
-    }
+    // TODO server -> client config sync is NOT wired up on Fabric yet.
+    //
+    // Under NeoForge this hooked RegisterPayloadHandlersEvent (to register the payload) and
+    // RegisterConfigurationTasksEvent (to push it during the configuration phase). Fabric has
+    // neither event. Create Fly solves it with:
+    //   - infrastructure/config/SyncConfigTask, a vanilla ConfigurationTask, and
+    //   - a mixin into ServerConfigurationPacketListenerImpl that appends the task, since there
+    //     is no event to register one.
+    // Mirror that here when the mod actually launches; writing the networking blind, before
+    // anything can be tested, is the least useful order to do it in.
+    //
+    // Consequence until then: config values are local. A server does NOT override client
+    // settings, so feature toggles can disagree between the two sides.
 
     private static class Comments {
         static String toggle = "Enable/disable features. Values on server override clients";
@@ -41,14 +39,8 @@ public class CCommon extends SyncConfigBase {
         static String migrateCopycatsOnInitialize = "Migrate copycats to Create: Copycats+ when their block entities are initialized";
     }
 
-    public static class CommonSyncConfigTask extends SyncConfigTask {
-        public CommonSyncConfigTask(ServerConfigurationPacketListener listener) {
-            super(listener);
-        }
-
-        @Override
-        protected SyncConfigBase getSyncConfig() {
-            return CCConfigs.common();
-        }
-    }
+    // CommonSyncConfigTask lived here and extended SyncConfigBase.SyncConfigTask, a NeoForge
+    // ICustomConfigurationTask. It is removed along with the rest of the sync path; see the note
+    // above. Create Fly's equivalent is a plain vanilla ConfigurationTask, so the replacement will
+    // not look like this one.
 }

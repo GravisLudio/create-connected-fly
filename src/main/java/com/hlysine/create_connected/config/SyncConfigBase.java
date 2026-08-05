@@ -1,28 +1,28 @@
 package com.hlysine.create_connected.config;
 
 import com.hlysine.create_connected.CreateConnected;
-import io.netty.buffer.ByteBuf;
 import com.zurrtum.create.catnip.config.ConfigBase;
-import net.createmod.catnip.platform.CatnipServices;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.protocol.configuration.ServerConfigurationPacketListener;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ConfigurationTask;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.configuration.ICustomConfigurationTask;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
-
+/**
+ * A config section whose values a server can push to clients.
+ * <p>
+ * The serialisation half below is platform-neutral and kept as-is. The transport half was pure
+ * NeoForge -- {@code PacketDistributor}, {@code PayloadRegistrar}, {@code ICustomConfigurationTask},
+ * {@code ServerLifecycleHooks} -- and is <b>not ported yet</b>; see the note in {@link CCommon}.
+ * <p>
+ * The {@link SyncConfig} payload is left in place because it is built entirely from vanilla types
+ * and is what the Fabric implementation will send. What is missing is registering it and pushing
+ * it: on Fabric that means a vanilla {@code ConfigurationTask} plus a mixin into
+ * {@code ServerConfigurationPacketListenerImpl}, the way Create Fly does it.
+ * <p>
+ * Until then config values stay local to each side.
+ */
 public abstract class SyncConfigBase extends ConfigBase {
 
     public final CompoundTag getSyncConfig() {
@@ -56,56 +56,10 @@ public abstract class SyncConfigBase extends ConfigBase {
     protected void readSyncConfig(CompoundTag nbt) {
     }
 
-    @Override
-    public void onLoad() {
-        super.onLoad();
-        syncToAllPlayers();
-    }
-
-    @Override
-    public void onReload() {
-        super.onReload();
-        syncToAllPlayers();
-    }
-
-    public void syncToAllPlayers() {
-        CatnipServices.PLATFORM.executeOnServerOnly(() -> () -> {
-            if (ServerLifecycleHooks.getCurrentServer() == null) return;
-            CreateConnected.LOGGER.debug("Sync Config: Sending server config to all players on reload");
-            PacketDistributor.sendToAllPlayers(new SyncConfig(getSyncConfig()));
-        });
-    }
-
-    public void syncToPlayer(ServerPlayer player) {
-        if (player == null) return;
-        CatnipServices.PLATFORM.executeOnServerOnly(() -> () -> {
-            CreateConnected.LOGGER.debug("Sync Config: Sending server config to {}", player.getScoreboardName());
-            PacketDistributor.sendToPlayer(player, new SyncConfig(getSyncConfig()));
-        });
-    }
-
-    protected void registerAsSyncRoot(final RegisterPayloadHandlersEvent event, final String version) {
-        final PayloadRegistrar registrar = event.registrar(version);
-        registrar.configurationToClient(
-                SyncConfig.TYPE,
-                SyncConfig.STREAM_CODEC,
-                this::handleData
-        );
-        registrar.playToClient(
-                SyncConfig.TYPE,
-                SyncConfig.STREAM_CODEC,
-                this::handleData
-        );
-        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> {
-            if (e.getEntity() instanceof ServerPlayer serverPlayer) {
-                syncToPlayer(serverPlayer);
-            }
-        });
-    }
-
-    public void handleData(final SyncConfig data, final IPayloadContext context) {
-        this.setSyncConfig(data.nbt());
-        CreateConnected.LOGGER.debug("Sync Config: Received and applied server config {}", data.nbt().toString());
+    /** Applies a received payload. Nothing calls this until the transport is wired up. */
+    public void applySyncedConfig(SyncConfig data) {
+        setSyncConfig(data.nbt());
+        CreateConnected.LOGGER.debug("Sync Config: Received and applied server config {}", data.nbt());
     }
 
     public record SyncConfig(CompoundTag nbt) implements CustomPacketPayload {
@@ -119,29 +73,6 @@ public abstract class SyncConfigBase extends ConfigBase {
 
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
-    public static abstract class SyncConfigTask implements ICustomConfigurationTask {
-        public static final ConfigurationTask.Type TYPE = new Type(CreateConnected.asResource("sync_config_task"));
-        private final ServerConfigurationPacketListener listener;
-
-        public SyncConfigTask(ServerConfigurationPacketListener listener) {
-            this.listener = listener;
-        }
-
-        protected abstract SyncConfigBase getSyncConfig();
-
-        @Override
-        public void run(final Consumer<CustomPacketPayload> sender) {
-            final SyncConfig payload = new SyncConfig(getSyncConfig().getSyncConfig());
-            sender.accept(payload);
-            listener.finishCurrentTask(this.type());
-        }
-
-        @Override
-        public @NotNull Type type() {
             return TYPE;
         }
     }
