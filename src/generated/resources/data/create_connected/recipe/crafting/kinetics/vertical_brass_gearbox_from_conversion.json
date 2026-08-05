@@ -1,11 +1,11 @@
 {
-  "neoforge:conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "create_connected:feature_enabled",
+      "condition": "create_connected:feature_enabled",
       "tag": "create_connected:brass_gearbox"
     },
     {
-      "type": "create_connected:feature_enabled",
+      "condition": "create_connected:feature_enabled",
       "tag": "create_connected:vertical_brass_gearbox"
     }
   ],

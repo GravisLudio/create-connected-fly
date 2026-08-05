@@ -1,7 +1,7 @@
 {
-  "neoforge:conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "create_connected:feature_enabled",
+      "condition": "create_connected:feature_enabled",
       "tag": "create_connected:empty_fan_catalyst"
     }
   ],
@@ -9,10 +9,12 @@
   "ingredients": [
     {
       "item": "create_connected:empty_fan_catalyst"
-    },
+    }
+  ],
+  "fluid_ingredients": [
     {
-      "type": "neoforge:single",
-      "amount": 1000,
+      "type": "fluid_stack",
+      "amount": 81000,
       "fluid": "minecraft:water"
     }
   ],

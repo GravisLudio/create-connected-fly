@@ -1,11 +1,11 @@
 {
-  "neoforge:conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "create_connected:feature_enabled",
+      "condition": "create_connected:feature_enabled",
       "tag": "create:clutch"
     },
     {
-      "type": "create_connected:feature_enabled",
+      "condition": "create_connected:feature_enabled",
       "tag": "create_connected:inverted_clutch"
     }
   ],

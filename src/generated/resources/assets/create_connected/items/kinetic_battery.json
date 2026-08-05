@@ -1,0 +1,7 @@
+{
+  "_comment": "TODO charge-level display lost in the 26.2 port. The 1.21.1 model used `overrides` with a `predicate` on create_connected:kinetic_battery_level, driven by ItemProperties.register in KineticBatteryOverrides. Vanilla removed both: overrides became item model definitions, and ItemProperties is gone. Restoring it needs a minecraft:range_dispatch over a custom number property, plus registering that property in code -- see Create Fly's AllModels.register(Identifier, MapCodec) for how a custom item model type is registered. Until then this shows the empty-battery model at every charge level: correct-looking, just not informative. The six kinetic_battery_level_N models are still present and unused.",
+  "model": {
+    "type": "minecraft:model",
+    "model": "create_connected:item/kinetic_battery_level_0"
+  }
+}

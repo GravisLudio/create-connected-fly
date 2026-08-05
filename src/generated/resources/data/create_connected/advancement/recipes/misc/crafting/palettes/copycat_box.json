@@ -1,13 +1,13 @@
 {
-  "neoforge:conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "create_connected:feature_enabled",
+      "condition": "create_connected:feature_enabled",
       "tag": "create_connected:copycat_box"
     },
     {
-      "type": "neoforge:not",
+      "condition": "fabric:not",
       "value": {
-        "type": "create_connected:feature_enabled_in_copycats",
+        "condition": "create_connected:feature_enabled_in_copycats",
         "tag": "create_connected:copycat_box"
       }
     }
