@@ -8,7 +8,7 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**412 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**322 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
 
 Every number in this document was produced by running `gradlew compileJava`, not estimated.
 
@@ -17,7 +17,7 @@ Every number in this document was produced by running `gradlew compileJava`, not
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 26 commits of port work on top of upstream history |
+| Branch | `main`, 31 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
@@ -118,7 +118,7 @@ javap -p -cp ~/.gradle/caches/fabric-loom/26.2-rc-2/minecraft-common.jar net.min
 
 There are three jars — `minecraft-common`, `minecraft-client`, `minecraft-client-only` — and the class may be in any of them.
 
-**Access wideners are not transitive.** Create Fly opens plenty of vanilla internals in its own classtweaker, and none of that reaches us — every field it reads that we also read needs our own entry. There are two so far, both found this way: `BlockEntityRenderState.blockState` and `BlockModelResolver.modelManager`. Create Fly's classtweaker is inside its jar (`create.classtweaker`) and is worth grepping when something reads as private that Create Fly clearly touches.
+**Access wideners are not transitive.** Create Fly opens plenty of vanilla internals in its own classtweaker, and none of that reaches us — every field it reads that we also read needs our own entry. There are five active entries so far. Three were found this way -- `BlockEntityRenderState.blockState`, `BlockModelResolver.modelManager`, and `BlockBehaviour.getCloneItemStack`, the last of which Create Fly does *not* open because it never delegates to another block instance the way the `Linked*` blocks do. Create Fly's classtweaker is inside its jar (`create.classtweaker`) and is worth grepping when something reads as private that Create Fly clearly touches.
 
 Concrete case: `JukeboxBlockEntity.jukeboxSongPlayer` is `net.minecraft.world.item.JukeboxSongPlayer`, not `world.level.block.entity.*`. And it needed no widening at all — 26.2 has a public `getSongPlayer()`. **Check for a getter before adding a classtweaker entry.**
 
@@ -129,6 +129,10 @@ Concrete case: `JukeboxBlockEntity.jukeboxSongPlayer` is `net.minecraft.world.it
 ### `modImplementation` does not exist
 
 In Loom 1.16 / MC 26.2 the production namespace is already mojmap, so there is no remapping step and the `mod*` configurations are gone. Mod dependencies go in with plain `implementation` / `compileOnly`, exactly as Create Fly declares JEI, Sodium and Iris.
+
+### A regex replacement can leave a group reference as literal text
+
+Sweeping `neighborChanged` across six blocks, the replacement string referenced a capture group the pattern did not have, so every one of them ended up with a parameter literally named `$12`. It compiles as far as the *signature* — the error surfaces further down as an unknown variable, pointing at the body rather than the sweep. After any scripted signature change, grep the tree for `\$\d+` before moving on.
 
 ### awk turns `"\\b"` into a literal backspace
 
@@ -331,19 +335,31 @@ Still outstanding in this area: `FluidVesselModel`.
 
 Note Create Fly's own warning on `CopycatModel`: if FRAPI is loaded, `FabricBlockStateModel#emitQuads` has to be overridden for ambient occlusion and emissive flags to survive.
 
+### Scroll values and value boxes — done
+
+Create Fly split `ScrollValueBehaviour` in two, and this is worth knowing before touching any other Create behaviour:
+
+- **Server half** (`ServerScrollValueBehaviour`, in `foundation/`): the value, its range, `getValueSettings` / `setValueSettings`, and `getClipboardKey` — `ValueSettingsHandleBehaviour` extends `ClipboardCloneable`, so clipboard support rides along on this side. The block entity adds it in `addBehaviours`.
+- **Client half** (`ScrollValueBehaviour`, in `client/`): the value box and its board. **Not** added by the block entity — it goes in a type-keyed client registry. Connected's `CCBlockEntityBehaviours` mirrors Create Fly's `AllBlockEntityBehaviours`.
+
+Upstream's three behaviours each overrode both halves, so each became a pair. Upstream also seeded defaults by assigning the `value` field directly; it is protected on the parent and `setValue` clamps against a range that is not set yet, so the server halves carry an explicit `startingValue`.
+
+`ValueBoxTransform.rotate` / `shouldRender` / `getLocalOffset` all dropped their level and position — the block state alone now.
+
 ### The tail
 
 | File | Errors | What it needs |
 |---|---|---|
-| `content/overstressclutch/OverstressClutchBlockEntity` | 18 | Scroll-value behaviour API |
-| `content/fluidvessel/FluidVesselBlock` | 15 | Last of the capability migration |
-| `content/fluidvessel/FluidVesselModel` | 14 | The model rewrite — see `CCCopycatModel` |
 | `content/fluidvessel/FluidVesselBlockEntity` | 14 | |
+| `content/fluidvessel/FluidVesselModel` | 14 | The model rewrite — see `CCCopycatModel` |
+| `content/fluidvessel/FluidVesselBlock` | 14 | Last of the capability migration |
 | `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 14 | Inventory rewrite (see below) |
-| `content/linkedtransmitter/LinkedTransmitterFrequencySlot` | 12 | Value-box rendering |
 | `content/fluidvessel/BoilerData` | 10 | |
+| `content/fluidvessel/FluidVesselMountedStorage` | 8 | |
 
-The `fluidvessel` package is still the largest single cluster at roughly 55 errors across four files, split between the capability migration and `FluidVesselModel`.
+**The `fluidvessel` package is the clear next target** — roughly 60 errors across five files, and the only cluster left with that much in one place. It splits between the capability migration (the pattern is under *Architecture decisions*) and `FluidVesselModel`, which follows `CCCopycatModel`.
+
+Everything else is now single files in the low tens or below.
 
 Also outstanding: **16 Create classes with no Create Fly equivalent**, which need reimplementing rather than renaming — `SafeBlockEntityRenderer`, `SmartFluidTank`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `BlockEntityConfigurationPacket`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `CreateAdvancement`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
 
