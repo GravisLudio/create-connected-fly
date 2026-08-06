@@ -2,6 +2,8 @@ package com.hlysine.create_connected.foundation.registrate;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -71,10 +73,14 @@ public final class ItemBuilder<T extends Item> implements NamedBuilder {
 
     public ItemEntry<T> register() {
         Identifier id = parent.id(name);
+        // See BlockBuilder.register: 26.2 derives the description id in Item's constructor, so the
+        // key has to be on the Properties first. No block prefix here -- plain items keep the
+        // item.<ns>.<name> shape the lang files already use.
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, id);
         T item = Registry.register(
                 BuiltInRegistries.ITEM,
                 id,
-                factory.apply(propertyOps.apply(new Item.Properties()))
+                factory.apply(propertyOps.apply(new Item.Properties().setId(key)))
         );
 
         for (Consumer<T> callback : onRegister) {

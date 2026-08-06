@@ -177,10 +177,19 @@ public final class BlockBuilder<T extends Block> implements NamedBuilder {
         T block = (T) net.minecraft.world.level.block.Blocks.register(key, factory::apply, props);
 
         if (createItem) {
+            // 26.2 requires the registry key on the Properties *before* the Item is constructed --
+            // Item's constructor derives its description id there and throws "Item id not set"
+            // otherwise. useBlockDescriptionPrefix is what makes that id read block.<ns>.<name>,
+            // which is the key shape the committed lang files use for every block item.
+            // Both go on first so a caller's own itemProperties(...) can still override them.
+            ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, id);
+            Item.Properties itemProps = itemPropertyOps.apply(
+                    new Item.Properties().useBlockDescriptionPrefix().setId(itemKey));
+
             BlockItem item = Registry.register(
                     BuiltInRegistries.ITEM,
                     id,
-                    itemFactory.apply(block, itemPropertyOps.apply(new Item.Properties()))
+                    itemFactory.apply(block, itemProps)
             );
             for (Consumer<BlockItem> callback : onItemRegister) {
                 callback.accept(item);
