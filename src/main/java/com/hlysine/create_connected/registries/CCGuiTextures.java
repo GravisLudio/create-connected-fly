@@ -1,16 +1,21 @@
 package com.hlysine.create_connected.registries;
 
 import com.hlysine.create_connected.CreateConnected;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.zurrtum.create.client.catnip.gui.TextureSheetSegment;
 import com.zurrtum.create.client.catnip.gui.UIRenderHelper;
 import com.zurrtum.create.client.catnip.gui.element.ScreenElement;
 import com.zurrtum.create.catnip.theme.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 
-public enum CCGuiTextures implements ScreenElement {
+/**
+ * 26.2 replaced {@code GuiGraphics} with {@code GuiGraphicsExtractor} and dropped
+ * {@code RenderSystem.setShaderTexture}: a draw now carries its own {@code TextureSetup}, which
+ * {@code BindableTexture.bind()} builds from the location. Shape copied from Create Fly's
+ * {@code AllGuiTextures}.
+ */
+public enum CCGuiTextures implements ScreenElement, TextureSheetSegment {
 
     SEQUENCER("sequencer", 256, 205),
     SEQUENCER_INSTRUCTION("sequencer", 0, 16, 237, 22),
@@ -48,21 +53,38 @@ public enum CCGuiTextures implements ScreenElement {
         this.startY = startY;
     }
 
-    @Environment(EnvType.CLIENT)
-    public void bind() {
-        RenderSystem.setShaderTexture(0, location);
+    @Override
+    public Identifier getLocation() {
+        return location;
     }
 
-    @Environment(EnvType.CLIENT)
-    public void render(GuiGraphics graphics, int x, int y) {
-        graphics.blit(location, x, y, startX, startY, width, height);
+    @Override
+    public void render(GuiGraphicsExtractor graphics, int x, int y) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, location, x, y, startX, startY, width, height, 256, 256);
     }
 
-    @Environment(EnvType.CLIENT)
-    public void render(GuiGraphics graphics, int x, int y, Color c) {
-        bind();
-        UIRenderHelper.drawColoredTexture(graphics, c, x, y, startX, startY, width, height);
+    public void render(GuiGraphicsExtractor graphics, int x, int y, Color c) {
+        UIRenderHelper.drawColoredTexture(graphics, bind(), c, x, y, startX, startY, width, height);
+    }
+
+    @Override
+    public int getStartX() {
+        return startX;
+    }
+
+    @Override
+    public int getStartY() {
+        return startY;
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
     }
 
 }
-

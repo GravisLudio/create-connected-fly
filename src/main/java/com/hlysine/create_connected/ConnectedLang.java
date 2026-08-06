@@ -46,7 +46,8 @@ public class ConnectedLang extends Lang {
     }
 
     public static LangBuilder fluidName(FluidStack stack) {
-        return builder().add(stack.getHoverName()
+        // Create Fly's FluidStack exposes getName, not the item-style getHoverName
+        return builder().add(stack.getName()
                 .copy());
     }
 

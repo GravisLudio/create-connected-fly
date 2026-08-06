@@ -67,7 +67,7 @@ public class BrassChuteBlock extends ChuteBlock {
     @Override
     protected @NotNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         Shape shape = state.getValue(SHAPE);
-        if (!AllBlocks.BRASS_BLOCK.isIn(stack))
+        if (!stack.is(AllBlocks.BRASS_BLOCK.asItem()))
             return retrieveItem(stack, state, level, pos, player, hand, hitResult);
         if (shape == Shape.INTERSECTION || shape == Shape.ENCASED)
             return retrieveItem(stack, state, level, pos, player, hand, hitResult);

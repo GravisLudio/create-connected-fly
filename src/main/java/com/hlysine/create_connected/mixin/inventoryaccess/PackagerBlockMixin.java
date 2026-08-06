@@ -12,7 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import com.zurrtum.create.api.entity.FakePlayerHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,7 +29,7 @@ public class PackagerBlockMixin {
         if (cir.getReturnValue() == null) return;
         Player player = context.getPlayer();
         Direction preferredFacing = cir.getReturnValue().getValue(PackagerBlock.FACING);
-        if (player != null && !(player instanceof FakePlayer)) {
+        if (player != null && !FakePlayerHandler.has(player)) {
             BlockPos targetPos = context.getClickedPos().relative(preferredFacing.getOpposite());
             BlockState targetState = context.getLevel().getBlockState(targetPos);
             if (targetState.is(CCBlocks.INVENTORY_ACCESS_PORT.get()) || targetState.is(CCBlocks.INVENTORY_BRIDGE.get())) {

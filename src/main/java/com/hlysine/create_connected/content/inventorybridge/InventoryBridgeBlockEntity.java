@@ -7,8 +7,8 @@ import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.inventoryaccessport.WrappedItemHandler;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
-import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.FilteringBehaviour;
-import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
+import com.zurrtum.create.foundation.blockEntity.behaviour.filtering.ServerFilteringBehaviour;
+import com.zurrtum.create.foundation.blockEntity.behaviour.filtering.ServerSidedFilteringBehaviour;
 import com.zurrtum.create.foundation.blockEntity.behaviour.inventory.CapManipulationBehaviourBase;
 import com.zurrtum.create.foundation.blockEntity.behaviour.inventory.InvManipulationBehaviour;
 import com.zurrtum.create.catnip.math.BlockFace;
@@ -34,9 +34,11 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
     private InvManipulationBehaviour negativeInventory;
     private InvManipulationBehaviour positiveInventory;
 
-    SidedFilteringBehaviour filters;
-    public FilteringBehaviour negativeFilter;
-    public FilteringBehaviour positiveFilter;
+    // FilteringBehaviour is a client/server pair now: the filter itself lives on the server half,
+    // the value box on the client one (registered in CCBlockEntityBehaviours).
+    ServerSidedFilteringBehaviour filters;
+    public ServerFilteringBehaviour negativeFilter;
+    public ServerFilteringBehaviour positiveFilter;
 
     private boolean powered;
 
@@ -76,9 +78,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
                 (w, p, s) -> new BlockFace(p, InventoryBridgeBlock.getPositiveTarget(s));
         behaviours.add(negativeInventory = new InvManipulationBehaviour(this, towardBlockFacing1));
         behaviours.add(positiveInventory = new InvManipulationBehaviour(this, towardBlockFacing2));
-        behaviours.add(filters = new SidedFilteringBehaviour(
+        behaviours.add(filters = new ServerSidedFilteringBehaviour(
                 this,
-                new InventoryBridgeFilterSlot(),
                 (facing, filter) -> {
                     if (facing.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
                         negativeFilter = filter;

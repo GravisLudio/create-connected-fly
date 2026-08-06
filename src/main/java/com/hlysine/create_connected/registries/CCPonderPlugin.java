@@ -72,8 +72,8 @@ public class CCPonderPlugin implements PonderPlugin {
                 .addStoryBoard("inventory_bridge", InventoryBridgeScenes::inventoryBridge, AllCreatePonderTags.LOGISTICS)
                 .addStoryBoard("inventory_bridge_filter", InventoryBridgeScenes::filtering, AllCreatePonderTags.LOGISTICS);
         SCENE_HELPER.forComponents(CCBlocks.BRASS_CHUTE)
-                .addStoryBoard(Create.asResource("chute/downward"), ChuteScenes::downward, AllCreatePonderTags.LOGISTICS)
-                .addStoryBoard(Create.asResource("chute/upward"), ChuteScenes::upward);
+                .addStoryBoard(Identifier.fromNamespaceAndPath(Create.MOD_ID, "chute/downward"), ChuteScenes::downward, AllCreatePonderTags.LOGISTICS)
+                .addStoryBoard(Identifier.fromNamespaceAndPath(Create.MOD_ID, "chute/upward"), ChuteScenes::upward);
         SCENE_HELPER.forComponents(CCBlocks.DASHBOARD)
                 .addStoryBoard("dashboard", DashboardScenes::dashboard, AllCreatePonderTags.DISPLAY_TARGETS);
     }

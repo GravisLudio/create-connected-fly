@@ -11,7 +11,7 @@ import com.zurrtum.create.client.foundation.gui.widget.ScrollInput;
 import com.zurrtum.create.client.foundation.gui.widget.SelectionScrollInput;
 import com.zurrtum.create.client.catnip.gui.AbstractSimiScreen;
 import com.zurrtum.create.client.catnip.gui.element.GuiGameElement;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -125,7 +125,7 @@ public class SequencedPulseGeneratorScreen extends AbstractSimiScreen {
     }
 
     @Override
-    protected void renderWindow(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    protected void renderWindow(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         int x = guiLeft;
         int y = guiTop;
 
@@ -164,7 +164,7 @@ public class SequencedPulseGeneratorScreen extends AbstractSimiScreen {
         renderAdditional(graphics, mouseX, mouseY, partialTicks, x, y, background);
     }
 
-    private void renderAdditional(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks, int guiLeft, int guiTop,
+    private void renderAdditional(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks, int guiLeft, int guiTop,
                                   CCGuiTextures background) {
         GuiGameElement.of(renderedItem).<GuiGameElement
                         .GuiRenderBuilder>at(guiLeft + background.width + 6, guiTop + background.height - 56, 100)
@@ -172,7 +172,7 @@ public class SequencedPulseGeneratorScreen extends AbstractSimiScreen {
                 .render(graphics);
     }
 
-    private void label(GuiGraphics graphics, int x, int y, Component text) {
+    private void label(GuiGraphicsExtractor graphics, int x, int y, Component text) {
         graphics.drawString(font, text, guiLeft + x, guiTop + 26 + y, 0xFFFFEE);
     }
 

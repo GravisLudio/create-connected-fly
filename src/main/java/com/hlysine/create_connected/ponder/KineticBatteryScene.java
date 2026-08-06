@@ -351,7 +351,7 @@ public class KineticBatteryScene {
         scene.world().showSection(util.select().position(battery), Direction.DOWN);
         scene.idle(20);
 
-        scene.overlay().showControls(util.vector().blockSurface(battery, Direction.UP), Pointing.DOWN, 30).withItem(AllItems.WRENCH.asStack());
+        scene.overlay().showControls(util.vector().blockSurface(battery, Direction.UP), Pointing.DOWN, 30).withItem(AllItems.WRENCH.getDefaultInstance());
         scene.idle(30);
         scene.world().destroyBlock(battery);
         ItemStack batteryStack = CCBlocks.KINETIC_BATTERY.asStack();

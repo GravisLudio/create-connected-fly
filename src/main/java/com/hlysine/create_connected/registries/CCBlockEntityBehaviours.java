@@ -8,6 +8,8 @@ import com.hlysine.create_connected.client.tooltip.FluidVesselTooltipBehaviour;
 import com.hlysine.create_connected.client.tooltip.KineticBatteryTooltipBehaviour;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockEntity;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryValueBox;
+import com.hlysine.create_connected.content.inventorybridge.InventoryBridgeBlockEntity;
+import com.hlysine.create_connected.content.inventorybridge.InventoryBridgeFilterSlot;
 import com.hlysine.create_connected.content.kineticbridge.KineticBridgeBlockEntity;
 import com.hlysine.create_connected.content.kineticbridge.StressImpactScrollValueBehaviour;
 import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlock;
@@ -15,6 +17,7 @@ import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlo
 import com.hlysine.create_connected.content.overstressclutch.TimeDelayScrollValueBehaviour;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.RotationDirectionScrollBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import net.fabricmc.api.EnvType;
@@ -57,6 +60,7 @@ public class CCBlockEntityBehaviours {
         add(CCBlockEntityTypes.KINETIC_BATTERY.get(),
                 CCBlockEntityBehaviours::kineticBatteryDirection,
                 KineticBatteryTooltipBehaviour::new);
+        add(CCBlockEntityTypes.INVENTORY_BRIDGE.get(), CCBlockEntityBehaviours::inventoryBridgeFilters);
         // Goggle tooltips are read off a TooltipBehaviour now, not off the block entity.
         add(CCBlockEntityTypes.FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
         add(CCBlockEntityTypes.CREATIVE_FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
@@ -68,6 +72,10 @@ public class CCBlockEntityBehaviours {
                 ConnectedLang.translateDirect("battery.rotation_direction"),
                 new KineticBatteryValueBox(3)
         );
+    }
+
+    private static BlockEntityBehaviour<?> inventoryBridgeFilters(InventoryBridgeBlockEntity be) {
+        return new SidedFilteringBehaviour(be, new InventoryBridgeFilterSlot());
     }
 
     private static BlockEntityBehaviour<?> centrifugalClutch(CentrifugalClutchBlockEntity be) {

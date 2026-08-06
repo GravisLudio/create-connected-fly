@@ -58,7 +58,7 @@ public abstract class AbstractBEShaftBlock<T extends KineticBlockEntity> extends
 
     @Override
     public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull LevelReader world, ScheduledTickAccess tickAccess, @NotNull BlockPos pos, @NotNull Direction direction, @NotNull BlockPos neighbourPos, @NotNull BlockState neighbourState, RandomSource random) {
-        updateWater(world, state, pos);
+        updateWater(world, tickAccess, state, pos);
         return state;
     }
 
