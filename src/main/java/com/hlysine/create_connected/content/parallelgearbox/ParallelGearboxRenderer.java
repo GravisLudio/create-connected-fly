@@ -1,56 +1,109 @@
 package com.hlysine.create_connected.content.parallelgearbox;
 
+import com.hlysine.create_connected.content.parallelgearbox.ParallelGearboxRenderer.ParallelGearboxRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.zurrtum.create.catnip.data.Iterate;
 import com.zurrtum.create.client.AllPartialModels;
+import com.zurrtum.create.client.catnip.animation.AnimationTickHolder;
+import com.zurrtum.create.client.catnip.render.CachedBuffers;
+import com.zurrtum.create.client.catnip.render.SuperByteBufferRenderState;
 import com.zurrtum.create.client.content.kinetics.base.KineticBlockEntityRenderer;
 import com.zurrtum.create.client.flywheel.api.visualization.VisualizationManager;
-import com.zurrtum.create.client.catnip.animation.AnimationTickHolder;
-import com.zurrtum.create.catnip.data.Iterate;
-import com.zurrtum.create.client.catnip.render.CachedBuffers;
-import com.zurrtum.create.client.catnip.render.SuperByteBuffer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import com.zurrtum.create.client.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.level.CardinalLighting;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
-public class ParallelGearboxRenderer extends KineticBlockEntityRenderer<ParallelGearboxBlockEntity> {
+/** See {@link com.hlysine.create_connected.content.sixwaygearbox.SixWayGearboxRenderer} for the shape. */
+public class ParallelGearboxRenderer implements BlockEntityRenderer<ParallelGearboxBlockEntity, ParallelGearboxRenderState> {
 
     public ParallelGearboxRenderer(BlockEntityRendererProvider.Context context) {
-        super(context);
     }
 
     @Override
-    protected void renderSafe(ParallelGearboxBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
-                              int light, int overlay) {
-        if (VisualizationManager.supportsVisualization(be.getLevel())) return;
+    public ParallelGearboxRenderState createRenderState() {
+        return new ParallelGearboxRenderState();
+    }
 
-        final Axis boxAxis = be.getBlockState().getValue(BlockStateProperties.AXIS);
-        final BlockPos pos = be.getBlockPos();
-        float time = AnimationTickHolder.getRenderTime(be.getLevel());
+    @Override
+    public void extractRenderState(
+            ParallelGearboxBlockEntity be,
+            ParallelGearboxRenderState state,
+            float tickProgress,
+            Vec3 cameraPos,
+            @Nullable CrumblingOverlay crumblingOverlay
+    ) {
+        Level level = SmartBlockEntityRenderer.extractBase(be, state, crumblingOverlay);
+
+        state.support = VisualizationManager.supportsVisualization(level);
+        if (state.support)
+            return;
+
+        CardinalLighting cardinalLighting = SmartBlockEntityRenderer.getCardinalLighting(level);
+        BlockState blockState = state.blockState;
+        BlockPos pos = state.blockPos;
+        Axis boxAxis = blockState.getValue(BlockStateProperties.AXIS);
+        float time = AnimationTickHolder.getRenderTime(level);
+        int color = KineticBlockEntityRenderer.getTintColor(be);
 
         for (Direction direction : Iterate.directions) {
-            final Axis axis = direction.getAxis();
+            Axis axis = direction.getAxis();
             if (boxAxis == axis)
                 continue;
 
-            SuperByteBuffer shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, be.getBlockState(), direction);
-            float offset = getRotationOffsetForPosition(be, pos, axis);
+            float offset = KineticBlockEntityRenderer.getRotationOffsetForPosition(be, pos, axis);
             float angle = (time * be.getSpeed() * 3f / 10) % 360;
 
             if (be.getSpeed() != 0 && be.hasSource()) {
-                BlockPos source = be.source.subtract(be.getBlockPos());
-                Direction sourceFacing = Direction.getNearest(source.getX(), source.getY(), source.getZ());
+                BlockPos source = be.source.subtract(pos);
+                Direction sourceFacing = Direction.getApproximateNearest(source.getX(), source.getY(), source.getZ());
                 angle *= ParallelGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing);
             }
 
             angle += offset;
             angle = angle / 180f * (float) Math.PI;
 
-            kineticRotationTransform(shaft, be, axis, angle, light);
-            shaft.renderInto(ms, buffer.getBuffer(RenderType.solid()));
+            state.shafts[direction.get3DDataValue()] =
+                    CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, blockState, direction)
+                            .cardinalLighting(cardinalLighting)
+                            .rotateCentered(angle, axis.getPositive())
+                            .light(state.lightCoords)
+                            .color(color)
+                            .extractRenderState();
         }
+    }
+
+    @Override
+    public void submit(
+            ParallelGearboxRenderState state,
+            PoseStack matrices,
+            SubmitNodeCollector queue,
+            CameraRenderState cameraState
+    ) {
+        if (state.support)
+            return;
+
+        for (SuperByteBufferRenderState shaft : state.shafts) {
+            if (shaft != null)
+                shaft.submit(matrices, queue);
+        }
+    }
+
+    public static class ParallelGearboxRenderState extends BlockEntityRenderState {
+        /** Indexed by {@link Direction#get3DDataValue()}; the box's own axis stays null. */
+        public final @Nullable SuperByteBufferRenderState[] shafts = new SuperByteBufferRenderState[6];
+        public boolean support;
     }
 }

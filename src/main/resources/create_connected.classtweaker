@@ -10,6 +10,16 @@ classTweaker v1 official
 # Procedimiento: activar una a la vez cuando el compilador la reclame, y
 # verificar el descriptor real contra el MC 26.2 que baje Loom.
 
+# --- ENTRADAS ACTIVAS ---
+
+# BlockEntityRenderState.blockState es privado en 26.2, y todo renderer que porteamos al par
+# extract/submit lo lee. Create Fly lo abre en SU classtweaker, pero los access wideners NO son
+# transitivos: hace falta la entrada propia. Descriptor verificado con
+#   javap -p -cp ~/.gradle/caches/fabric-loom/26.2-rc-2/minecraft-client.jar \
+#         net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState
+accessible field net/minecraft/client/renderer/blockentity/state/BlockEntityRenderState blockState Lnet/minecraft/world/level/block/state/BlockState;
+
+
 # --- 1. RecipeProvider.getName() ---
 # Original: public-f net.minecraft.data.recipes.RecipeProvider getName()Ljava/lang/String;
 # Era solo para datagen. Como los 1025 JSONs ya estan generados y se migran a
