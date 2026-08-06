@@ -1,7 +1,7 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
 import com.zurrtum.create.content.fluids.tank.CreativeFluidTankBlockEntity;
-import com.simibubi.create.foundation.fluid.SmartFluidTank;
+import com.zurrtum.create.foundation.fluid.FluidTank;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -15,9 +15,15 @@ public class CreativeFluidVesselBlockEntity extends FluidVesselBlockEntity {
         super(type, pos, state);
     }
 
+    /**
+     * Create's {@code CreativeSmartFluidTank} is Create Fly's
+     * {@code CreativeFluidTankBlockEntity.CreativeFluidTankInventory} -- same bottomless behaviour
+     * and same update callback, expressed over {@link FluidTank} instead of the dropped
+     * {@code SmartFluidTank}.
+     */
     @Override
-    protected SmartFluidTank createInventory() {
-        return new CreativeFluidTankBlockEntity.CreativeSmartFluidTank(getCapacityMultiplier(), this::onFluidStackChanged);
+    protected FluidTank createInventory() {
+        return new CreativeFluidTankBlockEntity.CreativeFluidTankInventory(getCapacityMultiplier(), this::onFluidStackChanged);
     }
 
     @Override

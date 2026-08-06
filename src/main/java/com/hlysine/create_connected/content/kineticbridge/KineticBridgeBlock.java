@@ -66,7 +66,8 @@ public class KineticBridgeBlock extends DirectionalKineticBlock implements IBE<K
 
     @Override
     public void affectNeighborsAfterRemoval(BlockState pState, ServerLevel pLevel, BlockPos pPos, boolean pIsMoving) {
-        if (!pNewState.is(this)) {
+        // the block is already gone by the time this runs, so the replacement is whatever is at pos now
+        if (!pLevel.getBlockState(pPos).is(this)) {
             Direction facing = pState.getValue(FACING);
             BlockPos destinationPos = pPos.relative(facing);
 

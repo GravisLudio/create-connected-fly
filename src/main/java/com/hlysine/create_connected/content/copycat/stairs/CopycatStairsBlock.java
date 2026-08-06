@@ -1,4 +1,5 @@
 package com.hlysine.create_connected.content.copycat.stairs;
+import com.hlysine.create_connected.foundation.DirectionHelper;
 
 import net.minecraft.world.level.ScheduledTickAccess;
 
@@ -88,7 +89,7 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
     @Override
     public void affectNeighborsAfterRemoval(BlockState pState, ServerLevel pLevel, BlockPos pPos, boolean pIsMoving) {
         super.affectNeighborsAfterRemoval(pState, pLevel, pPos, pIsMoving);
-        ICopycatWithWrappedBlock.wrappedState(stairs, pState).onRemove(pLevel, pPos, pNewState, pIsMoving);
+        ICopycatWithWrappedBlock.wrappedState(stairs, pState).affectNeighborsAfterRemoval(pLevel, pPos, pIsMoving);
     }
 
     @Override
@@ -139,7 +140,7 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
         if (diff.equals(Vec3i.ZERO)) {
             return true;
         }
-        Direction side = Direction.fromDelta(diff.getX(), diff.getY(), diff.getZ());
+        Direction side = DirectionHelper.fromDelta(diff.getX(), diff.getY(), diff.getZ());
 
         if (toState.is(this)) {
             return false;
@@ -168,7 +169,7 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
         if (diff.equals(Vec3i.ZERO)) {
             return true;
         }
-        Direction side = Direction.fromDelta(diff.getX(), diff.getY(), diff.getZ());
+        Direction side = DirectionHelper.fromDelta(diff.getX(), diff.getY(), diff.getZ());
 
         if (side != null) {
             FaceShape sideShape = getFaceShape(state, side);

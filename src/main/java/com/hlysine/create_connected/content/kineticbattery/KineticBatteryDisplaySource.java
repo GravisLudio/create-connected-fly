@@ -23,7 +23,7 @@ public class KineticBatteryDisplaySource extends PercentOrProgressBarDisplaySour
     }
 
     @Override
-    protected boolean allowsLabeling(DisplayLinkContext context) {
+    public boolean allowsLabeling(DisplayLinkContext context) {
         return true;
     }
 
@@ -51,17 +51,8 @@ public class KineticBatteryDisplaySource extends PercentOrProgressBarDisplaySour
                 .getIntOr("Mode", 0) == 2;
     }
 
-    @Override
-    @Environment(EnvType.CLIENT)
-    public void initConfigurationWidgets(DisplayLinkContext context, ModularGuiLineBuilder builder, boolean isFirstLine) {
-        super.initConfigurationWidgets(context, builder, isFirstLine);
-        if (isFirstLine)
-            return;
-        builder.addSelectionScrollInput(0, 120,
-                (si, l) -> si.forOptions(ConnectedLang.translatedOptions("display_source.kinetic_battery", "number", "percentage", "progress_bar"))
-                        .titled(ConnectedLang.translateDirect("display_source.kinetic_battery.display")),
-                "Mode");
-    }
+    // The configuration widgets moved to a client-side DisplaySourceRender in 26.2 --
+    // see KineticBatteryDisplaySourceRender.
 
 }
 

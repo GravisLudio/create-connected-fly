@@ -16,7 +16,7 @@ import com.zurrtum.create.content.kinetics.base.KineticBlockEntity;
 import com.zurrtum.create.content.kinetics.belt.BeltBlock;
 import com.zurrtum.create.content.redstone.thresholdSwitch.ThresholdSwitchObservable;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
-import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
+import com.zurrtum.create.foundation.blockEntity.behaviour.scrollValue.ServerScrollOptionBehaviour;
 import com.zurrtum.create.client.foundation.utility.CreateLang;
 import joptsimple.internal.Strings;
 import com.zurrtum.create.catnip.codecs.CatnipCodecUtils;
@@ -24,6 +24,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.nbt.CompoundTag;
@@ -49,7 +50,7 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
     private float consumedStress = -1;
     private boolean applyMinStress = false;
 
-    protected ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
+    protected ServerScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
 
     public KineticBatteryBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -58,10 +59,8 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
     @Override
     public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         super.addBehaviours(behaviours);
-        movementDirection = new ScrollOptionBehaviour<>(WindmillBearingBlockEntity.RotationDirection.class,
-                ConnectedLang.translateDirect("battery.rotation_direction"),
-                this,
-                new KineticBatteryValueBox(3));
+        // Client half -- the value box and its label -- is registered in CCBlockEntityBehaviours.
+        movementDirection = new ServerScrollOptionBehaviour<>(WindmillBearingBlockEntity.RotationDirection.class, this);
         movementDirection.withCallback(i -> {
             updateGeneratedRotation();
             sendDataImmediately();
@@ -231,7 +230,7 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
     }
 
     @Override
-    protected void applyImplicitComponents(DataComponentInput componentInput) {
+    protected void applyImplicitComponents(DataComponentGetter componentInput) {
         setBatteryLevel(componentInput.getOrDefault(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0));
     }
 
@@ -314,7 +313,8 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
         compound.store("Components", DataComponentPatch.CODEC, componentPatch);
     }
 
-    @Override
+    // Called from KineticBatteryTooltipBehaviour; 26.2 reaches goggle info through a client
+    // behaviour, not the block entity, so this is no longer an override of anything.
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         ConnectedLang.translate("battery.status", getBatteryStatusTextComponent().withStyle(ChatFormatting.GREEN))
                 .forGoggles(tooltip);
@@ -351,8 +351,6 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
             }
         }
 
-
-        super.addToGoggleTooltip(tooltip, isPlayerSneaking);
 
         return true;
     }

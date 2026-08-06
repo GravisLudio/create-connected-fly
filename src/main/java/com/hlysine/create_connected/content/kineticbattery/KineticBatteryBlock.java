@@ -145,7 +145,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
     }
 
     @Override
-    public @NotNull ItemStack getCloneItemStack(@NotNull LevelReader pLevel, @NotNull BlockPos pos, @NotNull BlockState state) {
+    public @NotNull ItemStack getCloneItemStack(@NotNull LevelReader pLevel, @NotNull BlockPos pos, @NotNull BlockState state, boolean includeData) {
         Item item = asItem();
 
         Optional<KineticBatteryBlockEntity> blockEntityOptional = getBlockEntityOptional(pLevel, pos);

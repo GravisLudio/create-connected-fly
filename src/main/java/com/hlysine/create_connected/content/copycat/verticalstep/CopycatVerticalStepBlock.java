@@ -1,4 +1,5 @@
 package com.hlysine.create_connected.content.copycat.verticalstep;
+import com.hlysine.create_connected.foundation.DirectionHelper;
 
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.hlysine.create_connected.registries.CCShapes;
@@ -96,7 +97,7 @@ public class CopycatVerticalStepBlock extends MigratingWaterloggedCopycatBlock {
         if (diff.equals(Vec3i.ZERO)) {
             return true;
         }
-        Direction face = Direction.fromDelta(diff.getX(), diff.getY(), diff.getZ());
+        Direction face = DirectionHelper.fromDelta(diff.getX(), diff.getY(), diff.getZ());
         if (face == null) {
             return false;
         }

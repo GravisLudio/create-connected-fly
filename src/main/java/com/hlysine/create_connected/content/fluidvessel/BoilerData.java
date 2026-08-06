@@ -42,7 +42,7 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
 
     static final int SAMPLE_RATE = 5;
 
-    private static final int waterSupplyPerLevel = 10;
+    private static final int waterSupplyPerLevel = 10 * 81; // droplets: Fabric counts 81 per mB
     private static final float passiveEngineEfficiency = 1 / 8f;
 
     // pooled water supply
@@ -94,7 +94,7 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
         ticksUntilNextSample--;
         if (ticksUntilNextSample > 0)
             return;
-        int capacity = controller.getTankInventory().getCapacity();
+        int capacity = controller.getTankInventory().getMaxAmountPerStack();
         if (capacity == 0)
             return;
 
@@ -184,7 +184,6 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
         return actualHeat;
     }
 
-    @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking, int boilerSize) {
         if (!isActive())
             return false;
@@ -206,7 +205,7 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
 
         int boilerLevel = Math.min(activeHeat, Math.min(maxHeatForWater, maxHeatForSize));
         double totalSU = getEngineEfficiency(boilerSize) * 16 * Math.max(boilerLevel, attachedEngines)
-                * BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get());
+                * BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE);
 
         tooltip.add(CommonComponents.EMPTY);
 
@@ -214,12 +213,12 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
             CreateLang.translate("boiler.water_input_rate")
                     .style(ChatFormatting.GRAY)
                     .forGoggles(tooltip);
-            CreateLang.number(waterSupply)
+            CreateLang.number(waterSupply / 81)
                     .style(ChatFormatting.BLUE)
                     .add(CreateLang.translate("generic.unit.millibuckets"))
                     .add(CreateLang.text(" / ")
                             .style(ChatFormatting.GRAY))
-                    .add(CreateLang.translate("boiler.per_tick", CreateLang.number(waterSupplyPerLevel)
+                    .add(CreateLang.translate("boiler.per_tick", CreateLang.number((double) waterSupplyPerLevel / 81)
                                     .add(CreateLang.translate("generic.unit.millibuckets")))
                             .style(ChatFormatting.DARK_GRAY))
                     .forGoggles(tooltip, 1);
@@ -342,9 +341,9 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
                     for (Direction d : Iterate.directions) {
                         BlockPos attachedPos = pos.relative(d);
                         BlockState attachedState = level.getBlockState(attachedPos);
-                        if (AllBlocks.STEAM_ENGINE.has(attachedState) && SteamEngineBlock.getFacing(attachedState) == d)
+                        if (attachedState.is(AllBlocks.STEAM_ENGINE) && SteamEngineBlock.getFacing(attachedState) == d)
                             attachedEngines++;
-                        if (AllBlocks.STEAM_WHISTLE.has(attachedState)
+                        if (attachedState.is(AllBlocks.STEAM_WHISTLE)
                                 && WhistleBlock.getAttachedDirection(attachedState)
                                 .getOpposite() == d)
                             attachedWhistles++;
@@ -388,7 +387,7 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
                     for (Direction d : Iterate.directions) {
                         BlockPos attachedPos = pos.relative(d);
                         BlockState attachedState = level.getBlockState(attachedPos);
-                        if (AllBlocks.STEAM_WHISTLE.has(attachedState)
+                        if (attachedState.is(AllBlocks.STEAM_WHISTLE)
                                 && WhistleBlock.getAttachedDirection(attachedState)
                                 .getOpposite() == d) {
                             if (level.getBlockEntity(attachedPos) instanceof WhistleBlockEntity wbe)
@@ -482,16 +481,24 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
         return new BoilerFluidHandler();
     }
 
+    // Create Fly's handler pools into its own package-private gatheredSupply, which this class
+    // cannot see from another package -- so the accumulation is re-done against the field here.
+    // isValid (water only) is inherited unchanged.
     public class BoilerFluidHandler extends com.zurrtum.create.content.fluids.tank.BoilerData.BoilerFluidHandler {
 
+        private int pending;
+
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            if (!isFluidValid(0, resource))
-                return 0;
-            int amount = resource.getAmount();
-            if (action.execute())
-                gatheredSupply += amount;
-            return amount;
+        public void setStack(int slot, FluidStack stack) {
+            pending += stack.getAmount();
+        }
+
+        @Override
+        public void markDirty() {
+            if (pending > 0) {
+                BoilerData.this.gatheredSupply += pending;
+                pending = 0;
+            }
         }
 
     }

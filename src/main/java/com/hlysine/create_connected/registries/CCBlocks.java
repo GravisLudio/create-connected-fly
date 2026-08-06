@@ -832,7 +832,7 @@ public class CCBlocks {
 
     public static final BlockEntry<FluidVesselBlock> FLUID_VESSEL = REGISTRATE.block("fluid_vessel", FluidVesselBlock::regular)
             .initialProperties(SharedProperties::copperMetal)
-            .properties(p -> p.noOcclusion().isRedstoneConductor((p1, p2, p3) -> true))
+            .properties(p -> p.noOcclusion().isRedstoneConductor((p1, p2, p3) -> true).lightLevel(FluidVesselBlock::getLight))
             .transform(pickaxeOnly())
             .transform(FeatureToggle.register(FeatureCategory.LOGISTICS))
 
@@ -852,7 +852,7 @@ public class CCBlocks {
     public static final BlockEntry<FluidVesselBlock> CREATIVE_FLUID_VESSEL =
             REGISTRATE.block("creative_fluid_vessel", FluidVesselBlock::creative)
                     .initialProperties(SharedProperties::copperMetal)
-                    .properties(p -> p.noOcclusion().mapColor(MapColor.COLOR_PURPLE))
+                    .properties(p -> p.noOcclusion().mapColor(MapColor.COLOR_PURPLE).lightLevel(FluidVesselBlock::getLight))
                     .transform(pickaxeOnly())
                     .transform(FeatureToggle.registerDependent(FLUID_VESSEL))
                     .tag(AllBlockTags.SAFE_NBT)

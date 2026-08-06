@@ -53,6 +53,7 @@ import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -69,6 +70,14 @@ public class FluidVesselBlock extends Block
     public static final BooleanProperty NEGATIVE = BooleanProperty.create("negative");
     public static final EnumProperty<Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
     public static final EnumProperty<Shape> SHAPE = EnumProperty.create("shape", Shape.class);
+    /**
+     * 26.2 bakes light emission per block state, so the dynamic
+     * {@code getLightEmission(state, world, pos)} is gone. Create Fly carries the value in a state
+     * property and feeds it to {@code Properties.lightLevel}; the inherited
+     * {@code FluidTankBlockEntity.updateStateLuminosity} writes to exactly this property, so it has
+     * to be present on the vessel too.
+     */
+    public static final IntegerProperty LIGHT_LEVEL = BlockStateProperties.LEVEL;
 
     private final boolean creative;
 
@@ -92,7 +101,8 @@ public class FluidVesselBlock extends Block
         registerDefaultState(defaultBlockState().setValue(POSITIVE, true)
                 .setValue(POSITIVE, true)
                 .setValue(AXIS, Axis.X)
-                .setValue(SHAPE, Shape.WINDOW));
+                .setValue(SHAPE, Shape.WINDOW)
+                .setValue(LIGHT_LEVEL, 0));
     }
 
     public static boolean isVessel(BlockState state) {
@@ -110,7 +120,7 @@ public class FluidVesselBlock extends Block
 
     @Override
     protected void createBlockStateDefinition(Builder<Block, BlockState> p_206840_1_) {
-        p_206840_1_.add(POSITIVE, NEGATIVE, AXIS, SHAPE);
+        p_206840_1_.add(POSITIVE, NEGATIVE, AXIS, SHAPE, LIGHT_LEVEL);
     }
 
     @Override
@@ -131,15 +141,8 @@ public class FluidVesselBlock extends Block
                         .getAxis());
     }
 
-    @Override
-    public int getLightEmission(BlockState state, BlockGetter world, BlockPos pos) {
-        FluidVesselBlockEntity vesselAt = ConnectivityHandler.partAt(getBlockEntityType(), world, pos);
-        if (vesselAt == null)
-            return 0;
-        FluidVesselBlockEntity controllerBE = vesselAt.getControllerBE();
-        if (controllerBE == null || !controllerBE.hasWindow())
-            return 0;
-        return vesselAt.getLuminosity();
+    public static int getLight(BlockState state) {
+        return state.getValue(LIGHT_LEVEL);
     }
 
     @Override
@@ -187,7 +190,7 @@ public class FluidVesselBlock extends Block
         FluidInventory vesselCapability = FluidHelper.getFluidInventory(level, be.getBlockPos(), null);
         if (vesselCapability == null)
             return InteractionResult.TRY_WITH_EMPTY_HAND;
-        FluidStack prevFluidInVessel = vesselCapability.getFluidInTank(0)
+        FluidStack prevFluidInVessel = vesselCapability.getStack(0)
                 .copy();
 
         if (FluidHelper.tryEmptyItemIntoBE(level, player, hand, stack, be))
@@ -204,14 +207,18 @@ public class FluidVesselBlock extends Block
 
         SoundEvent soundevent = null;
         BlockState fluidState = null;
-        FluidStack fluidInVessel = vesselCapability.getFluidInTank(0);
+        FluidStack fluidInVessel = vesselCapability.getStack(0);
 
         if (exchange == FluidExchange.ITEM_TO_TANK) {
             if (creative && !onClient) {
                 FluidStack fluidInItem = GenericItemEmptying.emptyItem(level, stack, true)
                         .getFirst();
-                if (!fluidInItem.isEmpty() && vesselCapability instanceof CreativeFluidTankBlockEntity.CreativeSmartFluidTank creativeVessel)
-                    creativeVessel.setContainedFluid(fluidInItem);
+                // setContainedFluid went with SmartFluidTank; the creative inventory takes the
+                // stack through the normal slot API and tops it back up in markDirty.
+                if (!fluidInItem.isEmpty() && vesselCapability instanceof CreativeFluidTankBlockEntity.CreativeFluidTankInventory) {
+                    vesselCapability.setStack(0, fluidInItem);
+                    vesselCapability.markDirty();
+                }
             }
 
             Fluid fluid = fluidInVessel.getFluid();
@@ -222,8 +229,8 @@ public class FluidVesselBlock extends Block
 
         if (exchange == FluidExchange.TANK_TO_ITEM) {
             if (creative && !onClient)
-                if (vesselCapability instanceof CreativeFluidTankBlockEntity.CreativeSmartFluidTank creativeVessel)
-                    creativeVessel.setContainedFluid(FluidStack.EMPTY);
+                if (vesselCapability instanceof CreativeFluidTankBlockEntity.CreativeFluidTankInventory)
+                    vesselCapability.setStack(0, FluidStack.EMPTY);
 
             Fluid fluid = prevFluidInVessel.getFluid();
             fluidState = fluid.defaultFluidState()
@@ -240,14 +247,14 @@ public class FluidVesselBlock extends Block
             level.playSound(null, pos, soundevent, SoundSource.BLOCKS, .5f, pitch);
         }
 
-        if (!FluidStack.isSameFluidSameComponents(fluidInVessel, prevFluidInVessel)) {
+        if (!FluidStack.areFluidsAndComponentsEqual(fluidInVessel, prevFluidInVessel)) {
             if (be instanceof FluidVesselBlockEntity) {
                 FluidVesselBlockEntity controllerBE = be.getControllerBE();
                 if (controllerBE != null) {
                     if (fluidState != null && onClient) {
                         BlockParticleOption blockParticleData =
                                 new BlockParticleOption(ParticleTypes.BLOCK, fluidState);
-                        float fluidLevel = (float) fluidInVessel.getAmount() / vesselCapability.getTankCapacity(0);
+                        float fluidLevel = (float) fluidInVessel.getAmount() / vesselCapability.getMaxAmountPerStack();
 
                         // No fluid-type API in Create Fly, so no lighter-than-air check --
                         // see FluidVesselBlockEntity for the same gap.
@@ -274,7 +281,7 @@ public class FluidVesselBlock extends Block
 
     @Override
     public void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
-        if (state.hasBlockEntity() && (state.getBlock() != newState.getBlock() || !newState.hasBlockEntity())) {
+        if (state.hasBlockEntity()) {
             BlockEntity be = world.getBlockEntity(pos);
             if (!(be instanceof FluidVesselBlockEntity vesselBE))
                 return;

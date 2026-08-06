@@ -8,7 +8,6 @@ import com.zurrtum.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.core.Vec3i;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -79,13 +78,23 @@ public class InventoryBridgeBlock extends Block
     public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean pIsMoving) {
         withBlockEntityDo(pLevel, pPos, InventoryBridgeBlockEntity::updateConnectedInventory);
         super.neighborChanged(pState, pLevel, pPos, pBlock, orientation, pIsMoving);
-        Vec3i diff = pFromPos.subtract(pPos);
-        Direction fromSide = Direction.fromDelta(diff.getX(), diff.getY(), diff.getZ());
-        if (fromSide == null)
-            pLevel.updateNeighborsAt(pPos, this);
-        else
-            pLevel.updateNeighborsAtExceptFromFacing(pPos, this, fromSide);
+
+        // 26.2 replaced the source position with an Orientation, and the vanilla path that reaches
+        // us passes null for it -- so the notifying side can no longer be identified. Upstream
+        // excluded it to keep two facing bridges from notifying each other forever; a re-entrancy
+        // guard bounds the same cascade. It costs nothing here because bridges never chain:
+        // getAnalogOutputSignal already ignores a target that is another bridge.
+        if (propagating)
+            return;
+        propagating = true;
+        try {
+            pLevel.updateNeighborsAt(pPos, this, orientation);
+        } finally {
+            propagating = false;
+        }
     }
+
+    private static boolean propagating = false;
 
     public static Direction getNegativeTarget(BlockState state) {
         return Direction.fromAxisAndDirection(state.getValue(AXIS), Direction.AxisDirection.NEGATIVE);

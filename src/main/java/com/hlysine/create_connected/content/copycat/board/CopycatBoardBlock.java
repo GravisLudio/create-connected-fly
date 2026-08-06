@@ -131,7 +131,7 @@ public class CopycatBoardBlock extends MigratingWaterloggedCopycatBlock implemen
         if (!pState.getValue(byDirection(pUseContext.getClickedFace().getOpposite()))) {
             Direction direction = pUseContext.getClickedFace().getOpposite();
             double pos = getByAxis(pUseContext.getClickedPos(), direction.getAxis());
-            if (getByAxis(direction.getNormal(), direction.getAxis()) > 0) pos += 1;
+            if (getByAxis(direction.getUnitVec3i(), direction.getAxis()) > 0) pos += 1;
             double loc = getByAxis(pUseContext.getClickLocation(), direction.getAxis());
             if (Math.abs(pos - loc) < 2 / 16.0) {
                 return true;
@@ -139,7 +139,7 @@ public class CopycatBoardBlock extends MigratingWaterloggedCopycatBlock implemen
         }
         if (!pState.getValue(byDirection(pUseContext.getClickedFace()))) {
             double hitLoc = getByAxis(pUseContext.getClickLocation(), pUseContext.getClickedFace().getAxis());
-            int direction = getByAxis(pUseContext.getClickedFace().getNormal(), pUseContext.getClickedFace().getAxis());
+            int direction = getByAxis(pUseContext.getClickedFace().getUnitVec3i(), pUseContext.getClickedFace().getAxis());
             double offset = hitLoc - Math.round(hitLoc);
             if (Mth.sign(direction) == Mth.sign(offset) && Math.abs(offset) < 2 / 16.0) {
                 return true;
@@ -160,7 +160,7 @@ public class CopycatBoardBlock extends MigratingWaterloggedCopycatBlock implemen
         for (Direction direction : Iterate.directions) {
             if (!state.getValue(byDirection(direction))) continue;
             double pos = getByAxis(context.getClickedPos(), direction.getAxis());
-            if (getByAxis(direction.getNormal(), direction.getAxis()) > 0) pos += 1;
+            if (getByAxis(direction.getUnitVec3i(), direction.getAxis()) > 0) pos += 1;
             double loc = getByAxis(context.getClickLocation(), direction.getAxis());
             if (Math.abs(pos - loc) < 2 / 16.0) {
                 options.add(direction);

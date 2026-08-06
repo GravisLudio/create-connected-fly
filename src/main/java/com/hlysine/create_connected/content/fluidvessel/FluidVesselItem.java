@@ -18,11 +18,11 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
 
@@ -47,23 +47,27 @@ public class FluidVesselItem extends BlockItem {
 		MinecraftServer minecraftserver = level.getServer();
 		if (minecraftserver == null)
 			return false;
-		CustomData blockEntityData = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
+		// BLOCK_ENTITY_DATA holds a TypedEntityData now, which carries the block entity type
+		// itself -- so the separate BlockEntity.addEntityType call is gone.
+		TypedEntityData<BlockEntityType<?>> blockEntityData = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
 		if (blockEntityData != null) {
-			CompoundTag nbt = blockEntityData.copyTag();
+			CompoundTag nbt = blockEntityData.copyTagWithoutId();
 			nbt.remove("Luminosity");
 			nbt.remove("Size");
 			nbt.remove("Height");
 			nbt.remove("Controller");
 			nbt.remove("LastKnownPos");
 			if (nbt.contains("TankContent")) {
-				FluidStack fluid = FluidStack.parseOptional(minecraftserver.registryAccess(), nbt.getCompoundOrEmpty("TankContent"));
+				FluidStack fluid = FluidStack.fromNbt(minecraftserver.registryAccess(), nbt.getCompound("TankContent"));
 				if (!fluid.isEmpty()) {
 					fluid.setAmount(Math.min(FluidTankBlockEntity.getCapacityMultiplier(), fluid.getAmount()));
-					nbt.put("TankContent", fluid.saveOptional(minecraftserver.registryAccess()));
+					nbt.put("TankContent", fluid.toNbt(minecraftserver.registryAccess()));
 				}
 			}
-			BlockEntity.addEntityType(nbt, ((IBE<?>) this.getBlock()).getBlockEntityType());
-			itemStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(nbt));
+			itemStack.set(
+					DataComponents.BLOCK_ENTITY_DATA,
+					TypedEntityData.of(((IBE<?>) this.getBlock()).getBlockEntityType(), nbt)
+			);
 		}
 		return super.updateCustomBlockEntityTag(blockPos, level, player, itemStack, blockState);
 	}

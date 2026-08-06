@@ -107,11 +107,11 @@ public class LinkedLeverBlock extends LeverBlock implements IBE<LinkedTransmitte
 
     @Override
     public void affectNeighborsAfterRemoval(@NotNull BlockState state, @NotNull ServerLevel world, @NotNull BlockPos pos, boolean isMoving) {
-        if (!state.is(newState.getBlock()) && !isMoving && getBlockEntityOptional(world, pos).map(be -> be.containsBase).orElse(false)) {
+        if (!world.getBlockState(pos).is(state.getBlock()) && !isMoving && getBlockEntityOptional(world, pos).map(be -> be.containsBase).orElse(false)) {
             Block.popResource(world, pos, new ItemStack(CCItems.LINKED_TRANSMITTER.get()));
         }
         withBlockEntityDo(world, pos, be -> be.transmit(0));
-        base.defaultBlockState().onRemove(world, pos, newState, isMoving);
+        base.defaultBlockState().affectNeighborsAfterRemoval(world, pos, isMoving);
     }
 
     @Override

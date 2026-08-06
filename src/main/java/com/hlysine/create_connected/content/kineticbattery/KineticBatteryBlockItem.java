@@ -10,9 +10,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockEntity.*;
 
@@ -42,9 +45,13 @@ public class KineticBatteryBlockItem extends BlockItem {
         return stack.getOrDefault(CCDataComponents.KINETIC_BATTERY_CHARGE, 0.0);
     }
 
+    // 26.2 hands tooltips to a Consumer instead of a List, and adds the TooltipDisplay component.
+    // ConnectedLang's builder only knows how to append to a List, so it fills one and drains it.
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> textConsumer, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, display, textConsumer, tooltipFlag);
+        List<Component> tooltipComponents = new ArrayList<>();
         double batteryLevel = getBatteryLevel(stack);
         ConnectedLang.builder().add(ConnectedLang.translateDirect("battery.charge")
                         .withStyle(ChatFormatting.GRAY)
@@ -59,6 +66,7 @@ public class KineticBatteryBlockItem extends BlockItem {
                         .add(ConnectedLang.translate("generic.unit.su_hours"))
                         .style(ChatFormatting.DARK_GRAY))
                 .addTo(tooltipComponents);
+        tooltipComponents.forEach(textConsumer);
     }
 
     /**

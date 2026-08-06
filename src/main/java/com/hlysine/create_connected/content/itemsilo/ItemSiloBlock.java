@@ -54,7 +54,7 @@ public class ItemSiloBlock extends Block
 
     @Override
     public void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean pIsMoving) {
-        if (state.hasBlockEntity() && (state.getBlock() != newState.getBlock() || !newState.hasBlockEntity())) {
+        if (state.hasBlockEntity()) {
             BlockEntity be = world.getBlockEntity(pos);
             if (!(be instanceof ItemSiloBlockEntity vaultBE))
                 return;

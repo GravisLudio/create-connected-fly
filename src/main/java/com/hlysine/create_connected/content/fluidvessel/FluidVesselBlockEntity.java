@@ -26,7 +26,6 @@ import net.minecraft.world.phys.AABB;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
 import com.zurrtum.create.foundation.fluid.FluidHelper;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory;
-import com.zurrtum.create.infrastructure.fluids.FluidInventory.FluidAction;
 import com.zurrtum.create.foundation.fluid.FluidTank;
 
 import org.jetbrains.annotations.Nullable;
@@ -398,7 +397,8 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         FluidVesselBlockEntity controllerBE = getControllerBE();
         if (controllerBE == null)
             return false;
-        if (controllerBE.boiler.addToGoggleTooltip(tooltip, isPlayerSneaking, controllerBE.getTotalTankSize()))
+        // `boiler` is declared on Create Fly's FluidTankBlockEntity; the instance is always ours
+        if (((BoilerData) controllerBE.boiler).addToGoggleTooltip(tooltip, isPlayerSneaking, controllerBE.getTotalTankSize()))
             return true;
         return containedFluidTooltip(tooltip, isPlayerSneaking,
                 FluidHelper.getFluidInventory(level, controllerBE.getBlockPos(), null));
@@ -428,9 +428,9 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
             height = compound.getIntOr("Height", 0);
             tankInventory.setCapacity(getTotalTankSize() * getCapacityMultiplier());
 
+            // FluidTank.read caps the stack at the capacity itself now, so the old
+            // overflow drain has nothing left to do -- Create Fly dropped it too.
             tankInventory.read(compound);
-            if (tankInventory.getSpace() < 0)
-                tankInventory.drain(-tankInventory.getSpace(), FluidAction.EXECUTE);
         }
 
         boiler.read(compound.childOrEmpty("Boiler"), width * width * height);

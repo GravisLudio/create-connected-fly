@@ -4,6 +4,9 @@ import com.hlysine.create_connected.ConnectedLang;
 import com.hlysine.create_connected.content.ClutchValueBox;
 import com.hlysine.create_connected.content.RotationScrollValueBehaviour;
 import com.hlysine.create_connected.content.centrifugalclutch.CentrifugalClutchBlockEntity;
+import com.hlysine.create_connected.client.tooltip.FluidVesselTooltipBehaviour;
+import com.hlysine.create_connected.client.tooltip.KineticBatteryTooltipBehaviour;
+import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockEntity;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryValueBox;
 import com.hlysine.create_connected.content.kineticbridge.KineticBridgeBlockEntity;
 import com.hlysine.create_connected.content.kineticbridge.StressImpactScrollValueBehaviour;
@@ -12,6 +15,7 @@ import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlo
 import com.hlysine.create_connected.content.overstressclutch.TimeDelayScrollValueBehaviour;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.RotationDirectionScrollBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -50,6 +54,20 @@ public class CCBlockEntityBehaviours {
         add(CCBlockEntityTypes.CENTRIFUGAL_CLUTCH.get(), CCBlockEntityBehaviours::centrifugalClutch);
         add(CCBlockEntityTypes.KINETIC_BRIDGE.get(), CCBlockEntityBehaviours::kineticBridge);
         add(CCBlockEntityTypes.OVERSTRESS_CLUTCH.get(), CCBlockEntityBehaviours::overstressClutch);
+        add(CCBlockEntityTypes.KINETIC_BATTERY.get(),
+                CCBlockEntityBehaviours::kineticBatteryDirection,
+                KineticBatteryTooltipBehaviour::new);
+        // Goggle tooltips are read off a TooltipBehaviour now, not off the block entity.
+        add(CCBlockEntityTypes.FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
+        add(CCBlockEntityTypes.CREATIVE_FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
+    }
+
+    private static BlockEntityBehaviour<?> kineticBatteryDirection(KineticBatteryBlockEntity be) {
+        return new RotationDirectionScrollBehaviour(
+                be,
+                ConnectedLang.translateDirect("battery.rotation_direction"),
+                new KineticBatteryValueBox(3)
+        );
     }
 
     private static BlockEntityBehaviour<?> centrifugalClutch(CentrifugalClutchBlockEntity be) {
