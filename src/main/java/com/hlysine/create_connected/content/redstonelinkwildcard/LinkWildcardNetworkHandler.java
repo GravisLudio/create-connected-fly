@@ -1,12 +1,12 @@
 package com.hlysine.create_connected.content.redstonelinkwildcard;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import com.hlysine.create_connected.registries.CCItems;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.config.CServer;
 import com.hlysine.create_connected.config.FeatureToggle;
 import com.zurrtum.create.content.redstone.link.IRedstoneLinkable;
-import com.zurrtum.create.client.content.redstone.link.LinkBehaviour;
+import com.zurrtum.create.content.redstone.link.ServerLinkBehaviour;
 import com.zurrtum.create.content.redstone.link.RedstoneLinkNetworkHandler;
 import com.zurrtum.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
@@ -33,17 +33,17 @@ public class LinkWildcardNetworkHandler {
      * <p>
      * Was {@code @SubscribeEvent} on {@code LevelEvent.Load}/{@code Unload}. Fabric has no
      * annotation-driven bus, so the hooks are registered explicitly. Note the narrowing: the
-     * NeoForge events fired for client levels too, whereas {@code ServerWorldEvents} is
+     * NeoForge events fired for client levels too, whereas {@code ServerLevelEvents} is
      * server-only -- which is correct here, since these maps only ever back server-side redstone
      * networks.
      */
     public static void register() {
-        ServerWorldEvents.LOAD.register((server, level) -> {
+        ServerLevelEvents.LOAD.register((server, level) -> {
             transmitter_connections.put(level, new HashMap<>());
             receiver_connections.put(level, new HashMap<>());
             CreateConnected.LOGGER.debug("Link-Wildcard: Prepared Redstone Network Wildcards for {}", WorldHelper.getDimensionID(level));
         });
-        ServerWorldEvents.UNLOAD.register((server, level) -> {
+        ServerLevelEvents.UNLOAD.register((server, level) -> {
             transmitter_connections.remove(level);
             receiver_connections.remove(level);
             CreateConnected.LOGGER.debug("Link-Wildcard: Removed Redstone Network Wildcards for {}", WorldHelper.getDimensionID(level));
@@ -121,7 +121,7 @@ public class LinkWildcardNetworkHandler {
                 updatePower.accept(wildcardNetwork);
             }
 
-        if (actor instanceof LinkBehaviour linkBehaviour) {
+        if (actor instanceof ServerLinkBehaviour linkBehaviour) {
             // fix one-to-one loading order problem
             if (linkBehaviour.isListening()) {
                 linkBehaviour.newPosition = true;

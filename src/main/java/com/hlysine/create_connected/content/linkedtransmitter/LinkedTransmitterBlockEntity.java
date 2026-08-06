@@ -2,7 +2,7 @@ package com.hlysine.create_connected.content.linkedtransmitter;
 
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import com.zurrtum.create.client.content.redstone.link.LinkBehaviour;
+import com.zurrtum.create.content.redstone.link.ServerLinkBehaviour;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransform;
@@ -23,7 +23,7 @@ public class LinkedTransmitterBlockEntity extends SmartBlockEntity {
      * set to false if the module item is already returned to player via wrenching
      */
     public boolean containsBase = true;
-    private LinkBehaviour link;
+    private ServerLinkBehaviour link;
 
     public LinkedTransmitterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -36,9 +36,9 @@ public class LinkedTransmitterBlockEntity extends SmartBlockEntity {
     }
 
     protected void createLink() {
-        Pair<ValueBoxTransform, ValueBoxTransform> slots =
-                ValueBoxTransform.Dual.makeSlots(LinkedTransmitterFrequencySlot::new);
-        link = LinkBehaviour.transmitter(this, slots, this::getSignal);
+        // Server half only -- the value box slots go with the client LinkBehaviour, registered in
+        // CCBlockEntityBehaviours. Same split as the scroll values.
+        link = ServerLinkBehaviour.transmitter(this, this::getSignal);
     }
 
     @Override

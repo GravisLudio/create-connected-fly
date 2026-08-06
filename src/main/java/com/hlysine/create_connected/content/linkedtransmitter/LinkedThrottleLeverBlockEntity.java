@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
-import com.zurrtum.create.client.content.redstone.link.LinkBehaviour;
+import com.zurrtum.create.content.redstone.link.ServerLinkBehaviour;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransform;
 import dev.simulated_team.simulated.content.blocks.throttle_lever.ThrottleLeverBlockEntity;
@@ -20,7 +20,7 @@ public class LinkedThrottleLeverBlockEntity extends ThrottleLeverBlockEntity {
      * set to false if the module item is already returned to player via wrenching
      */
     public boolean containsBase = true;
-    private LinkBehaviour link;
+    private ServerLinkBehaviour link;
 
     public LinkedThrottleLeverBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -39,9 +39,9 @@ public class LinkedThrottleLeverBlockEntity extends ThrottleLeverBlockEntity {
     }
 
     protected void createLink() {
-        Pair<ValueBoxTransform, ValueBoxTransform> slots =
-                ValueBoxTransform.Dual.makeSlots(LinkedTransmitterFrequencySlot::new);
-        link = LinkBehaviour.transmitter(this, slots, this::getState);
+        // Server half only -- the value box slots go with the client LinkBehaviour, registered in
+        // CCBlockEntityBehaviours. Same split as the scroll values.
+        link = ServerLinkBehaviour.transmitter(this, this::getState);
     }
 
     public void transmit() {

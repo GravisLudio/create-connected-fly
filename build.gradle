@@ -33,6 +33,9 @@ sourceSets.main.java {
     exclude 'com/hlysine/create_connected/compat/DyeDepotCompat.java'              // Dye Depot
     exclude 'com/hlysine/create_connected/compat/SimCompatRegistry.java'           // Simulated
     exclude 'com/hlysine/create_connected/compat/CreateConnectedJEI.java'          // JEI
+    // Solo existe para avisarle a JEI que refresque su lista al cambiar un feature toggle, y
+    // ademas colgaba del event bus de NeoForge. Vuelve con JEI.
+    exclude 'com/hlysine/create_connected/compat/FeatureRefreshEvent.java'         // JEI
     exclude 'com/hlysine/create_connected/mixin/compat/**'
 
     // Mixins cuyo target no existe en 26.2:
