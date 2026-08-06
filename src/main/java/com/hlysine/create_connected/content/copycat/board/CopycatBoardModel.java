@@ -1,17 +1,11 @@
 package com.hlysine.create_connected.content.copycat.board;
 
-import com.hlysine.create_connected.content.copycat.ISimpleCopycatModel;
-import com.zurrtum.create.client.infrastructure.model.CopycatModel;
+import com.hlysine.create_connected.content.copycat.CCCopycatModel;
 import com.zurrtum.create.catnip.data.Iterate;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.model.data.ModelData;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,19 +13,16 @@ import java.util.Map;
 import static com.hlysine.create_connected.content.copycat.ISimpleCopycatModel.MutableCullFace.*;
 import static com.hlysine.create_connected.content.copycat.board.CopycatBoardBlock.byDirection;
 
-public class CopycatBoardModel extends CopycatModel implements ISimpleCopycatModel {
+public class CopycatBoardModel extends CCCopycatModel {
 
-    public CopycatBoardModel(BakedModel originalModel) {
-        super(originalModel);
+    public CopycatBoardModel(BlockState state, UnbakedRoot unbaked) {
+        super(state, unbaked);
     }
 
     @Override
-    protected List<BakedQuad> getCroppedQuads(BlockState state, Direction side, RandomSource rand, BlockState material,
-                                              ModelData wrappedData, RenderType renderType) {
-        BakedModel model = getModelOf(material);
-        List<BakedQuad> templateQuads = model.getQuads(material, side, rand, wrappedData, renderType);
-
-        List<BakedQuad> quads = new ArrayList<>();
+    protected void assembleQuads(BlockState state, Direction face, List<BakedQuad> source, List<BakedQuad> dest) {
+        if (source.isEmpty())
+            return;
 
         Map<Direction, Boolean> topEdges = new HashMap<>();
         Map<Direction, Boolean> bottomEdges = new HashMap<>();
@@ -55,7 +46,7 @@ public class CopycatBoardModel extends CopycatModel implements ISimpleCopycatMod
                     if (south == 1) edges.put(Direction.SOUTH, true);
                     if (east == 1) edges.put(Direction.EAST, true);
                     if (west == 1) edges.put(Direction.WEST, true);
-                    assemblePiece(templateQuads, quads, 0, direction == Direction.UP,
+                    assemblePiece(source, dest, 0, direction == Direction.UP,
                             vec3(1 - west, 0, 1 - north),
                             aabb(14 + east + west, 1, 14 + north + south).move(1 - west, 0, 1 - north),
                             cull(NORTH * (1 - north) | SOUTH * (1 - south) | EAST * (1 - east) | WEST * (1 - west))
@@ -69,15 +60,12 @@ public class CopycatBoardModel extends CopycatModel implements ISimpleCopycatMod
                     if (down == 1) bottomEdges.put(direction, true);
                     if (left == 1) leftEdges.put(direction, true);
                     if (right == 1) leftEdges.put(direction.getCounterClockWise(), true);
-                    assemblePiece(templateQuads, quads, (int) direction.toYRot() + 180, false,
+                    assemblePiece(source, dest, (int) direction.toYRot() + 180, false,
                             vec3(1 - right, 1 - down, 0),
                             aabb(14 + left + right, 14 + up + down, 1).move(1 - right, 1 - down, 0),
                             cull(UP * (1 - up) | DOWN * (1 - down) | EAST * (1 - left) | WEST * (1 - right))
                     );
                 }
         }
-
-        return quads;
     }
-
 }

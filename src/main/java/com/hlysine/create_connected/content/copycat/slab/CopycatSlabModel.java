@@ -1,62 +1,51 @@
 package com.hlysine.create_connected.content.copycat.slab;
 
-import com.zurrtum.create.client.infrastructure.model.CopycatModel;
-import com.zurrtum.create.client.foundation.model.BakedModelHelper;
-import com.simibubi.create.foundation.model.BakedQuadHelper;
+import com.hlysine.create_connected.content.copycat.CCCopycatModel;
 import com.zurrtum.create.catnip.data.Iterate;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import com.zurrtum.create.client.foundation.model.BakedModelHelper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.client.model.data.ModelData;
-
-import java.util.ArrayList;
 import java.util.List;
 
-public class CopycatSlabModel extends CopycatModel {
+public class CopycatSlabModel extends CCCopycatModel {
 
     protected static final AABB CUBE_AABB = new AABB(BlockPos.ZERO);
 
-    public CopycatSlabModel(BakedModel originalModel) {
-        super(originalModel);
+    public CopycatSlabModel(BlockState state, UnbakedRoot unbaked) {
+        super(state, unbaked);
     }
 
     @Override
-    protected List<BakedQuad> getCroppedQuads(BlockState state, Direction side, RandomSource rand, BlockState material,
-                                              ModelData wrappedData, RenderType renderType) {
-        Direction facing = state.getOptionalValue(CopycatSlabBlock.SLAB_TYPE).isPresent() ? CopycatSlabBlock.getApparentDirection(state) : Direction.UP;
+    protected void assembleQuads(BlockState state, Direction face, List<BakedQuad> source, List<BakedQuad> dest) {
+        if (source.isEmpty())
+            return;
 
-        BakedModel model = getModelOf(material);
-        List<BakedQuad> templateQuads = model.getQuads(material, side, rand, wrappedData, renderType);
-
-        List<BakedQuad> quads = new ArrayList<>();
+        Direction facing = state.getOptionalValue(CopycatSlabBlock.SLAB_TYPE).isPresent()
+                ? CopycatSlabBlock.getApparentDirection(state)
+                : Direction.UP;
         boolean isDouble = state.getOptionalValue(CopycatSlabBlock.SLAB_TYPE).orElse(SlabType.BOTTOM) == SlabType.DOUBLE;
 
         // 2 pieces
         for (boolean front : Iterate.trueAndFalse) {
-            assemblePiece(facing, templateQuads, quads, front, false, isDouble);
+            assemblePiece(facing, source, dest, front, false, isDouble);
         }
 
         // 2 more pieces for double slabs
         if (isDouble) {
             for (boolean front : Iterate.trueAndFalse) {
-                assemblePiece(facing, templateQuads, quads, front, true, isDouble);
+                assemblePiece(facing, source, dest, front, true, isDouble);
             }
         }
-
-        return quads;
     }
 
     private static void assemblePiece(Direction facing, List<BakedQuad> templateQuads, List<BakedQuad> quads, boolean front, boolean topSlab, boolean isDouble) {
-        int size = templateQuads.size();
-        Vec3 normal = Vec3.atLowerCornerOf(facing.getNormal());
+        Vec3 normal = Vec3.atLowerCornerOf(facing.getUnitVec3i());
         Vec3 normalScaled12 = normal.scale(12 / 16f);
         Vec3 normalScaledN8 = topSlab ? normal.scale((front ? 0 : -8) / 16f) : normal.scale((front ? 8 : 0) / 16f);
         float contract = 12;
@@ -64,9 +53,8 @@ public class CopycatSlabModel extends CopycatModel {
         if (!front)
             bb = bb.move(normalScaled12);
 
-        for (int i = 0; i < size; i++) {
-            BakedQuad quad = templateQuads.get(i);
-            Direction direction = quad.getDirection();
+        for (BakedQuad quad : templateQuads) {
+            Direction direction = quad.direction();
 
             if (front && direction == facing)
                 continue;
@@ -77,8 +65,7 @@ public class CopycatSlabModel extends CopycatModel {
             if (isDouble && !topSlab && direction == facing.getOpposite())
                 continue;
 
-            quads.add(BakedQuadHelper.cloneWithCustomGeometry(quad,
-                    BakedModelHelper.cropAndMove(quad.getVertices(), quad.getSprite(), bb, normalScaledN8)));
+            quads.add(BakedModelHelper.cropAndMove(quad, bb, normalScaledN8));
         }
     }
 }

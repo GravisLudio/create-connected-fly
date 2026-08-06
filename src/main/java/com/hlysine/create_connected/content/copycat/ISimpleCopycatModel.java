@@ -1,7 +1,6 @@
 package com.hlysine.create_connected.content.copycat;
 
 import com.zurrtum.create.client.foundation.model.BakedModelHelper;
-import com.simibubi.create.foundation.model.BakedQuadHelper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
@@ -26,12 +25,18 @@ public interface ISimpleCopycatModel {
         select.rotate(angle).flipY(flipY);
         offset.rotate(angle).flipY(flipY);
         cull.rotate(angle).flipY(flipY);
+        // BakedQuad is a record in 26.2 -- direction() rather than getDirection(), and there are no
+        // raw vertices to reach for. BakedModelHelper.cropAndMove now takes the whole quad and
+        // returns a new one, which is what BakedQuadHelper.cloneWithCustomGeometry existed to do.
         for (BakedQuad quad : sourceQuads) {
-            if (cull.isCulled(quad.getDirection())) {
+            if (cull.isCulled(quad.direction())) {
                 continue;
             }
-            destQuads.add(BakedQuadHelper.cloneWithCustomGeometry(quad,
-                    BakedModelHelper.cropAndMove(quad.getVertices(), quad.getSprite(), select.toAABB(), offset.toVec3().subtract(select.minX / 16f, select.minY / 16f, select.minZ / 16f))));
+            destQuads.add(BakedModelHelper.cropAndMove(
+                    quad,
+                    select.toAABB(),
+                    offset.toVec3().subtract(select.minX / 16f, select.minY / 16f, select.minZ / 16f)
+            ));
         }
     }
 
