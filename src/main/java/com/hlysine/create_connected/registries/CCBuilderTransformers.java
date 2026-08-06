@@ -29,7 +29,7 @@ public class CCBuilderTransformers {
     ) {
         // casing/casingShift are kept in the signature so the call sites still say which casing
         // they mean; CCConnectedTextures needs that pairing when the client wiring is written.
-        return builder -> encasedBase(builder).item();
+        return builder -> encasedBase(builder).item().build();
     }
 
     /**

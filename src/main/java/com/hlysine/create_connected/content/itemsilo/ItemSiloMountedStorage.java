@@ -9,7 +9,9 @@ import com.zurrtum.create.foundation.codec.CreateCodecs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import com.mojang.logging.LogUtils;
 import net.minecraft.util.ProblemReporter;
+import org.slf4j.Logger;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -20,6 +22,8 @@ import com.zurrtum.create.infrastructure.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemSiloMountedStorage extends WrapperMountedItemStorage<ItemStackHandler> {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
     public static final MapCodec<ItemSiloMountedStorage> CODEC = CreateCodecs.ITEM_STACK_HANDLER.xmap(
             ItemSiloMountedStorage::new, storage -> storage.wrapped
     ).fieldOf("value");
@@ -53,7 +57,7 @@ public class ItemSiloMountedStorage extends WrapperMountedItemStorage<ItemStackH
     public static ItemSiloMountedStorage fromLegacy(HolderLookup.Provider registries, CompoundTag nbt) {
         // ItemStackHandler reads through a ValueInput now rather than raw NBT.
         ItemStackHandler handler = new ItemStackHandler();
-        try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(ProblemReporter.DISCARDING)) {
+        try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(LOGGER)) {
             handler.read(TagValueInput.create(logging, registries, nbt));
         }
         return new ItemSiloMountedStorage(handler);

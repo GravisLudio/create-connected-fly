@@ -176,7 +176,7 @@ public class LinkedButtonBlock extends ButtonBlock implements IBE<LinkedTransmit
 
     @Override
     public @NotNull ItemStack getCloneItemStack(@NotNull LevelReader world, @NotNull BlockPos pos, @NotNull BlockState state, boolean includeData) {
-        if (isHittingBase(state, world, pos, target))
+        if (isHittingBase(state, world, pos))
             return base.getCloneItemStack(world, pos, state, includeData);
         return new ItemStack(CCItems.LINKED_TRANSMITTER.get());
     }

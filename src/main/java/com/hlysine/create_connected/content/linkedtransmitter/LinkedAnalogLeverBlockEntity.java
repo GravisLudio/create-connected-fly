@@ -1,16 +1,16 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
 import com.hlysine.create_connected.mixin.linkedtransmitter.AnalogLeverBlockEntityAccessor;
+import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.zurrtum.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.zurrtum.create.content.redstone.link.ServerLinkBehaviour;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
-import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransform;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
@@ -21,8 +21,33 @@ public class LinkedAnalogLeverBlockEntity extends AnalogLeverBlockEntity {
     public boolean containsBase = true;
     private ServerLinkBehaviour link;
 
+    private final BlockEntityType<?> type;
+
     public LinkedAnalogLeverBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+        super(pos, state);
+        this.type = type;
+    }
+
+    // Create Fly's AnalogLeverBlockEntity only has a two-argument constructor and hard-codes
+    // AllBlockEntityTypes.ANALOG_LEVER into it, so the type this instance actually belongs to is
+    // carried here instead. BlockEntity reads its private type field from exactly three places --
+    // getType, typeHolder (which writes the saved id) and isValidBlockState -- and all three are
+    // overridable, so redirecting them is enough. Miss one and the block entity saves under
+    // Create's id and comes back as a plain analog lever, silently.
+
+    @Override
+    public BlockEntityType<?> getType() {
+        return type;
+    }
+
+    @Override
+    public Holder<BlockEntityType<?>> typeHolder() {
+        return type.builtInRegistryHolder();
+    }
+
+    @Override
+    public boolean isValidBlockState(BlockState state) {
+        return type.isValid(state);
     }
 
     @Override

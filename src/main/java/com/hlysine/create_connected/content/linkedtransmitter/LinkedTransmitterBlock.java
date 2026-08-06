@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +26,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 
 public interface LinkedTransmitterBlock {
     Block getBlock();
@@ -44,6 +47,18 @@ public interface LinkedTransmitterBlock {
 
     default boolean isHittingBase(BlockState state, BlockGetter level, BlockPos pos, HitResult hit) {
         return !getTransmitterShape(state).bounds().inflate(0.01 / 16).move(pos).contains(hit.getLocation());
+    }
+
+    /**
+     * For {@code getCloneItemStack}, which lost its {@code HitResult} parameter in 26.2. Pick-block
+     * is client-driven, so the crosshair target stands in; anywhere it is unavailable the module
+     * wins, since that is the part this block adds over its base.
+     */
+    default boolean isHittingBase(BlockState state, BlockGetter level, BlockPos pos) {
+        if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT)
+            return false;
+        HitResult hit = ClientHitResultAccess.get();
+        return hit != null && isHittingBase(state, level, pos, hit);
     }
 
     default @NotNull InteractionResult useTransmitter(@NotNull BlockState state,
@@ -78,7 +93,7 @@ public interface LinkedTransmitterBlock {
             level.setBlock(pos, newState, Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_ALL);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, newState));
             if (player != null && !player.isCreative()) {
-                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+                stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             }
 
             return InteractionResult.SUCCESS;

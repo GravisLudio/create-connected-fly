@@ -47,7 +47,6 @@ import com.zurrtum.create.content.decoration.copycat.CopycatBlockEntity;
 import com.zurrtum.create.client.content.kinetics.crank.HandCrankRenderer;
 import com.zurrtum.create.client.content.kinetics.simpleRelays.BracketedKineticBlockEntityRenderer;
 import com.zurrtum.create.content.kinetics.simpleRelays.SimpleKineticBlockEntity;
-import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedCogRenderer;
 import com.zurrtum.create.client.content.kinetics.simpleRelays.encased.EncasedCogVisual;
 import com.zurrtum.create.client.content.kinetics.transmission.SplitShaftRenderer;
 import com.zurrtum.create.client.content.kinetics.transmission.SplitShaftVisual;
@@ -56,6 +55,11 @@ import com.zurrtum.create.client.content.redstone.analogLever.AnalogLeverVisual;
 import com.zurrtum.create.client.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
 import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
 import com.hlysine.create_connected.foundation.registrate.BlockEntityEntry;
+import com.hlysine.create_connected.foundation.registrate.BlockEntry;
+import com.zurrtum.create.AllBlockEntityTypes;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
+
+import java.util.List;
 
 public class CCBlockEntityTypes {
     private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
@@ -191,20 +195,29 @@ public class CCBlockEntityTypes {
                     .validBlocks(CCBlocks.DASHBOARD)
                     .register();
 
-    public static final BlockEntityEntry<CopycatBlockEntity> COPYCAT =
-            REGISTRATE.blockEntity("copycat", CopycatBlockEntity::new)
-                    .validBlocks(
-                            CCBlocks.COPYCAT_BLOCK,
-                            CCBlocks.COPYCAT_SLAB,
-                            CCBlocks.COPYCAT_BEAM,
-                            CCBlocks.COPYCAT_VERTICAL_STEP,
-                            CCBlocks.COPYCAT_STAIRS,
-                            CCBlocks.COPYCAT_FENCE,
-                            CCBlocks.COPYCAT_FENCE_GATE,
-                            CCBlocks.COPYCAT_WALL,
-                            CCBlocks.COPYCAT_BOARD
-                    )
-                    .register();
+    /**
+     * Upstream registered its own copycat block entity type over Create's {@code CopycatBlockEntity}
+     * class, which took the type as a constructor argument. Create Fly's version hard-codes
+     * {@code AllBlockEntityTypes.COPYCAT} instead, so a separate type is no longer expressible
+     * without duplicating the whole class. Connected's copycat blocks join Create's type instead,
+     * through Fabric's {@code addValidBlock}.
+     */
+    private static void registerCopycatBlocks() {
+        FabricBlockEntityType copycat = (FabricBlockEntityType) (Object) AllBlockEntityTypes.COPYCAT;
+        for (BlockEntry<?> entry : List.of(
+                CCBlocks.COPYCAT_BLOCK,
+                CCBlocks.COPYCAT_SLAB,
+                CCBlocks.COPYCAT_BEAM,
+                CCBlocks.COPYCAT_VERTICAL_STEP,
+                CCBlocks.COPYCAT_STAIRS,
+                CCBlocks.COPYCAT_FENCE,
+                CCBlocks.COPYCAT_FENCE_GATE,
+                CCBlocks.COPYCAT_WALL,
+                CCBlocks.COPYCAT_BOARD
+        )) {
+            copycat.addValidBlock(entry.get());
+        }
+    }
 
     public static final BlockEntityEntry<FanCatalystRotatingHeadBlockEntity> FAN_ENDING_CATALYST_DRAGON_HEAD = REGISTRATE
             .blockEntity("fan_ending_catalyst_dragon_head", FanCatalystRotatingHeadBlockEntity::new)
@@ -218,5 +231,6 @@ public class CCBlockEntityTypes {
 
 
     public static void register() {
+        registerCopycatBlocks();
     }
 }

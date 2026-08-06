@@ -115,6 +115,7 @@ dependencies {
     implementation fabricApi.module("fabric-creative-tab-api-v1", fabric_version)
     implementation fabricApi.module("fabric-lifecycle-events-v1", fabric_version)
     implementation fabricApi.module("fabric-networking-api-v1", fabric_version)
+    implementation fabricApi.module("fabric-object-builder-api-v1", fabric_version)
     implementation fabricApi.module("fabric-resource-conditions-api-v1", fabric_version)
     implementation fabricApi.module("fabric-model-loading-api-v1", fabric_version)
     implementation fabricApi.module("fabric-renderer-api-v1", fabric_version)

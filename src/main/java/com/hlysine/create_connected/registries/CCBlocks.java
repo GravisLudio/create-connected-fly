@@ -197,7 +197,7 @@ public class CCBlocks {
             REGISTRATE.block("andesite_encased_cross_connector", p -> new EncasedCrossConnectorBlock(p, () -> AllBlocks.ANDESITE_CASING))
                     .properties(p -> p.mapColor(MapColor.PODZOL))
                     .transform(CCBuilderTransformers.encasedCrossConnector("andesite", () -> AllSpriteShifts.ANDESITE_CASING))
-                    .transform(EncasingRegistry.addVariantTo(CCBlocks.CROSS_CONNECTOR))
+                    .onRegister(b -> EncasingRegistry.addVariant(CCBlocks.CROSS_CONNECTOR.get(), b))
                     .transform(FeatureToggle.registerDependent(CCBlocks.CROSS_CONNECTOR, FeatureCategory.KINETIC))
                     .transform(axeOrPickaxe())
                     .register();
@@ -206,7 +206,7 @@ public class CCBlocks {
             REGISTRATE.block("brass_encased_cross_connector", p -> new EncasedCrossConnectorBlock(p, () -> AllBlocks.BRASS_CASING))
                     .properties(p -> p.mapColor(MapColor.TERRACOTTA_BROWN))
                     .transform(CCBuilderTransformers.encasedCrossConnector("brass", () -> AllSpriteShifts.BRASS_CASING))
-                    .transform(EncasingRegistry.addVariantTo(CCBlocks.CROSS_CONNECTOR))
+                    .onRegister(b -> EncasingRegistry.addVariant(CCBlocks.CROSS_CONNECTOR.get(), b))
                     .transform(FeatureToggle.registerDependent(CCBlocks.CROSS_CONNECTOR, FeatureCategory.KINETIC))
                     .transform(axeOrPickaxe())
                     .register();

@@ -23,9 +23,8 @@ public class CCItems {
 
     private static final CCRegistrate REGISTRATE = CreateConnected.getRegistrate();
 
-    static {
-        REGISTRATE.setCreativeTab(CCCreativeTabs.MAIN);
-    }
+    // Registrate auto-assigned every entry it created to the tab set here. CCCreativeTabs builds
+    // its contents from an explicit ITEMS list instead, so there is nothing left to set.
 
     public static final ItemEntry<Item> CONTROL_CHIP =
             REGISTRATE.item("control_chip", Item::new)

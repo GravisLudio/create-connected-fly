@@ -73,6 +73,17 @@ public final class BlockEntityBuilder<T extends BlockEntity> {
         return this;
     }
 
+    /** Registrate allowed an inline builder rewrite; used here to fan validBlocks over a map. */
+    public BlockEntityBuilder<T> transform(java.util.function.UnaryOperator<BlockEntityBuilder<T>> op) {
+        return op.apply(this);
+    }
+
+    /** Single-block overload so {@code values().forEach(b::validBlock)} still reads the same. */
+    public BlockEntityBuilder<T> validBlock(BlockEntry<?> entry) {
+        validBlocks.add(entry.get());
+        return this;
+    }
+
     public BlockEntityEntry<T> register() {
         Identifier id = parent.id(name);
 

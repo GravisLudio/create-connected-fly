@@ -145,7 +145,7 @@ public class LinkedAnalogLeverBlock extends AnalogLeverBlock implements SpecialB
 
     @Override
     public @NotNull ItemStack getCloneItemStack(@NotNull LevelReader world, @NotNull BlockPos pos, @NotNull BlockState state, boolean includeData) {
-        if (isHittingBase(state, world, pos, target))
+        if (isHittingBase(state, world, pos))
             return getBase().getCloneItemStack(world, pos, state, includeData);
         return new ItemStack(CCItems.LINKED_TRANSMITTER.get());
     }

@@ -50,7 +50,7 @@ public final class BlockBuilder<T extends Block> implements NamedBuilder {
     private final List<Consumer<T>> onRegister = new ArrayList<>();
 
     private boolean createItem;
-    private BiFunction<Block, Item.Properties, ? extends BlockItem> itemFactory;
+    private BiFunction<? super T, Item.Properties, ? extends BlockItem> itemFactory;
     private UnaryOperator<Item.Properties> itemPropertyOps = UnaryOperator.identity();
     private final List<Consumer<BlockItem>> onItemRegister = new ArrayList<>();
 
@@ -125,7 +125,7 @@ public final class BlockBuilder<T extends Block> implements NamedBuilder {
     }
 
     /** Registers a custom block item, e.g. {@code .item(CrankWheelItem::new)}. */
-    public <I extends BlockItem> BlockItemBuilder<T, I> item(BiFunction<Block, Item.Properties, I> custom) {
+    public <I extends BlockItem> BlockItemBuilder<T, I> item(BiFunction<? super T, Item.Properties, I> custom) {
         this.createItem = true;
         this.itemFactory = custom;
         return new BlockItemBuilder<>(this);

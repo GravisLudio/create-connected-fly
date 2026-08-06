@@ -8,6 +8,7 @@ import net.minecraft.world.level.LevelReader;
 
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.config.CCConfigs;
+import com.zurrtum.create.AllBlockEntityTypes;
 import com.zurrtum.create.content.decoration.copycat.CopycatBlockEntity;
 import com.zurrtum.create.content.decoration.copycat.WaterloggedCopycatBlock;
 import net.minecraft.core.BlockPos;
@@ -69,6 +70,6 @@ public abstract class MigratingWaterloggedCopycatBlock extends WaterloggedCopyca
 
     @Override
     public BlockEntityType<? extends CopycatBlockEntity> getBlockEntityType() {
-        return CCBlockEntityTypes.COPYCAT.get();
+        return AllBlockEntityTypes.COPYCAT;
     }
 }
