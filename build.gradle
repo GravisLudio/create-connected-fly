@@ -53,7 +53,9 @@ sourceSets.main.java {
     // cadenas de registro; se conservan por si algun dia se regeneran los JSON contra 26.2.
     exclude 'com/hlysine/create_connected/datagen/CCBlockStateGen.java'
     exclude 'com/hlysine/create_connected/datagen/CCDatagen.java'
-    exclude 'com/hlysine/create_connected/datagen/advancements/CCAdvancement.java'
+    // CCAdvancement NO va aca aunque viva bajo datagen/: awardTo/isAlreadyAwardedTo son runtime, y
+    // registra los triggers "<id>_builtin" que los JSON de avances ya committeados nombran como su
+    // criterio. Excluirlo deja los avances sin poder dispararse, sin error de compilacion.
     // Generadores de blockstate/modelo por feature. Quedaron sin referencias al sacar el datagen
     // de las cadenas de registro.
     exclude 'com/hlysine/create_connected/content/fluidvessel/FluidVesselGenerator.java'

@@ -9,8 +9,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.predicates.ContextAwarePredicate;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
 import net.minecraft.server.level.ServerPlayer;
 
 public class SimpleCCTrigger extends CriterionTriggerBase<SimpleCCTrigger.Instance> {
@@ -20,7 +20,7 @@ public class SimpleCCTrigger extends CriterionTriggerBase<SimpleCCTrigger.Instan
     }
 
     public void trigger(ServerPlayer player) {
-        super.trigger(player, null);
+        triggerWith(player, null);
     }
 
     public SimpleCCTrigger.Instance instance() {

@@ -16,7 +16,7 @@ import java.util.function.UnaryOperator;
  * Registrate-shaped item builder backed by {@code Registry.register}.
  * As with {@link BlockBuilder}, datagen methods taking lambdas are deliberately absent.
  */
-public final class ItemBuilder<T extends Item> {
+public final class ItemBuilder<T extends Item> implements NamedBuilder {
     private final CCRegistrate parent;
     private final String name;
     private final Function<Item.Properties, T> factory;
@@ -28,6 +28,16 @@ public final class ItemBuilder<T extends Item> {
         this.parent = parent;
         this.name = name;
         this.factory = factory;
+    }
+
+    @Override
+    public String getModid() {
+        return parent.getModid();
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     public ItemBuilder<T> properties(UnaryOperator<Item.Properties> op) {

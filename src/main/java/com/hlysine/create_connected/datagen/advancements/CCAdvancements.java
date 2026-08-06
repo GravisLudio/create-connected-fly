@@ -1,31 +1,22 @@
 package com.hlysine.create_connected.datagen.advancements;
 
-import com.google.common.collect.Sets;
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.hlysine.create_connected.registries.CCItems;
-import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.CachedOutput;
-import net.minecraft.data.DataProvider;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.PackOutput.PathProvider;
-import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import static com.hlysine.create_connected.datagen.advancements.CCAdvancement.TaskType.*;
 
+/**
+ * The entries stay, the {@code DataProvider} half does not -- see {@link CCAdvancement}. Titles and
+ * descriptions are kept verbatim even though nothing reads them any more: they are the record of
+ * what the committed JSON and lang files are supposed to say, and the next person to regenerate
+ * either will want them here.
+ */
 @SuppressWarnings("unused")
-public class CCAdvancements implements DataProvider {
+public class CCAdvancements {
 
     public static final List<CCAdvancement> ENTRIES = new ArrayList<>();
     public static final CCAdvancement START = null,
@@ -94,49 +85,6 @@ public class CCAdvancements implements DataProvider {
         return new CCAdvancement(id, b);
     }
 
-    // Datagen
-
-    private final PackOutput output;
-    private final CompletableFuture<HolderLookup.Provider> registries;
-
-    public CCAdvancements(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        this.output = output;
-        this.registries = registries;
-    }
-
-    @Override
-    public @NotNull CompletableFuture<?> run(@NotNull CachedOutput cache) {
-        return this.registries.thenCompose(provider -> {
-            PathProvider pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "advancement");
-            List<CompletableFuture<?>> futures = new ArrayList<>();
-
-            Set<Identifier> set = Sets.newHashSet();
-            Consumer<AdvancementHolder> consumer = (advancement) -> {
-                Identifier id = advancement.id();
-                if (!set.add(id))
-                    throw new IllegalStateException("Duplicate advancement " + id);
-                Path path = pathProvider.json(id);
-                futures.add(DataProvider.saveStable(cache, provider, Advancement.CODEC, advancement.value(), path));
-            };
-
-            for (CCAdvancement advancement : ENTRIES)
-                advancement.save(consumer, provider);
-
-            return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
-        });
-    }
-
-    @Override
-    public @NotNull String getName() {
-        return "Advancements for Create: Connected";
-    }
-
-    public static void provideLang(BiConsumer<String, String> consumer) {
-        for (CCAdvancement advancement : ENTRIES)
-            advancement.provideLang(consumer);
-    }
-
     public static void register() {
     }
-
 }

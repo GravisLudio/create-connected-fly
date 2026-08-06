@@ -1,12 +1,11 @@
 package com.hlysine.create_connected.config;
 
-import com.hlysine.create_connected.compat.CreateConnectedJEI;
-import com.hlysine.create_connected.compat.Mods;
 import com.hlysine.create_connected.mixin.featuretoggle.CreativeModeTabsAccessor;
-import com.tterrag.registrate.builders.Builder;
+import com.hlysine.create_connected.foundation.registrate.NamedBuilder;
 import com.hlysine.create_connected.foundation.registrate.BlockEntry;
 import java.util.function.UnaryOperator;
-import net.createmod.catnip.platform.CatnipServices;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 
@@ -47,9 +46,9 @@ public class FeatureToggle {
     /**
      * Register this object to be a feature that is toggleable by the user
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> register() {
+    public static <S extends NamedBuilder> UnaryOperator<S> register() {
         return b -> {
-            register(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()));
+            register(Identifier.fromNamespaceAndPath(b.getModid(), b.getName()));
             return b;
         };
     }
@@ -57,9 +56,9 @@ public class FeatureToggle {
     /**
      * Register this object to be a feature that is toggleable by the user
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> register(FeatureCategory... categories) {
+    public static <S extends NamedBuilder> UnaryOperator<S> register(FeatureCategory... categories) {
         return b -> {
-            register(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), categories);
+            register(Identifier.fromNamespaceAndPath(b.getModid(), b.getName()), categories);
             return b;
         };
     }
@@ -68,9 +67,9 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(Identifier dependency) {
+    public static <S extends NamedBuilder> UnaryOperator<S> registerDependent(Identifier dependency) {
         return b -> {
-            registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency);
+            registerDependent(Identifier.fromNamespaceAndPath(b.getModid(), b.getName()), dependency);
             return b;
         };
     }
@@ -79,9 +78,9 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(Identifier dependency, FeatureCategory... categories) {
+    public static <S extends NamedBuilder> UnaryOperator<S> registerDependent(Identifier dependency, FeatureCategory... categories) {
         return b -> {
-            registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency, categories);
+            registerDependent(Identifier.fromNamespaceAndPath(b.getModid(), b.getName()), dependency, categories);
             return b;
         };
     }
@@ -90,9 +89,9 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(BlockEntry<?> dependency) {
+    public static <S extends NamedBuilder> UnaryOperator<S> registerDependent(BlockEntry<?> dependency) {
         return b -> {
-            registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency.getId());
+            registerDependent(Identifier.fromNamespaceAndPath(b.getModid(), b.getName()), dependency.getId());
             return b;
         };
     }
@@ -101,9 +100,9 @@ public class FeatureToggle {
      * Register this object to be dependent on another feature.
      * This object cannot be toggled directly, and will only be enabled if the dependency is enabled.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> registerDependent(BlockEntry<?> dependency, FeatureCategory... categories) {
+    public static <S extends NamedBuilder> UnaryOperator<S> registerDependent(BlockEntry<?> dependency, FeatureCategory... categories) {
         return b -> {
-            registerDependent(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), dependency.getId(), categories);
+            registerDependent(Identifier.fromNamespaceAndPath(b.getModid(), b.getName()), dependency.getId(), categories);
             return b;
         };
     }
@@ -111,9 +110,9 @@ public class FeatureToggle {
     /**
      * Add a condition to this feature.
      */
-    public static <R, T extends R, P, S extends Builder<R, T, P, S>> UnaryOperator<S> addCondition(Supplier<Boolean> condition) {
+    public static <S extends NamedBuilder> UnaryOperator<S> addCondition(Supplier<Boolean> condition) {
         return b -> {
-            addCondition(Identifier.fromNamespaceAndPath(b.getOwner().getModid(), b.getName()), condition);
+            addCondition(Identifier.fromNamespaceAndPath(b.getModid(), b.getName()), condition);
             return b;
         };
     }
@@ -152,13 +151,21 @@ public class FeatureToggle {
         return true;
     }
 
+    /**
+     * Catnip's {@code CatnipServices.PLATFORM.executeOnClientOnly} does not exist in Create Fly --
+     * the whole platform-abstraction layer went with the Fabric rewrite -- so the physical-side
+     * guard is the loader's own environment check.
+     * <p>
+     * The JEI refresh that used to follow is gone with the rest of the JEI integration, which is
+     * excluded from the build (see build.gradle).
+     */
     static void refreshItemVisibility() {
-        CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> {
-            CreativeModeTab.ItemDisplayParameters cachedParameters = CreativeModeTabsAccessor.getCACHED_PARAMETERS();
-            if (cachedParameters != null) {
-                CreativeModeTabsAccessor.callBuildAllTabContents(cachedParameters);
-            }
-            Mods.JEI.executeIfInstalled(() -> CreateConnectedJEI::refreshItemList);
-        });
+        if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT)
+            return;
+
+        CreativeModeTab.ItemDisplayParameters cachedParameters = CreativeModeTabsAccessor.getCACHED_PARAMETERS();
+        if (cachedParameters != null) {
+            CreativeModeTabsAccessor.callBuildAllTabContents(cachedParameters);
+        }
     }
 }

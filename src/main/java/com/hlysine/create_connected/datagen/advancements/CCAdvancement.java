@@ -1,14 +1,9 @@
 package com.hlysine.create_connected.datagen.advancements;
 
 import com.hlysine.create_connected.CreateConnected;
-import com.zurrtum.create.Create;
-import com.simibubi.create.foundation.advancement.CreateAdvancement;
-import com.tterrag.registrate.util.entry.ItemProviderEntry;
-import net.minecraft.advancements.*;
-import net.minecraft.advancements.critereon.*;
+import com.hlysine.create_connected.foundation.registrate.ItemProvider;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
@@ -17,27 +12,28 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
+/**
+ * Despite living under {@code datagen/}, this is runtime code: {@link AdvancementBehaviour} and the
+ * brake, kinetic battery and overstress clutch award through {@link #awardTo}. The datagen half --
+ * the {@code Advancement.Builder}, {@code save} and {@code provideLang} -- is gone, because the
+ * advancement JSONs it produced are committed under {@code src/generated/resources} and there is no
+ * Registrate left to regenerate them.
+ * <p>
+ * <b>What is still load-bearing is the builtin trigger.</b> Advancements that have no external
+ * trigger get one registered as {@code create_connected:<id>_builtin}, and the committed JSON names
+ * exactly that id as its criterion. Drop the registration and the advancement can never fire, with
+ * nothing failing at build time. The builder methods that only fed the JSON are accepted and
+ * ignored; {@code externalTrigger} is kept because it decides whether a builtin trigger exists at
+ * all.
+ */
 public class CCAdvancement implements Awardable {
 
-    static final Identifier BACKGROUND = Create.asResource("textures/gui/advancements.png");
-    static final String LANG = "advancement." + CreateConnected.MODID + ".";
-    static final String SECRET_SUFFIX = "\n§7(Hidden Advancement)";
-
-    private final Advancement.Builder mcBuilder = Advancement.Builder.advancement();
-    private SimpleCCTrigger builtinTrigger;
-    private CCAdvancement parent;
-    private final Builder ccBuilder = new Builder();
-
-    AdvancementHolder datagenResult;
-
     private final String id;
-    private String title;
-    private String description;
+    private SimpleCCTrigger builtinTrigger;
+    private final Builder ccBuilder = new Builder();
 
     public CCAdvancement(String id, UnaryOperator<Builder> b) {
         this.id = id;
@@ -46,27 +42,17 @@ public class CCAdvancement implements Awardable {
 
         if (!ccBuilder.externalTrigger) {
             builtinTrigger = CCTriggers.addSimple(id + "_builtin");
-            mcBuilder.addCriterion("0", builtinTrigger.createCriterion(builtinTrigger.instance()));
         }
 
-        if (ccBuilder.type == CCAdvancement.TaskType.SECRET)
-            description += SECRET_SUFFIX;
-
         CCAdvancements.ENTRIES.add(this);
-    }
-
-    private String titleKey() {
-        return LANG + id;
-    }
-
-    private String descriptionKey() {
-        return titleKey() + ".desc";
     }
 
     public boolean isAlreadyAwardedTo(Player player) {
         if (!(player instanceof ServerPlayer sp))
             return true;
-        AdvancementHolder advancement = sp.getServer()
+        // ServerPlayer.getServer() is gone; the server is reached through the level now.
+        AdvancementHolder advancement = sp.level()
+                .getServer()
                 .getAdvancements()
                 .get(CreateConnected.asResource(id));
         if (advancement == null)
@@ -85,128 +71,77 @@ public class CCAdvancement implements Awardable {
         builtinTrigger.trigger(sp);
     }
 
-    void save(Consumer<AdvancementHolder> t, HolderLookup.Provider registries) {
-        if (parent != null)
-            mcBuilder.parent(parent.datagenResult);
-
-        if (ccBuilder.func != null)
-            ccBuilder.icon(ccBuilder.func.apply(registries));
-
-        mcBuilder.display(ccBuilder.icon, Component.translatable(titleKey()),
-                Component.translatable(descriptionKey()).withStyle(s -> s.withColor(0xDBA213)),
-                id.equals("root") ? BACKGROUND : null, ccBuilder.type.advancementType, ccBuilder.type.toast,
-                ccBuilder.type.announce, ccBuilder.type.hide);
-
-        datagenResult = mcBuilder.save(t, CreateConnected.asResource(id).toString());
-    }
-
-    void provideLang(BiConsumer<String, String> consumer) {
-        consumer.accept(titleKey(), title);
-        consumer.accept(descriptionKey(), description);
-    }
-
     enum TaskType {
-
-        SILENT(AdvancementType.TASK, false, false, false),
-        NORMAL(AdvancementType.TASK, true, false, false),
-        NOISY(AdvancementType.TASK, true, true, false),
-        EXPERT(AdvancementType.GOAL, true, true, false),
-        SECRET(AdvancementType.GOAL, true, true, true),
-
-        ;
-
-        private final AdvancementType advancementType;
-        private final boolean toast;
-        private final boolean announce;
-        private final boolean hide;
-
-        TaskType(AdvancementType advancementType, boolean toast, boolean announce, boolean hide) {
-            this.advancementType = advancementType;
-            this.toast = toast;
-            this.announce = announce;
-            this.hide = hide;
-        }
+        SILENT, NORMAL, NOISY, EXPERT, SECRET
     }
 
     public class Builder {
 
-        private CCAdvancement.TaskType type = CCAdvancement.TaskType.NORMAL;
         private boolean externalTrigger;
-        private int keyIndex;
-        private ItemStack icon;
-        private Function<HolderLookup.Provider, ItemStack> func;
+
+        // --- accepted and ignored: these only shaped the generated JSON ---
 
         CCAdvancement.Builder special(CCAdvancement.TaskType type) {
-            this.type = type;
             return this;
         }
 
         CCAdvancement.Builder after(CCAdvancement other) {
-            CCAdvancement.this.parent = other;
             return this;
         }
 
-        CCAdvancement.Builder icon(ItemProviderEntry<?, ?> item) {
-            return icon(item.asStack());
+        CCAdvancement.Builder icon(ItemProvider item) {
+            return this;
         }
 
         CCAdvancement.Builder icon(ItemLike item) {
-            return icon(new ItemStack(item));
+            return this;
         }
 
         CCAdvancement.Builder icon(ItemStack stack) {
-            icon = stack;
             return this;
         }
 
         CCAdvancement.Builder icon(Function<HolderLookup.Provider, ItemStack> func) {
-            this.func = func;
             return this;
         }
 
         CCAdvancement.Builder title(String title) {
-            CCAdvancement.this.title = title;
             return this;
         }
 
         CCAdvancement.Builder description(String description) {
-            CCAdvancement.this.description = description;
             return this;
         }
 
+        // --- these decide whether a builtin trigger is created, so they are real ---
+
         CCAdvancement.Builder whenBlockPlaced(Block block) {
-            return externalTrigger(ItemUsedOnLocationTrigger.TriggerInstance.placedBlock(block));
+            return externalTrigger();
         }
 
         CCAdvancement.Builder whenIconCollected() {
-            return externalTrigger(InventoryChangeTrigger.TriggerInstance.hasItems(icon.getItem()));
+            return externalTrigger();
         }
 
-        CCAdvancement.Builder whenItemCollected(ItemProviderEntry<?, ?> item) {
-            return whenItemCollected(item.asStack()
-                    .getItem());
+        CCAdvancement.Builder whenItemCollected(ItemProvider item) {
+            return externalTrigger();
         }
 
         CCAdvancement.Builder whenItemCollected(ItemLike itemProvider) {
-            return externalTrigger(InventoryChangeTrigger.TriggerInstance.hasItems(itemProvider));
+            return externalTrigger();
         }
 
         CCAdvancement.Builder whenItemCollected(TagKey<Item> tag) {
-            return externalTrigger(InventoryChangeTrigger.TriggerInstance
-                    .hasItems(ItemPredicate.Builder.item().of(tag).build()));
+            return externalTrigger();
         }
 
         CCAdvancement.Builder awardedForFree() {
-            return externalTrigger(InventoryChangeTrigger.TriggerInstance.hasItems(new ItemLike[]{}));
+            return externalTrigger();
         }
 
-        CCAdvancement.Builder externalTrigger(Criterion<?> trigger) {
-            mcBuilder.addCriterion(String.valueOf(keyIndex), trigger);
+        CCAdvancement.Builder externalTrigger() {
             externalTrigger = true;
-            keyIndex++;
             return this;
         }
-
     }
-
 }

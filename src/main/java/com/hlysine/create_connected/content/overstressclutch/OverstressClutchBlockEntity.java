@@ -189,7 +189,7 @@ public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
         public void onShortInteract(Player player, InteractionHand hand, Direction side, BlockHitResult hitResult) {
             BlockState blockState = blockEntity.getBlockState();
             if (blockState.getBlock() instanceof BrassDiodeBlock bdb)
-                bdb.toggle(getWorld(), getPos(), blockState, player, hand);
+                bdb.toggle(getLevel(), getPos(), blockState, player, hand);
         }
 
         @Override

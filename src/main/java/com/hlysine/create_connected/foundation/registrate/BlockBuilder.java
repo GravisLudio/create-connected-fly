@@ -40,7 +40,7 @@ import java.util.function.UnaryOperator;
  * from mods -- Create Fly ports all of Create, including its many cutout blocks, without assigning
  * a render layer anywhere.
  */
-public final class BlockBuilder<T extends Block> {
+public final class BlockBuilder<T extends Block> implements NamedBuilder {
     private final CCRegistrate parent;
     private final String name;
     private final Function<Properties, T> factory;
@@ -58,6 +58,16 @@ public final class BlockBuilder<T extends Block> {
         this.parent = parent;
         this.name = name;
         this.factory = factory;
+    }
+
+    @Override
+    public String getModid() {
+        return parent.getModid();
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     /** Copies properties from the block supplied (Create's {@code SharedProperties::stone} etc). */

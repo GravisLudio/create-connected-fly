@@ -6,7 +6,7 @@ import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import com.zurrtum.create.infrastructure.player.FakePlayerEntity;
 
 import java.util.*;
 
@@ -41,7 +41,7 @@ public class AdvancementBehaviour extends BlockEntityBehaviour {
     }
 
     public void setOwner(UUID id) {
-        Player player = getWorld().getPlayerByUUID(id);
+        Player player = getLevel().getPlayerInAnyDimension(id);
         if (player == null)
             return;
         playerId = id;
@@ -91,21 +91,20 @@ public class AdvancementBehaviour extends BlockEntityBehaviour {
     private Player getOwner() {
         if (playerId == null)
             return null;
-        return getWorld().getPlayerByUUID(playerId);
+        return getLevel().getPlayerInAnyDimension(playerId);
     }
 
     @Override
     public void write(ValueOutput nbt, boolean clientPacket) {
         super.write(nbt, clientPacket);
         if (playerId != null)
-            nbt.putUUID("Owner", playerId);
+            nbt.store("Owner", UUIDUtil.CODEC, playerId);
     }
 
     @Override
     public void read(ValueInput nbt, boolean clientPacket) {
         super.read(nbt, clientPacket);
-        if (nbt.contains("Owner"))
-            playerId = nbt.getUUID("Owner");
+        playerId = nbt.read("Owner", UUIDUtil.CODEC).orElse(null);
     }
 
     @Override
@@ -129,7 +128,7 @@ public class AdvancementBehaviour extends BlockEntityBehaviour {
         AdvancementBehaviour behaviour = BlockEntityBehaviour.get(worldIn, pos, TYPE);
         if (behaviour == null)
             return;
-        if (placer instanceof FakePlayer)
+        if (placer instanceof FakePlayerEntity)
             return;
         if (placer instanceof ServerPlayer)
             behaviour.setOwner(placer.getUUID());

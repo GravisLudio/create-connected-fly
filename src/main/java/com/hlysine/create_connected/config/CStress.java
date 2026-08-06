@@ -10,8 +10,8 @@ import com.zurrtum.create.catnip.config.ConfigBase;
 import com.zurrtum.create.catnip.registry.RegisteredObjectsHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
+import com.zurrtum.create.catnip.config.Builder;
+import com.zurrtum.create.catnip.config.DoubleRawValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,11 +26,11 @@ public class CStress extends ConfigBase {
     private static final Object2DoubleMap<Identifier> DEFAULT_IMPACTS = new Object2DoubleOpenHashMap<>();
     private static final Object2DoubleMap<Identifier> DEFAULT_CAPACITIES = new Object2DoubleOpenHashMap<>();
 
-    protected final Map<Identifier, ConfigValue<Double>> capacities = new HashMap<>();
-    protected final Map<Identifier, ConfigValue<Double>> impacts = new HashMap<>();
+    protected final Map<Identifier, DoubleRawValue> capacities = new HashMap<>();
+    protected final Map<Identifier, DoubleRawValue> impacts = new HashMap<>();
 
     @Override
-    public void registerAll(ModConfigSpec.Builder builder) {
+    public void registerAll(Builder builder) {
         builder.comment(".", Comments.su, Comments.impact)
                 .push("impact");
         DEFAULT_IMPACTS.forEach((id, value) -> this.impacts.put(id, builder.define(id.getPath(), value)));
@@ -50,22 +50,22 @@ public class CStress extends ConfigBase {
     @Nullable
     public DoubleSupplier getImpact(Block block) {
         Identifier id = RegisteredObjectsHelper.getKeyOrThrow(block);
-        ConfigValue<Double> value = this.impacts.get(id);
+        DoubleRawValue value = this.impacts.get(id);
         return value == null ? null : value::get;
     }
 
     @Nullable
     public DoubleSupplier getCapacity(Block block) {
         Identifier id = RegisteredObjectsHelper.getKeyOrThrow(block);
-        ConfigValue<Double> value = this.capacities.get(id);
+        DoubleRawValue value = this.capacities.get(id);
         return value == null ? null : value::get;
     }
 
-    public static <B extends Block, P> UnaryOperator<BlockBuilder<B, P>> setNoImpact() {
+    public static <B extends Block> UnaryOperator<BlockBuilder<B>> setNoImpact() {
         return setImpact(0);
     }
 
-    public static <B extends Block, P> UnaryOperator<BlockBuilder<B, P>> setImpact(double value) {
+    public static <B extends Block> UnaryOperator<BlockBuilder<B>> setImpact(double value) {
         return builder -> {
             assertFromCC(builder);
             Identifier id = CreateConnected.asResource(builder.getName());
@@ -74,7 +74,7 @@ public class CStress extends ConfigBase {
         };
     }
 
-    public static <B extends Block, P> UnaryOperator<BlockBuilder<B, P>> setCapacity(double value) {
+    public static <B extends Block> UnaryOperator<BlockBuilder<B>> setCapacity(double value) {
         return builder -> {
             assertFromCC(builder);
             Identifier id = CreateConnected.asResource(builder.getName());
@@ -83,8 +83,8 @@ public class CStress extends ConfigBase {
         };
     }
 
-    private static void assertFromCC(BlockBuilder<?, ?> builder) {
-        if (!builder.getOwner().getModid().equals(CreateConnected.MODID)) {
+    private static void assertFromCC(BlockBuilder<?> builder) {
+        if (!builder.getModid().equals(CreateConnected.MODID)) {
             throw new IllegalStateException("Unrelated blocks cannot be added to the config of Create: Connected.");
         }
     }

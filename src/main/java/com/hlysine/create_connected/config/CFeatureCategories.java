@@ -1,7 +1,8 @@
 package com.hlysine.create_connected.config;
 
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import com.zurrtum.create.catnip.config.BooleanValue;
+import com.zurrtum.create.catnip.config.Builder;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,12 +20,12 @@ public class CFeatureCategories extends SyncConfigBase {
         return "feature_categories";
     }
 
-    final Map<FeatureCategory, ModConfigSpec.ConfigValue<Boolean>> toggles = new HashMap<>();
+    final Map<FeatureCategory, BooleanValue> toggles = new HashMap<>();
 
     Map<FeatureCategory, Boolean> synchronizedToggles;
 
     @Override
-    public void registerAll(ModConfigSpec.Builder builder) {
+    public void registerAll(Builder builder) {
         for (FeatureCategory r : FeatureCategory.values()) {
             builder.comment(".", r.getDescription());
             toggles.put(r, builder.define(r.getSerializedName(), true));
@@ -37,7 +38,7 @@ public class CFeatureCategories extends SyncConfigBase {
             Boolean synced = synchronizedToggles.get(category);
             if (synced != null) return synced;
         }
-        ModConfigSpec.ConfigValue<Boolean> value = toggles.get(category);
+        BooleanValue value = toggles.get(category);
         if (value != null)
             return value.get();
         return true;
@@ -60,7 +61,7 @@ public class CFeatureCategories extends SyncConfigBase {
     @Override
     protected void readSyncConfig(CompoundTag nbt) {
         synchronizedToggles = new HashMap<>();
-        for (String key : nbt.getAllKeys()) {
+        for (String key : nbt.keySet()) {
             FeatureCategory category = FeatureCategory.byName(key);
             synchronizedToggles.put(category, nbt.getBooleanOr(key, false));
         }
