@@ -58,11 +58,12 @@ public class PlayContraptionJukeboxPacket implements CustomPacketPayload {
         return CCPackets.PLAY_CONTRAPTION_JUKEBOX;
     }
 
-    @Override
+    // Not an override: Fabric routes payloads through a registered receiver (CCClientPackets),
+    // not through a method on the payload the way Catnip did.
     @Environment(EnvType.CLIENT)
     public void handle(LocalPlayer player) {
         ClientLevel world = Minecraft.getInstance().level;
-        if (world == null || !world.dimension().location().equals(level))
+        if (world == null || !world.dimension().identifier().equals(level))
             return;
         if (!world.isLoaded(worldPos))
             return;
@@ -71,7 +72,7 @@ public class PlayContraptionJukeboxPacket implements CustomPacketPayload {
             return;
         if (play) {
             Optional<JukeboxSong> song = world.registryAccess()
-                    .registryOrThrow(Registries.JUKEBOX_SONG)
+                    .lookupOrThrow(Registries.JUKEBOX_SONG)
                     .getHolder(recordId)
                     .map(Holder.Reference::value);
             if (song.isEmpty())

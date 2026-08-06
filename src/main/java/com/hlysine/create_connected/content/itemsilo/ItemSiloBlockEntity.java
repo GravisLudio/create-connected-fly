@@ -56,9 +56,10 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
         super(type, pos, state);
 
         inventory = new ItemStackHandler(AllConfigs.server().logistics.vaultCapacity.get()) {
+            // ItemStackHandler is a vanilla Container now; the change hook is setChanged(),
+            // with no slot, which is what Create Fly overrides on its own vault handler.
             @Override
-            protected void onContentsChanged(int slot) {
-                super.onContentsChanged(slot);
+            public void setChanged() {
                 updateComparators();
                 level.blockEntityChanged(worldPosition);
             }

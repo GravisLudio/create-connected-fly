@@ -12,6 +12,7 @@ import com.zurrtum.create.content.equipment.wrench.IWrenchable;
 import com.zurrtum.create.content.logistics.vault.ItemVaultBlock;
 import com.zurrtum.create.foundation.block.IBE;
 import com.zurrtum.create.foundation.item.ItemHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -58,7 +59,7 @@ public class ItemSiloBlock extends Block
             BlockEntity be = world.getBlockEntity(pos);
             if (!(be instanceof ItemSiloBlockEntity vaultBE))
                 return;
-            ItemHelper.dropContents(world, pos, vaultBE.inventory);
+            Containers.dropContents(world, pos, vaultBE.inventory);
             world.removeBlockEntity(pos);
             ConnectivityHandler.splitMulti(vaultBE);
         }

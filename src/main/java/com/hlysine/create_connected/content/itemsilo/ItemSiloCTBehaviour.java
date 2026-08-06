@@ -22,11 +22,12 @@ public class ItemSiloCTBehaviour extends ConnectedTextureBehaviour.Base {
             return null;
 
         if (direction == Direction.DOWN)
-            return AllSpriteShifts.VAULT_BOTTOM.get(small);
+            return small ? AllSpriteShifts.VAULT_BOTTOM_MEDIUM : AllSpriteShifts.VAULT_BOTTOM_LARGE;
         if (direction.getAxis() == vaultBlockAxis)
-            return AllSpriteShifts.VAULT_FRONT.get(small);
+            return small ? AllSpriteShifts.VAULT_FRONT_MEDIUM : AllSpriteShifts.VAULT_FRONT_LARGE;
 
-        return AllSpriteShifts.VAULT_TOP.get(small);
+        // The Couple<CTSpriteShiftEntry> per face was flattened into a MEDIUM/LARGE pair.
+        return small ? AllSpriteShifts.VAULT_TOP_MEDIUM : AllSpriteShifts.VAULT_TOP_LARGE;
     }
 
     public boolean buildContextForOccludedDirections() {

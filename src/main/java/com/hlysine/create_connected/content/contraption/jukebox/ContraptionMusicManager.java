@@ -10,7 +10,10 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.JukeboxSong;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
@@ -34,7 +37,7 @@ public class ContraptionMusicManager {
 
         if (song != null) {
             if (!silent) {
-                Minecraft.getInstance().gui.setNowPlaying(song.description());
+                Minecraft.getInstance().gui.hud.setNowPlaying(song.description());
             }
 
             SoundInstance newInstance = new ContraptionRecordSoundInstance(
@@ -52,6 +55,15 @@ public class ContraptionMusicManager {
             playingContraptionRecords.put(contraption, newInstance);
             Minecraft.getInstance().getSoundManager().play(newInstance);
         }
-        Minecraft.getInstance().levelRenderer.notifyNearbyEntities(Minecraft.getInstance().level, worldPos, song != null);
+        notifyNearbyEntities(Minecraft.getInstance().level, worldPos, song != null);
+    }
+
+    /**
+     * {@code LevelRenderer.notifyNearbyEntities} moved to LevelEventHandler and is private there,
+     * so this is the same three-block sweep vanilla still does -- it is what makes parrots dance.
+     */
+    private static void notifyNearbyEntities(Level level, BlockPos pos, boolean playing) {
+        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(3.0)))
+            entity.setRecordPlayingNearby(pos, playing);
     }
 }

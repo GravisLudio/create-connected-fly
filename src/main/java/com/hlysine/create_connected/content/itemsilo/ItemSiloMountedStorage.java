@@ -9,6 +9,8 @@ import com.zurrtum.create.foundation.codec.CreateCodecs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -27,7 +29,7 @@ public class ItemSiloMountedStorage extends WrapperMountedItemStorage<ItemStackH
     }
 
     protected ItemSiloMountedStorage(ItemStackHandler handler) {
-        this(CCMountedStorageTypes.SILO.get(), handler);
+        this(CCMountedStorageTypes.SILO, handler);
     }
 
     @Override
@@ -49,8 +51,11 @@ public class ItemSiloMountedStorage extends WrapperMountedItemStorage<ItemStackH
     }
 
     public static ItemSiloMountedStorage fromLegacy(HolderLookup.Provider registries, CompoundTag nbt) {
+        // ItemStackHandler reads through a ValueInput now rather than raw NBT.
         ItemStackHandler handler = new ItemStackHandler();
-        handler.deserializeNBT(registries, nbt);
+        try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(ProblemReporter.DISCARDING)) {
+            handler.read(TagValueInput.create(logging, registries, nbt));
+        }
         return new ItemSiloMountedStorage(handler);
     }
 }

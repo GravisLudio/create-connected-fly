@@ -4,7 +4,13 @@ import com.zurrtum.create.api.behaviour.interaction.MovingInteractionBehaviour;
 import com.zurrtum.create.content.contraptions.AbstractContraptionEntity;
 import com.zurrtum.create.content.contraptions.Contraption;
 import com.zurrtum.create.catnip.levelWrappers.WrappedLevel;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.storage.TagValueInput;
+import org.slf4j.Logger;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
@@ -27,6 +33,8 @@ import java.util.function.Consumer;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HAS_RECORD;
 
 public class JukeboxInteractionBehaviour extends MovingInteractionBehaviour {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     @Override
     public boolean handlePlayerInteraction(Player player, InteractionHand activeHand, BlockPos contraptionPos,
@@ -60,7 +68,14 @@ public class JukeboxInteractionBehaviour extends MovingInteractionBehaviour {
         AbstractContraptionEntity contraptionEntity = contraption.entity;
         BlockPos realPos = BlockPos.containing(contraptionEntity.toGlobalVector(Vec3.atCenterOf(contraptionPos), 1));
         JukeboxBlockEntity be = new JukeboxBlockEntity(realPos, currentState);
-        be.loadWithComponents(contraption.getBlocks().get(contraptionPos).nbt(), contraptionEntity.level().registryAccess());
+        // Block entity NBT is read through a ValueInput now, which carries its own registry lookup
+        // and a problem reporter -- same construction Create Fly uses for contraption block entities.
+        CompoundTag nbt = contraption.getBlocks().get(contraptionPos).nbt();
+        if (nbt != null) {
+            try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(be.problemPath(), LOGGER)) {
+                be.loadWithComponents(TagValueInput.create(logging, contraptionEntity.level().registryAccess(), nbt));
+            }
+        }
         be.setLevel(new WrappedLevel(contraptionEntity.level()) {
             @Override
             public boolean setBlock(BlockPos pos, BlockState newState, int flags) {
@@ -79,12 +94,12 @@ public class JukeboxInteractionBehaviour extends MovingInteractionBehaviour {
             }
 
             @Override
-            public void levelEvent(@Nullable Player player, int type, BlockPos pos, int data) {
+            public void levelEvent(@Nullable Entity player, int type, BlockPos pos, int data) {
                 if (type == 1010 || type == 1011)
                     {
                         // PacketDistributor is NeoForge's; Fabric addresses recipients through
                         // PlayerLookup and sends each payload individually.
-                        PlayContraptionJukeboxPacket payload = new PlayContraptionJukeboxPacket(dimension().location(),
+                        PlayContraptionJukeboxPacket payload = new PlayContraptionJukeboxPacket(dimension().identifier(),
                                     contraptionEntity.getId(),
                                     contraptionPos,
                                     pos,

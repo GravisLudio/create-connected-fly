@@ -5,7 +5,7 @@ import com.hlysine.create_connected.content.ClutchValueBox;
 import com.zurrtum.create.content.kinetics.RotationPropagator;
 import com.zurrtum.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
-import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
+import com.zurrtum.create.foundation.blockEntity.behaviour.scrollValue.ServerScrollOptionBehaviour;
 import com.zurrtum.create.client.foundation.utility.CreateLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,7 +22,7 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 
 public class FreewheelClutchBlockEntity extends SplitShaftBlockEntity {
 
-    protected ScrollOptionBehaviour<RotationDirection> movementDirection;
+    protected ServerScrollOptionBehaviour<RotationDirection> movementDirection;
 
     public boolean reattachNextTick = false;
 
@@ -33,10 +33,8 @@ public class FreewheelClutchBlockEntity extends SplitShaftBlockEntity {
     @Override
     public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         super.addBehaviours(behaviours);
-        movementDirection = new ScrollOptionBehaviour<>(RotationDirection.class,
-                CreateLang.translateDirect("contraptions.windmill.rotation_direction"),
-                this,
-                new ClutchValueBox());
+        // Client half -- the value box -- is registered in CCBlockEntityBehaviours.
+        movementDirection = new ServerScrollOptionBehaviour<>(RotationDirection.class, this);
         movementDirection.withCallback(i -> this.onKineticUpdate());
         behaviours.add(movementDirection);
     }

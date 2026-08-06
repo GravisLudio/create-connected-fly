@@ -8,6 +8,7 @@ import com.hlysine.create_connected.client.tooltip.FluidVesselTooltipBehaviour;
 import com.hlysine.create_connected.client.tooltip.KineticBatteryTooltipBehaviour;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockEntity;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryValueBox;
+import com.hlysine.create_connected.content.freewheelclutch.FreewheelClutchBlockEntity;
 import com.hlysine.create_connected.content.inventorybridge.InventoryBridgeBlockEntity;
 import com.hlysine.create_connected.content.inventorybridge.InventoryBridgeFilterSlot;
 import com.hlysine.create_connected.content.kineticbridge.KineticBridgeBlockEntity;
@@ -19,6 +20,7 @@ import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.RotationDirectionScrollBehaviour;
+import com.zurrtum.create.client.foundation.utility.CreateLang;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -61,6 +63,7 @@ public class CCBlockEntityBehaviours {
                 CCBlockEntityBehaviours::kineticBatteryDirection,
                 KineticBatteryTooltipBehaviour::new);
         add(CCBlockEntityTypes.INVENTORY_BRIDGE.get(), CCBlockEntityBehaviours::inventoryBridgeFilters);
+        add(CCBlockEntityTypes.FREEWHEEL_CLUTCH.get(), CCBlockEntityBehaviours::freewheelClutchDirection);
         // Goggle tooltips are read off a TooltipBehaviour now, not off the block entity.
         add(CCBlockEntityTypes.FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
         add(CCBlockEntityTypes.CREATIVE_FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
@@ -71,6 +74,14 @@ public class CCBlockEntityBehaviours {
                 be,
                 ConnectedLang.translateDirect("battery.rotation_direction"),
                 new KineticBatteryValueBox(3)
+        );
+    }
+
+    private static BlockEntityBehaviour<?> freewheelClutchDirection(FreewheelClutchBlockEntity be) {
+        return new RotationDirectionScrollBehaviour(
+                be,
+                CreateLang.translateDirect("contraptions.windmill.rotation_direction"),
+                new ClutchValueBox()
         );
     }
 
