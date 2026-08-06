@@ -48,7 +48,7 @@ public abstract class ServerSchematicLoaderMixin {
     }
 
     @Inject(
-            at = @At(value = "INVOKE", target = "Lcom.zurrtum.create.content.schematics.ServerSchematicLoader;validateSchematicSizeOnServer(Lnet/minecraft/server/level/ServerPlayer;J)Z"),
+            at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/content/schematics/ServerSchematicLoader;validateSchematicSizeOnServer(Lnet/minecraft/server/level/ServerPlayer;J)Z"),
             method = "handleNewUpload(Lnet/minecraft/server/level/ServerPlayer;Ljava/lang/String;JLnet/minecraft/core/BlockPos;)V",
             cancellable = true
     )
@@ -79,7 +79,7 @@ public abstract class ServerSchematicLoaderMixin {
     @ModifyExpressionValue(
             at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;list(Ljava/nio/file/Path;)Ljava/util/stream/Stream;"),
             slice = @Slice(
-                    from = @At(value = "FIELD", target = "Lcom/simibubi/create/infrastructure/config/CSchematics;maxSchematics:Lcom.zurrtum.create.catnip.config.ConfigBase$ConfigInt;"),
+                    from = @At(value = "FIELD", target = "Lcom/zurrtum/create/infrastructure/config/CSchematics;maxSchematics:Lcom/zurrtum/create/catnip/config/ConfigBase$ConfigInt;"),
                     to = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;filter(Ljava/util/function/Predicate;)Ljava/util/stream/Stream;")
             ),
             method = "handleNewUpload(Lnet/minecraft/server/level/ServerPlayer;Ljava/lang/String;JLnet/minecraft/core/BlockPos;)V"

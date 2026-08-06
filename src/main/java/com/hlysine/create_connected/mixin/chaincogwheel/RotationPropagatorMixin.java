@@ -18,8 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = RotationPropagator.class, remap = false)
 public class RotationPropagatorMixin {
     @Inject(
-            method = "getRotationSpeedModifier(Lcom.zurrtum.create.content.kinetics.base.KineticBlockEntity;Lcom.zurrtum.create.content.kinetics.base.KineticBlockEntity;)F",
-            at = @At(value = "INVOKE", target = "Lcom.zurrtum.create.content.kinetics.chainDrive.ChainDriveBlock;areBlocksConnected(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"),
+            method = "getRotationSpeedModifier(Lcom/zurrtum/create/content/kinetics/base/KineticBlockEntity;Lcom/zurrtum/create/content/kinetics/base/KineticBlockEntity;)F",
+            at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/content/kinetics/chainDrive/ChainDriveBlock;areBlocksConnected(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"),
             cancellable = true
     )
     private static void handleChainCogwheels(KineticBlockEntity from,

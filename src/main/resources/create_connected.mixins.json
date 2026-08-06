@@ -36,7 +36,6 @@
     "inventoryaccess.PackagerBlockEntityMixin",
     "inventoryaccess.PackagerBlockMixin",
     "itemsilo.ContraptionMixin",
-    "itemsilo.MountedStorageManagerMixin",
     "kineticbattery.DeployerHandlerMixin",
     "kineticbattery.KineticNetworkAccessor",
     "linkedtransmitter.AnalogLeverBlockEntityAccessor",

@@ -24,7 +24,7 @@ public abstract class MountedStorageManagerMixin {
             method = "readLegacy",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom.zurrtum.create.catnip.nbt.NBTHelper;iterateCompoundList(Lnet/minecraft/nbt/ListTag;Ljava/util/function/Consumer;)V",
+                    target = "Lcom/zurrtum/create/catnip/nbt/NBTHelper;iterateCompoundList(Lnet/minecraft/nbt/ListTag;Ljava/util/function/Consumer;)V",
                     ordinal = 0
             )
     )

@@ -17,7 +17,7 @@ public class SchematicExportMixin {
 
     @Inject(
             at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;createDirectories(Ljava/nio/file/Path;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;"),
-            method = "saveSchematic(Ljava/nio/file/Path;Ljava/lang/String;ZLnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lcom.zurrtum.create.content.schematics.SchematicExport$SchematicExportResult;"
+            method = "saveSchematic(Ljava/nio/file/Path;Ljava/lang/String;ZLnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lcom/zurrtum/create/content/schematics/SchematicExport$SchematicExportResult;"
     )
     private static void createNestedFolders(Path dir,
                                             String fileName,

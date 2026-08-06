@@ -51,6 +51,12 @@ sourceSets.main.java {
     // Create Fly no tiene ItemUseOverrides; el mecanismo completo desaparecio, no fue renombrado.
     // Ver PreciseItemUseOverrides para la consecuencia de comportamiento.
     exclude 'com/hlysine/create_connected/mixin/ItemUseOverridesMixin.java'
+    // MountedStorageManager.readLegacy no existe en Create Fly: la lectura del formato viejo de
+    // storage en contraptions se elimino entera, no se renombro (javap sobre MountedStorageManager
+    // solo tiene read(ValueInput,...) y read(DynamicOps,...)). Sin ese metodo no hay donde
+    // inyectar, y como Create Fly tampoco lee ese formato, no habria datos que migrar igual.
+    // Consecuencia: los silos que viajaban en una contraption de un mundo 1.21.1 no se recuperan.
+    exclude 'com/hlysine/create_connected/mixin/itemsilo/MountedStorageManagerMixin.java'
 
     // Generadores de blockstates/modelos. Quedaron sin referencias al sacar el datagen de las
     // cadenas de registro; se conservan por si algun dia se regeneran los JSON contra 26.2.

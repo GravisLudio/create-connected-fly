@@ -55,7 +55,7 @@ public class InstructionMixin {
         }
     }
 
-    @Inject(method = "onRedstonePulse()Lcom.zurrtum.create.content.kinetics.transmission.sequencer.OnIsPoweredResult;", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "onRedstonePulse()Lcom/zurrtum/create/content/kinetics/transmission/sequencer/OnIsPoweredResult;", at = @At("HEAD"), cancellable = true)
     private void onCustomRedstonePulse(CallbackInfoReturnable<OnIsPoweredResult> cir) {
         if (instruction == CCSequencerInstructions.TURN_AWAIT) {
             cir.setReturnValue(OnIsPoweredResult.CONTINUE);

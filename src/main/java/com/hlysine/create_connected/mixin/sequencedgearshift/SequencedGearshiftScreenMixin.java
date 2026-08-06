@@ -24,7 +24,7 @@ public class SequencedGearshiftScreenMixin {
             method = "updateParamsOfRow(I)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom.zurrtum.create.client.foundation.gui.widget.ScrollInput;standardStep()Ljava/util/function/Function;",
+                    target = "Lcom/zurrtum/create/client/foundation/gui/widget/ScrollInput;standardStep()Ljava/util/function/Function;",
                     shift = At.Shift.BY,
                     by = 2
             )
@@ -45,7 +45,7 @@ public class SequencedGearshiftScreenMixin {
     }
 
     @Inject(
-            at = @At(value = "INVOKE", target = "Lcom.zurrtum.create.client.content.kinetics.transmission.sequencer.SequencedGearshiftScreen;updateParamsOfRow(I)V", shift = At.Shift.AFTER),
+            at = @At(value = "INVOKE", target = "Lcom/zurrtum/create/client/content/kinetics/transmission/sequencer/SequencedGearshiftScreen;updateParamsOfRow(I)V", shift = At.Shift.AFTER),
             method = "instructionUpdated(II)V",
             cancellable = true
     )

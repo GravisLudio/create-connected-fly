@@ -5,10 +5,9 @@ import com.hlysine.create_connected.content.itemsilo.ItemSiloBlock;
 import com.zurrtum.create.content.contraptions.Contraption;
 import com.zurrtum.create.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.storage.ValueInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -33,13 +32,22 @@ public abstract class ContraptionMixin {
     @Shadow
     protected abstract BlockPos toLocalPos(BlockPos globalPos);
 
+    // 26.2: Contraption.readNBT(Level, CompoundTag, boolean) is now read(Level, ValueInput, boolean).
+    // Only the container changed -- the load sequence did not: read() still fills `blocks` first
+    // (readBlocksCompound) and then rebuilds `capturedMultiblocks` from it, so RETURN is the same
+    // moment the old injection ran, with both collections fully populated. read() compiles to a
+    // single RETURN opcode (the early returns in the source are inside lambdas, which are separate
+    // synthetic methods), so this fixer still runs exactly once per load.
+    // No descriptor on the selector on purpose: the mixin is remap = false, so a descriptor naming
+    // Minecraft types would be taken literally and would not survive remapping. `read` is the only
+    // method with that name in Contraption, so the bare name is unambiguous.
     @SuppressWarnings("unchecked")
     @Inject(
             at = @At("RETURN"),
-            method = "readNBT",
+            method = "read",
             require = 0
     )
-    private void fixNBT(Level world, CompoundTag nbt, boolean spawnData, CallbackInfo ci) {
+    private void fixNBT(Level world, ValueInput view, boolean spawnData, CallbackInfo ci) {
         if (create_connected$capturedMultiblocks == null) {
             try {
                 create_connected$capturedMultiblocks = Optional.of(Contraption.class.getDeclaredField("capturedMultiblocks"));
