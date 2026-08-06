@@ -109,7 +109,11 @@ public class ShearPinBlock extends AbstractBEShaftBlock<ShearPinBlockEntity> {
         // shafts and cogs
 
         private PlacementHelper() {
-            super(Predicates.or(Predicates.or(s -> s.is(AllBlocks.SHAFT), s -> s.is(AllBlocks.POWERED_SHAFT)), CCBlocks.SHEAR_PIN::has),
+            // A lambda, not CCBlocks.SHEAR_PIN::has -- a bound method reference reads the field
+            // immediately, and this constructor runs inside CCBlocks' own static initialiser, while
+            // SHEAR_PIN is still null. Registrate used to defer block construction past that point;
+            // the shim registers eagerly, so the read has to be deferred to call time instead.
+            super(Predicates.or(Predicates.or(s -> s.is(AllBlocks.SHAFT), s -> s.is(AllBlocks.POWERED_SHAFT)), s -> CCBlocks.SHEAR_PIN.has(s)),
                     state -> state.getValue(AXIS), AXIS);
         }
 

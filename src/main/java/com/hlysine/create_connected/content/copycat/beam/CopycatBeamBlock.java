@@ -157,7 +157,9 @@ public class CopycatBeamBlock extends MigratingWaterloggedCopycatBlock {
     private static class PlacementHelper extends PoleHelper<Axis> {
 
         private PlacementHelper() {
-            super(CCBlocks.COPYCAT_BEAM::has, state -> state.getValue(AXIS), AXIS);
+            // Lambda rather than a bound method reference: see ShearPinBlock.PlacementHelper --
+            // this runs inside CCBlocks' static initialiser, where COPYCAT_BEAM is still null.
+            super(s -> CCBlocks.COPYCAT_BEAM.has(s), state -> state.getValue(AXIS), AXIS);
         }
 
         @Override

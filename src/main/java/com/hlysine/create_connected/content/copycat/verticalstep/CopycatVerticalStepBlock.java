@@ -202,7 +202,9 @@ public class CopycatVerticalStepBlock extends MigratingWaterloggedCopycatBlock {
     private static class PlacementHelper extends PoleHelper<Direction> {
 
         private PlacementHelper() {
-            super(CCBlocks.COPYCAT_VERTICAL_STEP::has, $ -> Axis.Y, FACING);
+            // Lambda rather than a bound method reference: see ShearPinBlock.PlacementHelper --
+            // this runs inside CCBlocks' static initialiser, where COPYCAT_VERTICAL_STEP is null.
+            super(s -> CCBlocks.COPYCAT_VERTICAL_STEP.has(s), $ -> Axis.Y, FACING);
         }
 
         @Override
