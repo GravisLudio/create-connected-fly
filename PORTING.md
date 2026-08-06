@@ -8,7 +8,7 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**622 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**468 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
 
 Every number in this document was produced by running `gradlew compileJava`, not estimated.
 
@@ -17,7 +17,7 @@ Every number in this document was produced by running `gradlew compileJava`, not
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 14 commits of port work on top of upstream history |
+| Branch | `main`, 20 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
@@ -269,9 +269,26 @@ Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated,
 
 The `registries/` package is essentially done — every one of its files is now under five errors. What is left splits into one large redesign and a long tail.
 
-### The rendering rewrite — the single biggest piece
+### Block entity renderers — the biggest piece left
 
-Roughly 90 errors, and the only remaining item that is a **redesign rather than a rename**. 26.2 replaced the whole client model and draw path:
+**This is a redesign, not a sweep.** 26.2 split block entity rendering into two phases, and `renderSafe(be, partialTicks, poseStack, bufferSource, light, overlay)` no longer exists in any form:
+
+| Phase | Method | Runs |
+|---|---|---|
+| extract | `extractRenderState(be, state, tickProgress, cameraPos, crumblingOverlay)` | reads the block entity, fills a state object |
+| submit | `submit(state, poseStack, SubmitNodeCollector, cameraRenderState)` | queues draw calls, never touches the block entity |
+
+So a renderer implements `BlockEntityRenderer<BE, S>` and **needs its own `BlockEntityRenderState` subclass** carrying everything the submit phase reads — the old code's local variables become fields. `Create Fly`'s `SmartBlockEntityRenderer.extractBase(be, state, crumblingOverlay)` and `getCardinalLighting(level)` do the common part.
+
+`SuperByteBuffer` gains an `extractRenderState()` that yields a `SuperByteBufferRenderState`, and rotations are precomputed into `Quaternionf` fields rather than applied inline.
+
+Read `client/content/kinetics/gearbox/GearboxRenderer` in Create Fly first: it is the closest analogue to Connected's gearbox renderers and shows the whole shape end to end.
+
+Affected: `SixWayGearboxRenderer`, `BrassGearboxRenderer`, `KineticBridgeRenderer`, `FanCatalystRotatingHeadRenderer`, `FluidVesselRenderer`, `DashboardRenderer` — roughly 50 errors, plus whatever `CCBlockEntityRenders` needs to register them.
+
+### The model layer — done
+
+The eight copycat models are across, via `CCCopycatModel`. What changed:
 
 | Was | Is now |
 |---|---|
@@ -281,20 +298,21 @@ Roughly 90 errors, and the only remaining item that is a **redesign rather than 
 | `GuiGraphics` | `GuiGraphicsExtractor` |
 | NeoForge `ModelData` | no equivalent — model state travels differently |
 
-**Start from Create Fly's `client/infrastructure/model/CopycatModel`.** It is the same problem for the same blocks, already solved. The shape to implement is:
+`CopycatModel.addPartsWithInfo` replaced the old `getQuads` / `ModelData` pair: the base resolves the copycat's material from the block entity and hands it in, and the subclass appends parts rather than returning quads.
+
+The per-part scaffolding — walk the material's parts, rebuild a `QuadCollection` for each, carry its ambient-occlusion flag and particle material through — is identical in every model, and Create Fly writes it out in full each time. `CCCopycatModel` holds it once; subclasses implement only:
 
 ```java
-protected abstract void addPartsWithInfo(
-    BlockAndTintGetter world, BlockPos pos, BlockState state,
-    CopycatBlock block, BlockState material,
-    RandomSource random, List<BlockStateModelPart> parts);
+protected abstract void assembleQuads(
+    BlockState state, Direction face,
+    List<BakedQuad> source, List<BakedQuad> dest);
 ```
 
-That single method replaces the old `getQuads` / `ModelData` pair: the base class resolves the copycat's material from the block entity and hands it in, and the subclass appends parts rather than returning quads. `getModelOf(material)` reaches the material's own model through the `ModelManager`. Connected's eight copycat `*Model` classes extend `CopycatModel`, so javac already names this method in each of their errors.
+`BakedQuad` is a record now — `direction()`, and no raw vertices. `BakedModelHelper.cropAndMove(quad, aabb, offset)` takes and returns a whole quad, which is why `BakedQuadHelper` did **not** need reimplementing after all: it has no callers left. Cross it off the missing-classes list.
 
-Also outstanding here: `FluidVesselModel`, `FluidVesselRenderer`, `ISimpleCopycatModel` and the `BakedQuadHelper` reimplementation.
+Still outstanding in this area: `FluidVesselModel`.
 
-Note Create Fly's own warning on that class: if FRAPI is loaded, `FabricBlockStateModel#emitQuads` has to be overridden for ambient occlusion and emissive flags to survive.
+Note Create Fly's own warning on `CopycatModel`: if FRAPI is loaded, `FabricBlockStateModel#emitQuads` has to be overridden for ambient occlusion and emissive flags to survive.
 
 ### The tail
 
@@ -309,7 +327,7 @@ Note Create Fly's own warning on that class: if FRAPI is loaded, `FabricBlockSta
 
 The `fluidvessel` package is now the largest single cluster at roughly 70 errors across six files, split between the capability migration and the rendering rewrite.
 
-Also outstanding: **16 Create classes with no Create Fly equivalent**, which need reimplementing rather than renaming — `BakedQuadHelper`, `SafeBlockEntityRenderer`, `SmartFluidTank`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `BlockEntityConfigurationPacket`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `CreateAdvancement`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
+Also outstanding: **16 Create classes with no Create Fly equivalent**, which need reimplementing rather than renaming — `SafeBlockEntityRenderer`, `SmartFluidTank`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `BlockEntityConfigurationPacket`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `CreateAdvancement`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
 
 Two capability migrations remain: `BrassChute` and `InventoryAccessPort` (`FluidVessel` is partly done). The pattern is under *Architecture decisions*.
 
