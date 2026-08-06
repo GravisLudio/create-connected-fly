@@ -8,7 +8,7 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**468 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**412 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
 
 Every number in this document was produced by running `gradlew compileJava`, not estimated.
 
@@ -17,7 +17,7 @@ Every number in this document was produced by running `gradlew compileJava`, not
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 20 commits of port work on top of upstream history |
+| Branch | `main`, 26 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
@@ -117,6 +117,8 @@ javap -p -cp ~/.gradle/caches/fabric-loom/26.2-rc-2/minecraft-common.jar net.min
 ```
 
 There are three jars — `minecraft-common`, `minecraft-client`, `minecraft-client-only` — and the class may be in any of them.
+
+**Access wideners are not transitive.** Create Fly opens plenty of vanilla internals in its own classtweaker, and none of that reaches us — every field it reads that we also read needs our own entry. There are two so far, both found this way: `BlockEntityRenderState.blockState` and `BlockModelResolver.modelManager`. Create Fly's classtweaker is inside its jar (`create.classtweaker`) and is worth grepping when something reads as private that Create Fly clearly touches.
 
 Concrete case: `JukeboxBlockEntity.jukeboxSongPlayer` is `net.minecraft.world.item.JukeboxSongPlayer`, not `world.level.block.entity.*`. And it needed no widening at all — 26.2 has a public `getSongPlayer()`. **Check for a getter before adding a classtweaker entry.**
 
@@ -269,7 +271,7 @@ Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated,
 
 The `registries/` package is essentially done — every one of its files is now under five errors. What is left splits into one large redesign and a long tail.
 
-### Block entity renderers — the biggest piece left
+### Block entity renderers — 7 of 9 done
 
 **This is a redesign, not a sweep.** 26.2 split block entity rendering into two phases, and `renderSafe(be, partialTicks, poseStack, bufferSource, light, overlay)` no longer exists in any form:
 
@@ -282,9 +284,24 @@ So a renderer implements `BlockEntityRenderer<BE, S>` and **needs its own `Block
 
 `SuperByteBuffer` gains an `extractRenderState()` that yields a `SuperByteBufferRenderState`, and rotations are precomputed into `Quaternionf` fields rather than applied inline.
 
-Read `client/content/kinetics/gearbox/GearboxRenderer` in Create Fly first: it is the closest analogue to Connected's gearbox renderers and shows the whole shape end to end.
+Read `client/content/kinetics/gearbox/GearboxRenderer` in Create Fly first: it is the closest analogue and shows the whole shape end to end.
 
-Affected: `SixWayGearboxRenderer`, `BrassGearboxRenderer`, `KineticBridgeRenderer`, `FanCatalystRotatingHeadRenderer`, `FluidVesselRenderer`, `DashboardRenderer` — roughly 50 errors, plus whatever `CCBlockEntityRenders` needs to register them.
+**Done**, all following that shape: the three gearboxes, the kinetic battery, the kinetic bridge, the linked analog lever, the fluid vessel.
+
+Points that only showed up while doing it:
+
+- Rotation is baked into the buffer during extraction with `rotateCentered(radians, direction)`, so submit usually has nothing left to do. Only pull rotations out into `Quaternionf` state fields when submit has to interleave them, as `GearboxRenderer` does.
+- `SmartBlockEntityRenderer.extractBase(be, state, crumbling)` returns the `Level` and fills the base fields; `getCardinalLighting(level)` and `getLightCoords(level, pos)` cover the rest. `LevelRenderer.getLightColor` is reached through the latter.
+- `RenderType.cutoutMipped` was a chunk layer and has no block entity equivalent — those became `ChunkSectionLayer`. Use the typeless `submit(matrices, queue)`, which takes the buffer's own material; Create Fly does this for all of its own.
+- Renderers that add Create behaviour overlays subclass the parent's render state and extract `FilteringRenderer.getFilterRenderState` / `LinkRenderer.getLinkRenderState` into it — see `LinkedAnalogLeverRenderer`.
+- `Direction.getNearest` lost its three-int overload; `getApproximateNearest` takes a delta.
+
+**Left: `FanCatalystRotatingHeadRenderer` and `DashboardRenderer`.** Both draw *entity models* rather than `SuperByteBuffer`s, which is a different sub-problem:
+
+- `Model.setupAnim` takes a state object now — for skulls, `SkullModelBase.State` with `animationPos` / `yRot` / `xRot`.
+- `SkullBlockRenderer.createModel(EntityModelSet, SkullBlock.Type)` is public and replaces the reflective model construction in `SkullTypes`; `context.getModelSet()` is `context.entityModelSet()`.
+- `SkullBlockRenderer.getSkullRenderType(type, identifier)` is public and replaces reaching into the private `SKIN_BY_TYPE`.
+- **Unresolved:** `SkullBlockRenderer.submitSkull(float, PoseStack, SubmitNodeCollector, int, SkullModelBase, RenderType, int, CrumblingOverlay)` takes *two* `int`s and nothing in Create Fly calls it, so which is light and which is colour/outline could not be confirmed from either source. Guessing the order compiles and then renders wrong silently. Decompile `SkullBlockRenderer.submit` before writing this one.
 
 ### The model layer — done
 
@@ -319,13 +336,14 @@ Note Create Fly's own warning on `CopycatModel`: if FRAPI is loaded, `FabricBloc
 | File | Errors | What it needs |
 |---|---|---|
 | `content/overstressclutch/OverstressClutchBlockEntity` | 18 | Scroll-value behaviour API |
-| `content/fluidvessel/FluidVesselBlock` | 16 | Last of the capability migration; `Level.random` is protected now |
-| `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 14 | Inventory rewrite (see below) |
+| `content/fluidvessel/FluidVesselBlock` | 15 | Last of the capability migration |
+| `content/fluidvessel/FluidVesselModel` | 14 | The model rewrite — see `CCCopycatModel` |
 | `content/fluidvessel/FluidVesselBlockEntity` | 14 | |
-| `content/fluidvessel/BoilerData` | 13 | |
-| `content/linkedtransmitter/LinkedTransmitterFrequencySlot` | 13 | Value-box rendering |
+| `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 14 | Inventory rewrite (see below) |
+| `content/linkedtransmitter/LinkedTransmitterFrequencySlot` | 12 | Value-box rendering |
+| `content/fluidvessel/BoilerData` | 10 | |
 
-The `fluidvessel` package is now the largest single cluster at roughly 70 errors across six files, split between the capability migration and the rendering rewrite.
+The `fluidvessel` package is still the largest single cluster at roughly 55 errors across four files, split between the capability migration and `FluidVesselModel`.
 
 Also outstanding: **16 Create classes with no Create Fly equivalent**, which need reimplementing rather than renaming — `SafeBlockEntityRenderer`, `SmartFluidTank`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `BlockEntityConfigurationPacket`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `CreateAdvancement`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
 
