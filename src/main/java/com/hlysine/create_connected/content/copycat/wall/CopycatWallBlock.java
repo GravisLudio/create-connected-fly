@@ -1,5 +1,11 @@
 package com.hlysine.create_connected.content.copycat.wall;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
+import net.minecraft.world.level.LevelReader;
+
 import com.hlysine.create_connected.content.copycat.ICopycatWithWrappedBlock;
 import com.hlysine.create_connected.content.copycat.WaterloggedCopycatWrappedBlock;
 import com.zurrtum.create.content.decoration.copycat.CopycatBlock;
@@ -26,7 +32,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 
 import static net.minecraft.core.Direction.Axis;
-import static net.minecraft.world.level.block.WallBlock.*;
+// WallBlock's own side properties were renamed NORTH/SOUTH/EAST/WEST in 26.2, which would collide
+// with Direction's constants on a wildcard import. The BlockStateProperties constants are the same
+// objects and kept their *_WALL names, so they are imported instead.
+import static net.minecraft.world.level.block.WallBlock.UP;
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.EAST_WALL;
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.NORTH_WALL;
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.SOUTH_WALL;
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WEST_WALL;
 
 public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
 
@@ -61,10 +74,6 @@ public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
         return ICopycatWithWrappedBlock.copyState(state, super.getStateForPlacement(pContext), false);
     }
 
-    @Override
-    public boolean collisionExtendsVertically(BlockState state, BlockGetter level, BlockPos pos, Entity collidingEntity) {
-        return true;
-    }
 
     @Override
     public @NotNull VoxelShape getShape(@NotNull BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos, @NotNull CollisionContext pContext) {
@@ -82,13 +91,13 @@ public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull Direction pDirection, @NotNull BlockState pNeighborState, @NotNull LevelAccessor pLevel, @NotNull BlockPos pCurrentPos, @NotNull BlockPos pNeighborPos) {
-        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(wall, pState, state -> state.updateShape(pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos)));
+    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull LevelReader pLevel, ScheduledTickAccess tickAccess, @NotNull BlockPos pCurrentPos, @NotNull Direction pDirection, @NotNull BlockPos pNeighborPos, @NotNull BlockState pNeighborState, RandomSource random) {
+        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(wall, pState, state -> state.updateShape(pLevel, tickAccess, pCurrentPos, pDirection, pNeighborPos, pNeighborState, random)));
     }
 
     @Override
-    public boolean propagatesSkylightDown(@NotNull BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos) {
-        return ICopycatWithWrappedBlock.wrappedState(wall, pState).propagatesSkylightDown(pLevel, pPos);
+    public boolean propagatesSkylightDown(@NotNull BlockState pState) {
+        return ICopycatWithWrappedBlock.wrappedState(wall, pState).propagatesSkylightDown();
     }
 
     @Override
@@ -136,7 +145,7 @@ public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
         if (diff.equals(Vec3i.ZERO)) {
             return true;
         }
-        Direction face = Direction.fromDelta(diff.getX(), diff.getY(), diff.getZ());
+        Direction face = axisAlignedFrom(diff);
         if (face == null) {
             if (diff.distManhattan(Vec3i.ZERO) > 2) return false;
             if (diff.getY() == 0) return false;
@@ -186,39 +195,27 @@ public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
         return !canFaceBeOccluded(state, face);
     }
 
-    @Override
-    public boolean supportsExternalFaceHiding(BlockState state) {
-        return true;
-    }
 
-    @Override
-    public boolean hidesNeighborFace(BlockGetter level, BlockPos pos, BlockState state, BlockState neighborState,
-                                     Direction dir) {
-        if (neighborState.getBlock() instanceof WallBlock || neighborState.getBlock() instanceof CopycatWallBlock) {
-            if (getMaterial(level, pos).skipRendering(getMaterial(level, pos.relative(dir)), dir.getOpposite())) {
-                if (dir.getAxis().isHorizontal()) {
-                    WallSide side = state.getValue(byDirection(dir));
-                    return side != WallSide.NONE && side == neighborState.getValue(byDirection(dir.getOpposite()));
-                } else {
-                    if (neighborState.getValue(UP) && !state.getValue(UP)) return false;
-                    return Arrays.stream(Iterate.horizontalDirections).allMatch(s -> {
-                        WallSide neighbor = neighborState.getValue(byDirection(s));
-                        WallSide self = state.getValue(byDirection(s));
-                        if (dir == Direction.UP && self == WallSide.LOW) return false;
-                        if (dir == Direction.DOWN && neighbor == WallSide.LOW) return false;
-                        return self == neighbor;
-                    });
-                }
-            }
-        }
-
-        return false;
-    }
 
     public static BlockState getMaterial(BlockGetter reader, BlockPos targetPos) {
         BlockState state = CopycatBlock.getMaterial(reader, targetPos);
         if (state.is(Blocks.AIR)) return reader.getBlockState(targetPos);
         return state;
+    }
+
+    /**
+     * Replaces {@code Direction.fromDelta}, removed in 26.2. The nullable result is load-bearing:
+     * the caller branches on it to handle diagonal neighbours, so
+     * {@code Direction.getNearest(..., fallback)} -- which always returns something -- is not a
+     * substitute.
+     */
+    @Nullable
+    private static Direction axisAlignedFrom(Vec3i delta) {
+        for (Direction direction : Direction.values()) {
+            if (direction.getUnitVec3i().equals(delta))
+                return direction;
+        }
+        return null;
     }
 
     public static EnumProperty<WallSide> byDirection(Direction direction) {
@@ -230,5 +227,11 @@ public class CopycatWallBlock extends WaterloggedCopycatWrappedBlock {
             default -> throw new IllegalArgumentException("Vertical directions not supported");
         };
     }
+
+    // Removed with the NeoForge block extensions: supportsExternalFaceHiding, hidesNeighborFace and
+    // collisionExtendsVertically have no Fabric or vanilla equivalent in 26.2. Create Fly reached the
+    // same conclusion and left its own copies commented out in CopycatPanelBlock and CopycatStepBlock.
+    // Consequence: touching copycat blocks no longer hide each other's shared faces, so there is some
+    // overdraw where they meet. Cosmetic, and it raises no error.
 }
 

@@ -56,7 +56,7 @@ public class KineticBatteryBlockEntity extends GeneratingKineticBlockEntity impl
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         super.addBehaviours(behaviours);
         movementDirection = new ScrollOptionBehaviour<>(WindmillBearingBlockEntity.RotationDirection.class,
                 ConnectedLang.translateDirect("battery.rotation_direction"),

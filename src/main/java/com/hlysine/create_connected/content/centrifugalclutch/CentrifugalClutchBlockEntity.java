@@ -34,7 +34,7 @@ public class CentrifugalClutchBlockEntity extends SplitShaftBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         super.addBehaviours(behaviours);
         speedThreshold = new RotationScrollValueBehaviour(
                 ConnectedLang.translateDirect("centrifugal_clutch.speed_threshold"),

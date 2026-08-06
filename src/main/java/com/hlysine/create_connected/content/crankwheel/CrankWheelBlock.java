@@ -1,5 +1,9 @@
 package com.hlysine.create_connected.content.crankwheel;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCShapes;
 import com.zurrtum.create.content.kinetics.crank.HandCrankBlock;
@@ -98,8 +102,8 @@ public class CrankWheelBlock extends HandCrankBlock implements ICogWheel {
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
-        BlockState newState = super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+    public BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess tickAccess, BlockPos currentPos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        BlockState newState = super.updateShape(state, level, tickAccess, currentPos, direction, neighborPos, neighborState, random);
         if (newState.getValue(FACING).getAxis() != newState.getValue(AXIS))
             return newState.setValue(AXIS, newState.getValue(FACING).getAxis());
         return newState;

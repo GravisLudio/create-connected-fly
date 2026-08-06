@@ -49,7 +49,7 @@ public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         AdvancementBehaviour.registerAwardables(this, behaviours, CCAdvancements.OVERSTRESS_CLUTCH);
         maxDelay = new TimeDelayScrollValueBehaviour(Component.translatable("create_connected.overstress_clutch.uncouple_delay"), this,
                 new CenteredSideValueBoxTransform((state, d) -> {

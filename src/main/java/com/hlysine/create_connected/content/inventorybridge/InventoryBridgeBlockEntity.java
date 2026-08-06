@@ -69,7 +69,7 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         CapManipulationBehaviourBase.InterfaceProvider towardBlockFacing1 =
                 (w, p, s) -> new BlockFace(p, InventoryBridgeBlock.getNegativeTarget(s));
         CapManipulationBehaviourBase.InterfaceProvider towardBlockFacing2 =

@@ -1,5 +1,9 @@
 package com.hlysine.create_connected.content.copycat.stairs;
 
+import net.minecraft.world.level.ScheduledTickAccess;
+
+import net.minecraft.world.level.LevelReader;
+
 import com.hlysine.create_connected.content.copycat.ICopycatWithWrappedBlock;
 import com.hlysine.create_connected.content.copycat.WaterloggedCopycatWrappedBlock;
 import com.zurrtum.create.content.decoration.copycat.CopycatBlock;
@@ -103,8 +107,8 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull Direction pDirection, @NotNull BlockState pNeighborState, @NotNull LevelAccessor pLevel, @NotNull BlockPos pCurrentPos, @NotNull BlockPos pNeighborPos) {
-        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(stairs, pState, state -> state.updateShape(pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos)));
+    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull LevelReader pLevel, ScheduledTickAccess tickAccess, @NotNull BlockPos pCurrentPos, @NotNull Direction pDirection, @NotNull BlockPos pNeighborPos, @NotNull BlockState pNeighborState, RandomSource random) {
+        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(stairs, pState, state -> state.updateShape(pLevel, tickAccess, pCurrentPos, pDirection, pNeighborPos, pNeighborState, random)));
     }
 
     @Override
@@ -190,22 +194,7 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
         return !canFaceBeOccluded(state, face);
     }
 
-    @Override
-    public boolean supportsExternalFaceHiding(BlockState state) {
-        return true;
-    }
 
-    @Override
-    public boolean hidesNeighborFace(BlockGetter level, BlockPos pos, BlockState state, BlockState neighborState,
-                                     Direction dir) {
-        if (neighborState.getBlock() instanceof StairBlock || neighborState.getBlock() instanceof CopycatStairsBlock) {
-            if (getMaterial(level, pos).skipRendering(getMaterial(level, pos.relative(dir)), dir.getOpposite()))
-                return getFaceShape(state, dir).equals(getFaceShape(neighborState, dir.getOpposite()));
-        }
-
-        return getFaceShape(state, dir).isFull()
-                && getMaterial(level, pos).skipRendering(neighborState, dir.getOpposite());
-    }
 
     public static BlockState getMaterial(BlockGetter reader, BlockPos targetPos) {
         BlockState state = CopycatBlock.getMaterial(reader, targetPos);
@@ -380,5 +369,11 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
                     shape.topNegative == this.topNegative && shape.topPositive == this.topPositive;
         }
     }
+
+    // Removed with the NeoForge block extensions: supportsExternalFaceHiding, hidesNeighborFace and
+    // collisionExtendsVertically have no Fabric or vanilla equivalent in 26.2. Create Fly reached the
+    // same conclusion and left its own copies commented out in CopycatPanelBlock and CopycatStepBlock.
+    // Consequence: touching copycat blocks no longer hide each other's shared faces, so there is some
+    // overdraw where they meet. Cosmetic, and it raises no error.
 }
 

@@ -25,7 +25,7 @@ public class KineticBridgeBlockEntity extends KineticBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         super.addBehaviours(behaviours);
         stressMultiplier = new StressImpactScrollValueBehaviour(
                 ConnectedLang.translateDirect("kinetic_bridge.stress_impact"),

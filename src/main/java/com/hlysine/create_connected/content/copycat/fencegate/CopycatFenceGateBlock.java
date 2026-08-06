@@ -1,5 +1,11 @@
 package com.hlysine.create_connected.content.copycat.fencegate;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
+import net.minecraft.world.level.LevelReader;
+
 import com.hlysine.create_connected.content.copycat.ICopycatWithWrappedBlock;
 import com.hlysine.create_connected.content.copycat.WaterloggedCopycatWrappedBlock;
 import com.hlysine.create_connected.mixin.copycat.fencegate.FenceGateBlockAccessor;
@@ -60,10 +66,6 @@ public class CopycatFenceGateBlock extends WaterloggedCopycatWrappedBlock {
         return ICopycatWithWrappedBlock.copyState(state, super.getStateForPlacement(pContext), false);
     }
 
-    @Override
-    public boolean collisionExtendsVertically(BlockState state, BlockGetter level, BlockPos pos, Entity collidingEntity) {
-        return true;
-    }
 
     @Override
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult) {
@@ -76,8 +78,8 @@ public class CopycatFenceGateBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull Direction pDirection, @NotNull BlockState pNeighborState, @NotNull LevelAccessor pLevel, @NotNull BlockPos pCurrentPos, @NotNull BlockPos pNeighborPos) {
-        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(fenceGate, pState, state -> state.updateShape(pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos)));
+    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull LevelReader pLevel, ScheduledTickAccess tickAccess, @NotNull BlockPos pCurrentPos, @NotNull Direction pDirection, @NotNull BlockPos pNeighborPos, @NotNull BlockState pNeighborState, RandomSource random) {
+        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(fenceGate, pState, state -> state.updateShape(pLevel, tickAccess, pCurrentPos, pDirection, pNeighborPos, pNeighborState, random)));
     }
 
     @Override
@@ -136,9 +138,11 @@ public class CopycatFenceGateBlock extends WaterloggedCopycatWrappedBlock {
         return true;
     }
 
-    @Override
-    public boolean supportsExternalFaceHiding(BlockState state) {
-        return true;
-    }
+
+    // Removed with the NeoForge block extensions: supportsExternalFaceHiding, hidesNeighborFace and
+    // collisionExtendsVertically have no Fabric or vanilla equivalent in 26.2. Create Fly reached the
+    // same conclusion and left its own copies commented out in CopycatPanelBlock and CopycatStepBlock.
+    // Consequence: touching copycat blocks no longer hide each other's shared faces, so there is some
+    // overdraw where they meet. Cosmetic, and it raises no error.
 }
 

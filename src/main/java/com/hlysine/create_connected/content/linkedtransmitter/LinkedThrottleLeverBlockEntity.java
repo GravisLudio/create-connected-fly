@@ -27,7 +27,7 @@ public class LinkedThrottleLeverBlockEntity extends ThrottleLeverBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         createLink();
         behaviours.add(link);
     }

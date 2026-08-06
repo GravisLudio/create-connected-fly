@@ -26,7 +26,7 @@ public class LinkedAnalogLeverBlockEntity extends AnalogLeverBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         createLink();
         behaviours.add(link);
     }

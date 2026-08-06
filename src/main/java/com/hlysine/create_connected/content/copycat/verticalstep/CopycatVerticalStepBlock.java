@@ -171,22 +171,7 @@ public class CopycatVerticalStepBlock extends MigratingWaterloggedCopycatBlock {
         return CCShapes.CASING_8PX_VERTICAL.get(pState.getValue(FACING));
     }
 
-    @Override
-    public boolean supportsExternalFaceHiding(BlockState state) {
-        return true;
-    }
 
-    @Override
-    public boolean hidesNeighborFace(BlockGetter level, BlockPos pos, BlockState state, BlockState neighborState,
-                                     Direction dir) {
-        if (state.is(this) == neighborState.is(this)) {
-            if (getMaterial(level, pos).skipRendering(getMaterial(level, pos.relative(dir)), dir.getOpposite())) {
-                return dir.getAxis().isVertical() && neighborState.getValue(FACING) == state.getValue(FACING);
-            }
-        }
-
-        return false;
-    }
 
     @Override
     public @NotNull BlockState rotate(@NotNull BlockState pState, Rotation pRot) {
@@ -227,5 +212,11 @@ public class CopycatVerticalStepBlock extends MigratingWaterloggedCopycatBlock {
 
     }
 
+
+    // Removed with the NeoForge block extensions: supportsExternalFaceHiding, hidesNeighborFace and
+    // collisionExtendsVertically have no Fabric or vanilla equivalent in 26.2. Create Fly reached the
+    // same conclusion and left its own copies commented out in CopycatPanelBlock and CopycatStepBlock.
+    // Consequence: touching copycat blocks no longer hide each other's shared faces, so there is some
+    // overdraw where they meet. Cosmetic, and it raises no error.
 }
 

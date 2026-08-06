@@ -52,7 +52,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         CapManipulationBehaviourBase.InterfaceProvider towardBlockFacing =
                 (w, p, s) -> new BlockFace(p, DirectedDirectionalBlock.getTargetDirection(s));
         behaviours.add(observedInventory = new InvManipulationBehaviour(this, towardBlockFacing));

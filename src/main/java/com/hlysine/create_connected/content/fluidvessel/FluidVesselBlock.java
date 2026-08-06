@@ -1,5 +1,9 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
 import org.jetbrains.annotations.Nullable;
 import com.zurrtum.create.infrastructure.fluids.FluidInventoryProvider;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
@@ -159,8 +163,7 @@ public class FluidVesselBlock extends Block
     }
 
     @Override
-    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState,
-                                  LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+    public BlockState updateShape(BlockState pState, LevelReader pLevel, ScheduledTickAccess tickAccess, BlockPos pCurrentPos, Direction pDirection, BlockPos pNeighborPos, BlockState pNeighborState, RandomSource random) {
         if (pDirection == Direction.DOWN && pNeighborState.getBlock() != this)
             withBlockEntityDo(pLevel, pCurrentPos, FluidVesselBlockEntity::updateBoilerTemperature);
         return pState;

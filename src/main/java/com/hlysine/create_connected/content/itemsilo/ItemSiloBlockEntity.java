@@ -75,7 +75,7 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
     }
 
     protected void updateConnectivity() {

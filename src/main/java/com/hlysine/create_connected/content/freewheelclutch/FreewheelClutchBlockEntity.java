@@ -31,7 +31,7 @@ public class FreewheelClutchBlockEntity extends SplitShaftBlockEntity {
     }
 
     @Override
-    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         super.addBehaviours(behaviours);
         movementDirection = new ScrollOptionBehaviour<>(RotationDirection.class,
                 CreateLang.translateDirect("contraptions.windmill.rotation_direction"),

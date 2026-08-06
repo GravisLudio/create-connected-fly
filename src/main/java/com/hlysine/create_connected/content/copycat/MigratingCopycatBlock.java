@@ -1,8 +1,12 @@
 package com.hlysine.create_connected.content.copycat;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
+import net.minecraft.world.level.LevelReader;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
-import com.hlysine.create_connected.compat.CopycatsManager;
-import com.hlysine.create_connected.compat.Mods;
 import com.hlysine.create_connected.config.CCConfigs;
 import com.zurrtum.create.content.decoration.copycat.CopycatBlock;
 import com.zurrtum.create.content.decoration.copycat.CopycatBlockEntity;
@@ -37,8 +41,8 @@ public abstract class MigratingCopycatBlock extends CopycatBlock {
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull Direction pDirection, @NotNull BlockState pNeighborState, @NotNull LevelAccessor pLevel, @NotNull BlockPos pCurrentPos, @NotNull BlockPos pNeighborPos) {
-        return migrateOnUpdate(pLevel.isClientSide(), super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos));
+    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull LevelReader pLevel, ScheduledTickAccess tickAccess, @NotNull BlockPos pCurrentPos, @NotNull Direction pDirection, @NotNull BlockPos pNeighborPos, @NotNull BlockState pNeighborState, RandomSource random) {
+        return migrateOnUpdate(pLevel.isClientSide(), super.updateShape(pState, pLevel, tickAccess, pCurrentPos, pDirection, pNeighborPos, pNeighborState, random));
     }
 
     protected static BlockState migrateOnUpdate(boolean isClient, BlockState state) {

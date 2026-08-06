@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.kineticbridge;
 
+import net.minecraft.world.level.ScheduledTickAccess;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.zurrtum.create.content.kinetics.base.DirectionalKineticBlock;
@@ -107,8 +109,7 @@ public class KineticBridgeDestinationBlock extends DirectionalKineticBlock imple
     }
 
     @Override
-    public BlockState updateShape(BlockState pState, Direction pFacing, BlockState pFacingState, LevelAccessor pLevel,
-                                  BlockPos pCurrentPos, BlockPos pFacingPos) {
+    public BlockState updateShape(BlockState pState, LevelReader pLevel, ScheduledTickAccess tickAccess, BlockPos pCurrentPos, Direction pFacing, BlockPos pFacingPos, BlockState pFacingState, RandomSource random) {
         if (stillValid(pLevel, pCurrentPos, pState)) {
             BlockPos sourcePos = getSource(pCurrentPos, pState);
             if (pLevel.getBlockState(sourcePos).is(CCBlocks.KINETIC_BRIDGE.get()))

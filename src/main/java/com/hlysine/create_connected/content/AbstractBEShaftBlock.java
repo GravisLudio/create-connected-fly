@@ -1,5 +1,9 @@
 package com.hlysine.create_connected.content;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
 import com.zurrtum.create.content.kinetics.base.KineticBlockEntity;
 import com.zurrtum.create.content.kinetics.base.RotatedPillarKineticBlock;
 import com.zurrtum.create.foundation.block.IBE;
@@ -53,12 +57,7 @@ public abstract class AbstractBEShaftBlock<T extends KineticBlockEntity> extends
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState state,
-                                           @NotNull Direction direction,
-                                           @NotNull BlockState neighbourState,
-                                           @NotNull LevelAccessor world,
-                                           @NotNull BlockPos pos,
-                                           @NotNull BlockPos neighbourPos) {
+    public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull LevelReader world, ScheduledTickAccess tickAccess, @NotNull BlockPos pos, @NotNull Direction direction, @NotNull BlockPos neighbourPos, @NotNull BlockState neighbourState, RandomSource random) {
         updateWater(world, state, pos);
         return state;
     }

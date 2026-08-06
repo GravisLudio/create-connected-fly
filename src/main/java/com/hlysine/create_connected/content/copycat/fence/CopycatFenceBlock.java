@@ -1,5 +1,11 @@
 package com.hlysine.create_connected.content.copycat.fence;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
+import net.minecraft.world.level.LevelReader;
+
 import com.hlysine.create_connected.content.copycat.ICopycatWithWrappedBlock;
 import com.hlysine.create_connected.content.copycat.WaterloggedCopycatWrappedBlock;
 import com.zurrtum.create.content.decoration.copycat.CopycatBlock;
@@ -56,14 +62,10 @@ public class CopycatFenceBlock extends WaterloggedCopycatWrappedBlock {
         return ICopycatWithWrappedBlock.copyState(state, super.getStateForPlacement(pContext), false);
     }
 
-    @Override
-    public boolean collisionExtendsVertically(BlockState state, BlockGetter level, BlockPos pos, Entity collidingEntity) {
-        return true;
-    }
 
     @Override
-    public boolean propagatesSkylightDown(@NotNull BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos) {
-        return ICopycatWithWrappedBlock.wrappedState(fence, pState).propagatesSkylightDown(pLevel, pPos);
+    public boolean propagatesSkylightDown(@NotNull BlockState pState) {
+        return ICopycatWithWrappedBlock.wrappedState(fence, pState).propagatesSkylightDown();
     }
 
     @Override
@@ -102,8 +104,8 @@ public class CopycatFenceBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull Direction pDirection, @NotNull BlockState pNeighborState, @NotNull LevelAccessor pLevel, @NotNull BlockPos pCurrentPos, @NotNull BlockPos pNeighborPos) {
-        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(fence, pState, state -> state.updateShape(pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos)));
+    public @NotNull BlockState updateShape(@NotNull BlockState pState, @NotNull LevelReader pLevel, ScheduledTickAccess tickAccess, @NotNull BlockPos pCurrentPos, @NotNull Direction pDirection, @NotNull BlockPos pNeighborPos, @NotNull BlockState pNeighborState, RandomSource random) {
+        return migrateOnUpdate(pLevel.isClientSide(), ICopycatWithWrappedBlock.unwrapForOperation(fence, pState, state -> state.updateShape(pLevel, tickAccess, pCurrentPos, pDirection, pNeighborPos, pNeighborState, random)));
     }
 
     @Override
@@ -145,22 +147,7 @@ public class CopycatFenceBlock extends WaterloggedCopycatWrappedBlock {
         return true;
     }
 
-    @Override
-    public boolean supportsExternalFaceHiding(BlockState state) {
-        return true;
-    }
 
-    @Override
-    public boolean hidesNeighborFace(BlockGetter level, BlockPos pos, BlockState state, BlockState neighborState,
-                                     Direction dir) {
-        if (neighborState.getBlock() instanceof FenceBlock || neighborState.getBlock() instanceof CopycatFenceBlock) {
-            if (getMaterial(level, pos).skipRendering(getMaterial(level, pos.relative(dir)), dir.getOpposite()))
-                if (dir.getAxis().isHorizontal())
-                    return state.getValue(byDirection(dir)) && neighborState.getValue(byDirection(dir.getOpposite()));
-        }
-
-        return false;
-    }
 
     public static BlockState getMaterial(BlockGetter reader, BlockPos targetPos) {
         BlockState state = CopycatBlock.getMaterial(reader, targetPos);
@@ -171,5 +158,11 @@ public class CopycatFenceBlock extends WaterloggedCopycatWrappedBlock {
     public static BooleanProperty byDirection(Direction direction) {
         return PipeBlock.PROPERTY_BY_DIRECTION.get(direction);
     }
+
+    // Removed with the NeoForge block extensions: supportsExternalFaceHiding, hidesNeighborFace and
+    // collisionExtendsVertically have no Fabric or vanilla equivalent in 26.2. Create Fly reached the
+    // same conclusion and left its own copies commented out in CopycatPanelBlock and CopycatStepBlock.
+    // Consequence: touching copycat blocks no longer hide each other's shared faces, so there is some
+    // overdraw where they meet. Cosmetic, and it raises no error.
 }
 

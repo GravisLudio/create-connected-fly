@@ -134,7 +134,7 @@ public class AdvancementBehaviour extends BlockEntityBehaviour {
             behaviour.setOwner(placer.getUUID());
     }
 
-    public static void registerAwardables(SmartBlockEntity be, List<BlockEntityBehaviour> behaviours, CCAdvancement... advancements) {
+    public static void registerAwardables(SmartBlockEntity be, List<BlockEntityBehaviour<?>> behaviours, CCAdvancement... advancements) {
         for (BlockEntityBehaviour behaviour : behaviours) {
             if (behaviour instanceof AdvancementBehaviour ab) {
                 ab.add(advancements);

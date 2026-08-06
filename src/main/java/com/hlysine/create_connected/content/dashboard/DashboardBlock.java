@@ -1,5 +1,11 @@
 package com.hlysine.create_connected.content.dashboard;
 
+import net.minecraft.util.RandomSource;
+
+import net.minecraft.world.level.ScheduledTickAccess;
+
+import net.minecraft.world.level.LevelReader;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.mojang.serialization.MapCodec;
 import com.zurrtum.create.AllBlocks;
@@ -129,8 +135,7 @@ public class DashboardBlock extends HorizontalDirectionalBlock implements IWrenc
     }
 
     @Override
-    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState,
-                                  LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+    public BlockState updateShape(BlockState pState, LevelReader pLevel, ScheduledTickAccess tickAccess, BlockPos pCurrentPos, Direction pDirection, BlockPos pNeighborPos, BlockState pNeighborState, RandomSource random) {
         updateWater(pLevel, pState, pCurrentPos);
         return pState;
     }
