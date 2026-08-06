@@ -322,7 +322,7 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
     }
 
     @Override
-    public int getAnalogOutputSignal(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos) {
+    public int getAnalogOutputSignal(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, Direction side) {
         return getBlockEntityOptional(world, pos).map(be -> be.getCrudeBatteryLevel(be.getBatteryLevel(), 15)).orElse(0);
     }
 

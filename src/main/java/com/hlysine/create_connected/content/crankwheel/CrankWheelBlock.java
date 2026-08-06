@@ -111,7 +111,7 @@ public class CrankWheelBlock extends HandCrankBlock implements ICogWheel {
 
     @Override
     public BlockState rotate(BlockState state, LevelAccessor level, BlockPos pos, Rotation direction) {
-        BlockState newState = super.rotate(state, level, pos, direction);
+        BlockState newState = super.rotate(pos, direction);
         return newState.setValue(AXIS, newState.getValue(AXIS));
     }
 

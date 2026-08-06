@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.content.inventorybridge;
 
-import com.zurrtum.create.client.catnip.math.VecHelper;
+import com.zurrtum.create.catnip.math.VecHelper;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
@@ -19,7 +19,7 @@ public class InventoryBridgeFilterSlot extends CenteredSideValueBoxTransform {
     }
 
     @Override
-    public Vec3 getLocalOffset(LevelAccessor level, BlockPos pos, BlockState state) {
+    public Vec3 getLocalOffset(BlockState state) {
         Vec3 location = getSouthLocation();
         if (getSide() == Direction.UP) {
             location = new Vec3(location.x, 1 - location.y, location.z);
@@ -30,8 +30,8 @@ public class InventoryBridgeFilterSlot extends CenteredSideValueBoxTransform {
     }
 
     @Override
-    public void rotate(LevelAccessor level, BlockPos pos, BlockState state, PoseStack ms) {
-        super.rotate(level, pos, state, ms);
+    public void rotate(BlockState state, PoseStack ms) {
+        super.rotate(state, ms);
         if (getSide() == Direction.UP)
             TransformStack.of(ms)
                     .rotateZDegrees(180);

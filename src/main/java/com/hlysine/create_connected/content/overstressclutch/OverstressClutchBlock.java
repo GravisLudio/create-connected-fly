@@ -80,7 +80,7 @@ public class OverstressClutchBlock extends AbstractEncasedShaftBlock implements 
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getAnalogOutputSignal(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos) {
+    public int getAnalogOutputSignal(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, Direction side) {
         return pState.getValue(STATE) == ClutchState.UNCOUPLED ? 0 : 15;
     }
 

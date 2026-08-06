@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
-import com.zurrtum.create.client.catnip.math.VecHelper;
+import com.zurrtum.create.catnip.math.VecHelper;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransform;
@@ -22,8 +22,8 @@ public class LinkedTransmitterFrequencySlot extends ValueBoxTransform.Dual {
     }
 
     @Override
-    public boolean shouldRender(LevelAccessor level, BlockPos pos, BlockState state) {
-        return !state.getValue(BlockStateProperties.LOCKED) && super.shouldRender(level, pos, state);
+    public boolean shouldRender(BlockState state) {
+        return !state.getValue(BlockStateProperties.LOCKED) && super.shouldRender(state);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class LinkedTransmitterFrequencySlot extends ValueBoxTransform.Dual {
     }
 
     @Override
-    public Vec3 getLocalOffset(LevelAccessor level, BlockPos pos, BlockState state) {
+    public Vec3 getLocalOffset(BlockState state) {
         Direction facing = state.getValue(LinkedButtonBlock.FACING);
         AttachFace face = state.getValue(LinkedButtonBlock.FACE);
         boolean locked = state.getValue(LinkedButtonBlock.LOCKED);
@@ -50,7 +50,7 @@ public class LinkedTransmitterFrequencySlot extends ValueBoxTransform.Dual {
     }
 
     @Override
-    public void rotate(LevelAccessor level, BlockPos pos, BlockState state, PoseStack ms) {
+    public void rotate(BlockState state, PoseStack ms) {
         Direction facing = state.getValue(LinkedButtonBlock.FACING);
         AttachFace face = state.getValue(LinkedButtonBlock.FACE);
         float yRot = AngleHelper.horizontalAngle(facing) + (face != AttachFace.WALL ? 0 : 180);

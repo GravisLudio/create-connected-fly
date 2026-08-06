@@ -101,7 +101,7 @@ public class InventoryBridgeBlock extends Block
     }
 
     @Override
-    public int getAnalogOutputSignal(@NotNull BlockState blockState, @NotNull Level worldIn, @NotNull BlockPos pos) {
+    public int getAnalogOutputSignal(@NotNull BlockState blockState, @NotNull Level worldIn, @NotNull BlockPos pos, Direction side) {
         BlockPos pos1 = pos.relative(getNegativeTarget(blockState));
         BlockPos pos2 = pos.relative(getPositiveTarget(blockState));
         BlockState target1 = worldIn.getBlockState(pos1);

@@ -1,6 +1,6 @@
 package com.hlysine.create_connected.content.kineticbattery;
 
-import com.zurrtum.create.client.catnip.math.VecHelper;
+import com.zurrtum.create.catnip.math.VecHelper;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransform;
@@ -30,7 +30,7 @@ public class KineticBatteryValueBox extends ValueBoxTransform.Sided {
     }
 
     @Override
-    public Vec3 getLocalOffset(LevelAccessor level, BlockPos pos, BlockState state) {
+    public Vec3 getLocalOffset(BlockState state) {
         Direction side = getSide();
         Direction batteryFacing = state.getValue(KineticBatteryBlock.FACING);
 
@@ -53,11 +53,11 @@ public class KineticBatteryValueBox extends ValueBoxTransform.Sided {
     }
 
     @Override
-    public void rotate(LevelAccessor level, BlockPos pos, BlockState state, PoseStack ms) {
+    public void rotate(BlockState state, PoseStack ms) {
         Direction facing = state.getValue(KineticBatteryBlock.FACING);
 
         if (facing.getAxis() == Axis.Y) {
-            super.rotate(level, pos, state, ms);
+            super.rotate(state, ms);
             return;
         }
 

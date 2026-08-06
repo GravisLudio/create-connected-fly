@@ -375,7 +375,7 @@ public class FluidVesselBlock extends Block
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos) {
+    public int getAnalogOutputSignal(BlockState blockState, Level worldIn, BlockPos pos, Direction side) {
         return getBlockEntityOptional(worldIn, pos).map(FluidVesselBlockEntity::getControllerBE)
                 .map(be -> ComparatorUtil.fractionToRedstoneLevel(be.getFillState()))
                 .orElse(0);

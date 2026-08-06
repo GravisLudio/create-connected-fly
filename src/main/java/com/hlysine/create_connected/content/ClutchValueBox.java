@@ -21,7 +21,7 @@ public class ClutchValueBox extends CenteredSideValueBoxTransform {
     }
 
     @Override
-    public void rotate(LevelAccessor level, BlockPos pos, BlockState state, PoseStack ms) {
+    public void rotate(BlockState state, PoseStack ms) {
         Direction facing = getSide();
         float xRot = facing == Direction.UP ? 90 : facing == Direction.DOWN ? 270 : 0;
         float yRot = AngleHelper.horizontalAngle(facing) + 180;

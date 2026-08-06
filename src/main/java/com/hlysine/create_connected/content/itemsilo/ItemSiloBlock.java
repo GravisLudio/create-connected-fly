@@ -100,7 +100,7 @@ public class ItemSiloBlock extends Block
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState pState, Level pLevel, BlockPos pPos) {
+    public int getAnalogOutputSignal(BlockState pState, Level pLevel, BlockPos pPos, Direction side) {
         return ItemHelper.calcRedstoneFromBlockEntity(this, pLevel, pPos);
     }
 
