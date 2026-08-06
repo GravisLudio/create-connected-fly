@@ -8,7 +8,7 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**322 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**294 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
 
 Every number in this document was produced by running `gradlew compileJava`, not estimated.
 
@@ -17,7 +17,7 @@ Every number in this document was produced by running `gradlew compileJava`, not
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 31 commits of port work on top of upstream history |
+| Branch | `main`, 34 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
@@ -228,6 +228,24 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 - `BakedQuad` → `net.minecraft.client.resources.model.geometry.BakedQuad`; `SkullModelBase` → `net.minecraft.client.model.object.skull.SkullModelBase`
 - `CreativeModeTab.builder()` takes a `(Row, int)` placement; `withTabsBefore` is gone, so a tab's position relative to another mod's is no longer expressible. Create Fly passes `(null, -1)`
 
+### Block API, all confirmed against the jar
+
+- `updateShape` reordered and grew two parameters: `(state, LevelReader, ScheduledTickAccess, pos, direction, neighborPos, neighborState, RandomSource)`
+- `onRemove` → `affectNeighborsAfterRemoval(state, ServerLevel, pos, isMoving)` — the new state is no longer passed, since by the time it runs the block is gone
+- `propagatesSkylightDown` and `getOcclusionShape` take the state alone
+- `getExplosionResistance` is a no-arg accessor on `Block`
+- `neighborChanged` takes a `net.minecraft.world.level.redstone.Orientation` where it took the source position
+- `getAnalogOutputSignal` gained the side
+- `getCloneItemStack(LevelReader, BlockPos, BlockState, boolean includeData)` — no `HitResult`, no `Player`, reordered, and **protected**
+- `getSoundType(state)` only — a block can no longer vary its sound by who is placing it
+- `Level.random` is protected behind `getRandom()`; `Level.getPlayerByUUID` is `getPlayerInAnyDimension`
+- `ServerPlayer.getServer()` is gone — reach the server through `level()`
+- `ValueBoxTransform.rotate` / `shouldRender` / `getLocalOffset` dropped their level and position
+- `SmartBlockEntity.addBehaviours` takes `List<BlockEntityBehaviour<?>>` — a raw list silently stops overriding it
+- `Item.getDescriptionId` is final; declare a custom key with `Properties.overrideDescription`
+- `Direction.getNearest` lost its three-int overload (`getApproximateNearest`), and `getNormal` is `getUnitVec3i`
+- `Direction.fromDelta` is gone entirely, and no replacement returns null for a non-unit delta
+
 ### Gone with no code equivalent
 
 - **`BlockColor` / `ItemColor`.** Tinting is data-driven: a `BlockTintSource` or `ItemTintSource` declared in the model JSON. Nothing to register from code — see `CCColorHandlers`, now a stub recording which two assets need entries.
@@ -254,6 +272,8 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 | Item-use priority | Right-clicking a linked transmitter holding a placeable item may place it | `registries/PreciseItemUseOverrides` |
 | Battery charge level | Kinetic battery renders empty at every charge | `assets/.../items/kinetic_battery.json` |
 | Config reload hook | Toggling a feature does not refresh item visibility until restart | `config/CFeatures` |
+| Lighter-than-air fluids | Gases pool at the bottom of a vessel instead of floating to the top | Create Fly has no fluid-type API; it stubs the same branch out |
+| Multiblock placement sound | Placing a vessel or silo plays one metal step per block, not one per structure | `getSoundType(state, level, pos, entity)` is gone from vanilla |
 | Feature toggle UI | No in-game config screen; toggles are edited by file | Create Fly has no `catnip.config.ui` |
 | Fan washing catalyst tint | Renders grey instead of water-coloured | `CCColorHandlers` (stub) — needs tint entries in two JSONs |
 | Creative tab ordering | The tab no longer sits after Create's palettes tab | `withTabsBefore` was removed from the builder |
@@ -350,18 +370,27 @@ Upstream's three behaviours each overrode both halves, so each became a pair. Up
 
 | File | Errors | What it needs |
 |---|---|---|
-| `content/fluidvessel/FluidVesselBlockEntity` | 14 | |
-| `content/fluidvessel/FluidVesselModel` | 14 | The model rewrite — see `CCCopycatModel` |
-| `content/fluidvessel/FluidVesselBlock` | 14 | Last of the capability migration |
 | `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 14 | Inventory rewrite (see below) |
-| `content/fluidvessel/BoilerData` | 10 | |
+| `content/fluidvessel/FluidVesselModel` | 14 | The model rewrite — follow `CCCopycatModel` |
+| `content/fluidvessel/FluidVesselBlock` | 9 | |
+| `content/fluidvessel/BoilerData` | 9 | |
+| `compat/FeatureRefreshEvent` | 8 | NeoForge event bus |
 | `content/fluidvessel/FluidVesselMountedStorage` | 8 | |
+| `content/fancatalyst/FanCatalystRotatingHeadRenderer` | 8 | Entity-model renderer — see above |
+| `content/dashboard/DashboardRenderer` | 8 | Entity-model renderer — see above |
+| `content/kineticbattery/KineticBatteryBlockEntity` | 8 | |
 
-**The `fluidvessel` package is the clear next target** — roughly 60 errors across five files, and the only cluster left with that much in one place. It splits between the capability migration (the pattern is under *Architecture decisions*) and `FluidVesselModel`, which follows `CCCopycatModel`.
+**There is no cluster left with real mass.** `fluidvessel` is still the largest at ~40 across four files, but its capability layer is done — what remains is `FluidVesselModel` (follow `CCCopycatModel`) and a tail. Everything else is single files at 14 or below.
 
-Everything else is now single files in the low tens or below.
+The two things that are still *shapes* rather than one-offs, both described above: the last two block entity renderers, and `FluidVesselModel`.
 
-Also outstanding: **16 Create classes with no Create Fly equivalent**, which need reimplementing rather than renaming — `SafeBlockEntityRenderer`, `SmartFluidTank`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `BlockEntityConfigurationPacket`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `CreateAdvancement`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
+Also outstanding: Create classes with no Create Fly equivalent, needing reimplementation rather than renaming — `SafeBlockEntityRenderer`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
+
+Three came off that list by turning out not to need reimplementing at all, which is worth checking for before writing a replacement:
+
+- **`BakedQuadHelper`** — `BakedModelHelper.cropAndMove` now takes a whole quad, leaving it with no callers.
+- **`SmartFluidTank`** — it existed to take a change callback; Create Fly subclasses `FluidTank` and overrides `markDirty` instead.
+- **`BlockEntityConfigurationPacket`** — it carried the permission, distance and load checks; Create Fly folded those into one helper, and with a single such packet here they inline.
 
 Two capability migrations remain: `BrassChute` and `InventoryAccessPort` (`FluidVessel` is partly done). The pattern is under *Architecture decisions*.
 
