@@ -9,7 +9,7 @@ import com.zurrtum.create.api.connectivity.ConnectivityHandler;
 import com.zurrtum.create.client.api.goggles.IHaveGoggleInformation;
 import com.zurrtum.create.content.fluids.tank.FluidTankBlockEntity;
 import com.zurrtum.create.foundation.blockEntity.IMultiBlockEntityContainer;
-import com.simibubi.create.foundation.fluid.SmartFluidTank;
+
 import com.zurrtum.create.infrastructure.config.AllConfigs;
 import com.zurrtum.create.catnip.animation.LerpedFloat;
 import com.zurrtum.create.catnip.nbt.NBTHelper;
@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidType;
+import com.zurrtum.create.foundation.fluid.FluidHelper;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory.FluidAction;
 import com.zurrtum.create.foundation.fluid.FluidTank;
@@ -66,8 +66,24 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
     }
 
     @Override
-    protected SmartFluidTank createInventory() {
-        return new SmartFluidTank(getCapacityMultiplier(), this::onFluidStackChanged);
+    protected FluidTank createInventory() {
+        return new FluidVesselInventory(getCapacityMultiplier());
+    }
+
+    /**
+     * Create's {@code SmartFluidTank}, which took a change callback, is one of the classes Create
+     * Fly dropped. It subclasses {@link FluidTank} and overrides {@code markDirty} for the same
+     * effect, and this mirrors its {@code FluidTankInventory}.
+     */
+    public class FluidVesselInventory extends FluidTank {
+        public FluidVesselInventory(int capacity) {
+            super(capacity);
+        }
+
+        @Override
+        public void markDirty() {
+            onFluidStackChanged(fluid);
+        }
     }
 
     @Override
@@ -112,10 +128,12 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         if (!hasLevel())
             return;
 
-        FluidType attributes = newFluidStack.getFluid()
-                .getFluidType();
-        int luminosity = (int) (attributes.getLightLevel(newFluidStack) / 1.2f);
-        boolean reversed = attributes.isLighterThanAir();
+        // NeoForge's FluidType is gone. Create Fly derives the light the same way -- off the
+        // fluid's own legacy block state -- and has no lighter-than-air notion at all, so gases
+        // no longer float to the top of the tank. Same gap as FluidVesselRenderer.
+        int luminosity = (int) (newFluidStack.getFluid().defaultFluidState().createLegacyBlock()
+                .getLightEmission() / 1.2f);
+        boolean reversed = false;
         int maxY = (int) ((getFillState() * width) + 1);
         Axis axis = getAxis();
 
@@ -338,7 +356,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         sendData();
     }
 
-    protected void refreshCapability() {
+    public void refreshCapability() {
         fluidCapability = handlerForCapability();
         ItemHelper.invalidateInventoryCache(worldPosition);
     }
@@ -383,7 +401,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         if (controllerBE.boiler.addToGoggleTooltip(tooltip, isPlayerSneaking, controllerBE.getTotalTankSize()))
             return true;
         return containedFluidTooltip(tooltip, isPlayerSneaking,
-                level.getCapability(Capabilities.FluidHandler.BLOCK, controllerBE.getBlockPos(), null));
+                FluidHelper.getFluidInventory(level, controllerBE.getBlockPos(), null));
     }
 
     @Override
@@ -455,7 +473,7 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
     public void write(ValueOutput compound, boolean clientPacket) {
         if (updateConnectivity)
             compound.putBoolean("Uninitialized", true);
-        compound.put("Boiler", boiler.write());
+        boiler.write(compound.child("Boiler"));
         if (lastKnownPos != null)
             compound.store("LastKnownPos", BlockPos.CODEC, lastKnownPos);
         if (!isController())

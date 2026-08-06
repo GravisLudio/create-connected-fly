@@ -451,15 +451,13 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
     }
 
     @Override
-    public CompoundTag write() {
-        CompoundTag nbt = new CompoundTag();
+    public void write(ValueOutput nbt) {
         nbt.putFloat("Supply", waterSupply);
         nbt.putInt("ActiveHeat", activeHeat);
         nbt.putBoolean("PassiveHeat", passiveHeat);
         nbt.putInt("Engines", attachedEngines);
         nbt.putInt("Whistles", attachedWhistles);
         nbt.putBoolean("Update", needsHeatLevelUpdate);
-        return nbt;
     }
 
     @Override

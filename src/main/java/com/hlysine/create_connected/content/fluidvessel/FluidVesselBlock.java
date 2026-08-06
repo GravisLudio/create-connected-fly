@@ -59,7 +59,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import com.zurrtum.create.infrastructure.fluids.FluidStack;
 import com.zurrtum.create.infrastructure.fluids.FluidInventory;
 
@@ -185,7 +184,7 @@ public class FluidVesselBlock extends Block
         if (be == null)
             return InteractionResult.FAIL;
 
-        FluidInventory vesselCapability = level.getCapability(Capabilities.FluidHandler.BLOCK, be.getBlockPos(), null);
+        FluidInventory vesselCapability = FluidHelper.getFluidInventory(level, be.getBlockPos(), null);
         if (vesselCapability == null)
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         FluidStack prevFluidInVessel = vesselCapability.getFluidInTank(0)
@@ -250,11 +249,8 @@ public class FluidVesselBlock extends Block
                                 new BlockParticleOption(ParticleTypes.BLOCK, fluidState);
                         float fluidLevel = (float) fluidInVessel.getAmount() / vesselCapability.getTankCapacity(0);
 
-                        boolean reversed = fluidInVessel.getFluid()
-                                .getFluidType()
-                                .isLighterThanAir();
-                        if (reversed)
-                            fluidLevel = 1 - fluidLevel;
+                        // No fluid-type API in Create Fly, so no lighter-than-air check --
+                        // see FluidVesselBlockEntity for the same gap.
 
                         Vec3 vec = hitResult.getLocation();
                         vec = new Vec3(vec.x, controllerBE.getBlockPos()
