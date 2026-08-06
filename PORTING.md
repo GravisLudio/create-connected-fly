@@ -8,7 +8,7 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**802 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**622 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
 
 Every number in this document was produced by running `gradlew compileJava`, not estimated.
 
@@ -17,7 +17,7 @@ Every number in this document was produced by running `gradlew compileJava`, not
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 11 commits of port work on top of upstream history |
+| Branch | `main`, 14 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
@@ -164,6 +164,10 @@ unzip -l ~/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api
 
 Then read the module's own `-sources.jar` before writing against it — several of these APIs were reshaped, not just moved.
 
+### A generic parameter appearing on a supertype reads as a name clash
+
+`SmartBlockEntity.addBehaviours` takes `List<BlockEntityBehaviour<?>>` now. Seventeen block entities kept the raw `List<BlockEntityBehaviour>` and therefore silently stopped overriding it — javac says *name clash ... neither overrides the other*, which does not read like a version change. Worth checking for whenever a Create supertype gains a type parameter.
+
 ### Private fields with public getters of the same name
 
 `Level.isClientSide` is a private field now, with a public `isClientSide()`. The error is `isClientSide has private access in Level`, which reads like a missing classtweaker entry — it is not. Same story elsewhere; check for a same-named getter before widening anything.
@@ -271,23 +275,39 @@ Roughly 90 errors, and the only remaining item that is a **redesign rather than 
 
 | Was | Is now |
 |---|---|
-| `BakedModel` | `QuadCollection` / `BlockStateModel`, under `client.resources.model` |
+| `BakedModel` | `BlockStateModel` / `BlockStateModelPart`, under `client.renderer.block.dispatch` |
+| `BakedQuad` list building | `QuadCollection`, under `client.resources.model.geometry` |
 | `MultiBufferSource` | `SubmitNodeCollector` / `OrderedSubmitNodeCollector` |
 | `GuiGraphics` | `GuiGraphicsExtractor` |
 | NeoForge `ModelData` | no equivalent — model state travels differently |
 
-This lands on the eight copycat `*Model` classes, `FluidVesselModel`, `FluidVesselRenderer`, `ISimpleCopycatModel` and the `BakedQuadHelper` reimplementation. Read Create Fly's `client/mixin/WrapperBlockStateModelMixin` and its copycat models before starting — it solves the same problem for the same blocks.
+**Start from Create Fly's `client/infrastructure/model/CopycatModel`.** It is the same problem for the same blocks, already solved. The shape to implement is:
+
+```java
+protected abstract void addPartsWithInfo(
+    BlockAndTintGetter world, BlockPos pos, BlockState state,
+    CopycatBlock block, BlockState material,
+    RandomSource random, List<BlockStateModelPart> parts);
+```
+
+That single method replaces the old `getQuads` / `ModelData` pair: the base class resolves the copycat's material from the block entity and hands it in, and the subclass appends parts rather than returning quads. `getModelOf(material)` reaches the material's own model through the `ModelManager`. Connected's eight copycat `*Model` classes extend `CopycatModel`, so javac already names this method in each of their errors.
+
+Also outstanding here: `FluidVesselModel`, `FluidVesselRenderer`, `ISimpleCopycatModel` and the `BakedQuadHelper` reimplementation.
+
+Note Create Fly's own warning on that class: if FRAPI is loaded, `FabricBlockStateModel#emitQuads` has to be overridden for ambient occlusion and emissive flags to survive.
 
 ### The tail
 
 | File | Errors | What it needs |
 |---|---|---|
-| `content/copycat/wall/CopycatWallBlock` | 23 | Vanilla block API: `updateShape`, `propagatesSkylightDown`, wall-property renames |
-| `content/overstressclutch/OverstressClutchBlockEntity` | 19 | Scroll-value behaviour API |
-| `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 17 | Inventory rewrite (see below) |
-| `datagen/advancements/CriterionTriggerBase` | 17 | `CriteriaTriggers` / `Listener` reshaped in vanilla |
-| `content/fluidvessel/FluidVesselBlock` | 17 | Last of the capability migration; `Level.random` is protected now |
-| `config/FeatureToggle` | 12 | `ModConfigSpec` → Catnip's `Builder` |
+| `content/overstressclutch/OverstressClutchBlockEntity` | 18 | Scroll-value behaviour API |
+| `content/fluidvessel/FluidVesselBlock` | 16 | Last of the capability migration; `Level.random` is protected now |
+| `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 14 | Inventory rewrite (see below) |
+| `content/fluidvessel/FluidVesselBlockEntity` | 14 | |
+| `content/fluidvessel/BoilerData` | 13 | |
+| `content/linkedtransmitter/LinkedTransmitterFrequencySlot` | 13 | Value-box rendering |
+
+The `fluidvessel` package is now the largest single cluster at roughly 70 errors across six files, split between the capability migration and the rendering rewrite.
 
 Also outstanding: **16 Create classes with no Create Fly equivalent**, which need reimplementing rather than renaming — `BakedQuadHelper`, `SafeBlockEntityRenderer`, `SmartFluidTank`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `BlockEntityConfigurationPacket`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `CreateAdvancement`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
 
