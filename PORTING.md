@@ -8,7 +8,7 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**294 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**246 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
 
 Every number in this document was produced by running `gradlew compileJava`, not estimated.
 
@@ -17,7 +17,7 @@ Every number in this document was produced by running `gradlew compileJava`, not
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 34 commits of port work on top of upstream history |
+| Branch | `main`, 39 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
@@ -283,7 +283,7 @@ The first two are stubs with the full mapping recorded in their class docs — b
 
 ### Excluded from compilation
 
-Integrations with mods that have no 26.2 release, excluded per-file in `build.gradle` rather than deleted — one line each to re-enable: **Copycats+, Additional Placements, Dye Depot, Simulated, JEI**.
+Integrations with mods that have no 26.2 release, excluded per-file in `build.gradle` rather than deleted — one line each to re-enable: **Copycats+, Additional Placements, Dye Depot, Simulated, JEI**. `FeatureRefreshEvent` goes with JEI: it exists only to tell JEI to refresh its list when a feature toggles.
 
 Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated, never at Create) and `SubMenuConfigScreenMixin` (Create Fly has no config UI). `ItemUseOverridesMixin` goes with `ItemUseOverrides`, which Create Fly removed outright.
 
@@ -364,25 +364,26 @@ Create Fly split `ScrollValueBehaviour` in two, and this is worth knowing before
 
 Upstream's three behaviours each overrode both halves, so each became a pair. Upstream also seeded defaults by assigning the `value` field directly; it is protected on the parent and `setValue` clamps against a range that is not set yet, so the server halves carry an explicit `startingValue`.
 
+**`LinkBehaviour` is split the same way** — `ServerLinkBehaviour` carries the transmission and frequency, the client `LinkBehaviour` carries the value box slots. Assume any Create behaviour with both a value and a widget is a pair now, and check which half you actually want before importing: the two classes share a simple name, so picking the wrong one surfaces as *missing methods*, not a missing class.
+
 `ValueBoxTransform.rotate` / `shouldRender` / `getLocalOffset` all dropped their level and position — the block state alone now.
 
 ### The tail
 
 | File | Errors | What it needs |
 |---|---|---|
-| `content/inventoryaccessport/InventoryAccessPortBlockEntity` | 14 | Inventory rewrite (see below) |
-| `content/fluidvessel/FluidVesselModel` | 14 | The model rewrite — follow `CCCopycatModel` |
-| `content/fluidvessel/FluidVesselBlock` | 9 | |
 | `content/fluidvessel/BoilerData` | 9 | |
-| `compat/FeatureRefreshEvent` | 8 | NeoForge event bus |
-| `content/fluidvessel/FluidVesselMountedStorage` | 8 | |
+| `content/fluidvessel/FluidVesselBlock` | 9 | |
 | `content/fancatalyst/FanCatalystRotatingHeadRenderer` | 8 | Entity-model renderer — see above |
 | `content/dashboard/DashboardRenderer` | 8 | Entity-model renderer — see above |
-| `content/kineticbattery/KineticBatteryBlockEntity` | 8 | |
+| `content/fluidvessel/FluidVesselMountedStorage` | 8 | |
+| `content/kineticbattery/KineticBatteryBlockEntity` | 8 | `ScrollOptionBehaviour` is split too |
+| `content/fancatalyst/SkullTypes` | 7 | Goes with its renderer |
+| `content/dashboard/DashboardBlock` | 6 | |
 
-**There is no cluster left with real mass.** `fluidvessel` is still the largest at ~40 across four files, but its capability layer is done — what remains is `FluidVesselModel` (follow `CCCopycatModel`) and a tail. Everything else is single files at 14 or below.
+**Nothing left has real mass** — the largest single file is 9. `fluidvessel` is still the biggest package at ~30 across four files, but its capability layer and its model are done.
 
-The two things that are still *shapes* rather than one-offs, both described above: the last two block entity renderers, and `FluidVesselModel`.
+**Only one thing left is still a *shape* rather than a one-off:** the two entity-model renderers, `FanCatalystRotatingHeadRenderer` and `DashboardRenderer`, with the `submitSkull` unknown described above. Everything else is per-file work against the API list.
 
 Also outstanding: Create classes with no Create Fly equivalent, needing reimplementation rather than renaming — `SafeBlockEntityRenderer`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
 
