@@ -1,6 +1,5 @@
 package com.hlysine.create_connected.content.kineticbattery;
 
-
 import com.hlysine.create_connected.registries.CCBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -19,14 +18,11 @@ import java.util.Map;
 public class ChargedKineticBatteryItem extends BlockItem {
 
     public ChargedKineticBatteryItem(Properties builder) {
-        super(CCBlocks.KINETIC_BATTERY.get(), builder);
+        // getDescriptionId is final in 26.2; a custom lang key is declared on the properties instead.
+        super(CCBlocks.KINETIC_BATTERY.get(), builder.overrideDescription("item.create_connected.charged_kinetic_battery"));
     }
 
-    @Override
-    public @NotNull String getDescriptionId() {
-        return "item.create_connected.charged_kinetic_battery";
-    }
-
+    
     @Override
     public void registerBlocks(@NotNull Map<Block, Item> map, @NotNull Item self) {
     }

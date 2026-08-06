@@ -20,14 +20,11 @@ import java.util.Map;
 public class VerticalParallelGearboxItem extends BlockItem {
 
     public VerticalParallelGearboxItem(Properties builder) {
-        super(CCBlocks.PARALLEL_GEARBOX.get(), builder);
+        // getDescriptionId is final in 26.2; a custom lang key is declared on the properties instead.
+        super(CCBlocks.PARALLEL_GEARBOX.get(), builder.overrideDescription("item.create_connected.vertical_parallel_gearbox"));
     }
 
-    @Override
-    public @NotNull String getDescriptionId() {
-        return "item.create_connected.vertical_parallel_gearbox";
-    }
-
+    
     @Override
     public void registerBlocks(@NotNull Map<Block, Item> map, @NotNull Item self) {
     }

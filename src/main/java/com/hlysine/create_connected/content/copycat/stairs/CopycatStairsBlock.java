@@ -76,8 +76,8 @@ public class CopycatStairsBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public float getExplosionResistance(BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
-        return super.getExplosionResistance(state, level, pos, explosion);
+    public float getExplosionResistance() {
+        return super.getExplosionResistance();
     }
 
     @Override

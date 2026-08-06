@@ -20,14 +20,11 @@ import java.util.Map;
 public class VerticalSixWayGearboxItem extends BlockItem {
 
     public VerticalSixWayGearboxItem(Properties builder) {
-        super(CCBlocks.SIX_WAY_GEARBOX.get(), builder);
+        // getDescriptionId is final in 26.2; a custom lang key is declared on the properties instead.
+        super(CCBlocks.SIX_WAY_GEARBOX.get(), builder.overrideDescription("item.create_connected.vertical_six_way_gearbox"));
     }
 
-    @Override
-    public @NotNull String getDescriptionId() {
-        return "item.create_connected.vertical_six_way_gearbox";
-    }
-
+    
     @Override
     public void registerBlocks(@NotNull Map<Block, Item> map, @NotNull Item self) {
     }

@@ -89,8 +89,8 @@ public class CopycatFenceBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public @NotNull VoxelShape getOcclusionShape(@NotNull BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos) {
-        return ICopycatWithWrappedBlock.wrappedState(fence, pState).getOcclusionShape(pLevel, pPos);
+    public @NotNull VoxelShape getOcclusionShape(@NotNull BlockState pState) {
+        return ICopycatWithWrappedBlock.wrappedState(fence, pState).getOcclusionShape();
     }
 
     @Override

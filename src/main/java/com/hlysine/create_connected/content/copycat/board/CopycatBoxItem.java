@@ -20,14 +20,11 @@ import static com.hlysine.create_connected.content.copycat.board.CopycatBoardBlo
 public class CopycatBoxItem extends BlockItem {
 
     public CopycatBoxItem(Properties builder) {
-        super(CCBlocks.COPYCAT_BOARD.get(), builder);
+        // getDescriptionId is final in 26.2; a custom lang key is declared on the properties instead.
+        super(CCBlocks.COPYCAT_BOARD.get(), builder.overrideDescription("item.create_connected.copycat_box"));
     }
 
-    @Override
-    public @NotNull String getDescriptionId() {
-        return "item.create_connected.copycat_box";
-    }
-
+    
     @Override
     public void registerBlocks(@NotNull Map<Block, Item> map, @NotNull Item self) {
     }
