@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.brake;
 
+import net.minecraft.world.level.redstone.Orientation;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.zurrtum.create.content.kinetics.base.AbstractEncasedShaftBlock;
 import com.zurrtum.create.content.kinetics.base.KineticBlockEntity;
@@ -45,13 +47,7 @@ public class BrakeBlock extends AbstractEncasedShaftBlock implements IBE<BrakeBl
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(
-            @NotNull BlockState state,
-            Level worldIn,
-            @NotNull BlockPos pos,
-            @NotNull Block blockIn,
-            @NotNull BlockPos fromPos,
-            boolean isMoving) {
+    public void neighborChanged(@NotNull BlockState state, Level worldIn, @NotNull BlockPos pos, @NotNull Block blockIn, Orientation orientation, boolean $12) {
         if (worldIn.isClientSide())
             return;
 

@@ -3,7 +3,8 @@ package com.hlysine.create_connected.content.kineticbridge;
 import com.hlysine.create_connected.ConnectedLang;
 import com.zurrtum.create.catnip.data.Pair;
 import com.zurrtum.create.client.catnip.outliner.Outliner;
-import net.createmod.catnip.platform.CatnipServices;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,8 +25,11 @@ public class KineticBridgeBlockItem extends BlockItem {
     @Override
     public InteractionResult place(BlockPlaceContext ctx) {
         InteractionResult result = super.place(ctx);
-        if (result == InteractionResult.FAIL && ctx.getLevel().isClientSide())
-            CatnipServices.PLATFORM.executeOnClientOnly(() -> () -> showBounds(ctx));
+        // Catnip's platform abstraction did not survive the Fabric rewrite; the loader's own
+        // environment check is the physical-side guard now.
+        if (result == InteractionResult.FAIL && ctx.getLevel().isClientSide()
+                && FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
+            showBounds(ctx);
         return result;
     }
 

@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.kineticbattery;
 
+import net.minecraft.world.level.redstone.Orientation;
+
 
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCBlocks;
@@ -264,13 +266,8 @@ public class KineticBatteryBlock extends DirectionalKineticBlock implements IBE<
     }
 
     @Override
-    protected void neighborChanged(@NotNull BlockState state,
-                                   @NotNull Level level,
-                                   @NotNull BlockPos pos,
-                                   @NotNull Block block,
-                                   @NotNull BlockPos fromPos,
-                                   boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+    protected void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block, Orientation orientation, boolean $12) {
+        super.neighborChanged(state, level, pos, block, orientation, isMoving);
         if (!level.isClientSide()) {
             updatePower(state, level, pos);
         }

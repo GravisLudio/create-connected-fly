@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.invertedclutch;
 
+import net.minecraft.world.level.redstone.Orientation;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.zurrtum.create.content.kinetics.transmission.ClutchBlock;
 import com.zurrtum.create.content.kinetics.transmission.SplitShaftBlockEntity;
@@ -16,8 +18,7 @@ public class InvertedClutchBlock extends ClutchBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos,
-                                boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, Orientation orientation, boolean $12) {
         if (worldIn.isClientSide())
             return;
 

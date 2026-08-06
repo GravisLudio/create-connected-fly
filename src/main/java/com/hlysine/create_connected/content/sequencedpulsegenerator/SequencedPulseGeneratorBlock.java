@@ -9,7 +9,8 @@ import com.zurrtum.create.content.redstone.diodes.BrassDiodeBlock;
 import com.zurrtum.create.content.redstone.diodes.PoweredLatchBlock;
 import com.zurrtum.create.foundation.block.IBE;
 import com.zurrtum.create.client.catnip.gui.ScreenOpener;
-import net.createmod.catnip.platform.CatnipServices;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -148,8 +149,9 @@ public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements 
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
-        CatnipServices.PLATFORM.executeOnClientOnly(
-                () -> () -> withBlockEntityDo(level, pos, be -> this.displayScreen(be, player)));
+        // Catnip's platform abstraction is gone; the loader's environment check is the guard now.
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
+            withBlockEntityDo(level, pos, be -> this.displayScreen(be, player));
         return InteractionResult.SUCCESS;
     }
 
@@ -159,8 +161,9 @@ public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements 
                                                      @NotNull BlockPos pos,
                                                      @NotNull Player player,
                                                      @NotNull BlockHitResult hit) {
-        CatnipServices.PLATFORM.executeOnClientOnly(
-                () -> () -> withBlockEntityDo(worldIn, pos, be -> this.displayScreen(be, player)));
+        // Catnip's platform abstraction is gone; the loader's environment check is the guard now.
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
+            withBlockEntityDo(worldIn, pos, be -> this.displayScreen(be, player));
         return InteractionResult.SUCCESS;
     }
 

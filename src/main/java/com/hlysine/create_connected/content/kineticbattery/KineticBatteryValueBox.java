@@ -7,7 +7,6 @@ import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransf
 
 import com.zurrtum.create.client.flywheel.lib.transform.TransformStack;
 import com.zurrtum.create.catnip.math.Pointing;
-import net.createmod.catnip.math.VecHelper;
 import com.zurrtum.create.catnip.math.AngleHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

@@ -1,10 +1,11 @@
 package com.hlysine.create_connected.content.dashboard;
 
-import net.createmod.catnip.annotations.ClientOnly;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
-@ClientOnly
+@Environment(EnvType.CLIENT)
 public class ClientPlayerAccess {
     public static Player getPlayer() {
         return Minecraft.getInstance().player;

@@ -7,7 +7,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
-import net.createmod.catnip.annotations.ClientOnly;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import com.zurrtum.create.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -121,7 +122,7 @@ public class DashboardBlockEntity extends SmartBlockEntity {
         return list;
     }
 
-    @ClientOnly
+    @Environment(EnvType.CLIENT)
     private boolean displayStatus() {
         BlockPos seatPos = getSeatPos();
         if (seatPos == null)

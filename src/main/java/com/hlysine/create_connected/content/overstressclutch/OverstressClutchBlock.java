@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.overstressclutch;
 
+import net.minecraft.world.level.redstone.Orientation;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.ConnectedLang;
 import com.hlysine.create_connected.datagen.advancements.AdvancementBehaviour;
@@ -44,13 +46,8 @@ public class OverstressClutchBlock extends AbstractEncasedShaftBlock implements 
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(@NotNull BlockState pState,
-                                @NotNull Level pLevel,
-                                @NotNull BlockPos pPos,
-                                @NotNull Block pBlock,
-                                @NotNull BlockPos pFromPos,
-                                boolean pIsMoving) {
-        super.neighborChanged(pState, pLevel, pPos, pBlock, pFromPos, pIsMoving);
+    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean $12) {
+        super.neighborChanged(pState, pLevel, pPos, pBlock, orientation, pIsMoving);
         boolean flag = pState.getValue(POWERED);
         boolean flag1 = pLevel.getBestNeighborSignal(pPos) > 0;
         if (flag != flag1) {

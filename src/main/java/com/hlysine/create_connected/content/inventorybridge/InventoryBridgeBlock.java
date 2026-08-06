@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.inventorybridge;
 
+import net.minecraft.world.level.redstone.Orientation;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.zurrtum.create.content.equipment.wrench.IWrenchable;
 import com.zurrtum.create.foundation.block.IBE;
@@ -74,9 +76,9 @@ public class InventoryBridgeBlock extends Block
     }
 
     @Override
-    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, @NotNull BlockPos pFromPos, boolean pIsMoving) {
+    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean $12) {
         withBlockEntityDo(pLevel, pPos, InventoryBridgeBlockEntity::updateConnectedInventory);
-        super.neighborChanged(pState, pLevel, pPos, pBlock, pFromPos, pIsMoving);
+        super.neighborChanged(pState, pLevel, pPos, pBlock, orientation, pIsMoving);
         Vec3i diff = pFromPos.subtract(pPos);
         Direction fromSide = Direction.fromDelta(diff.getX(), diff.getY(), diff.getZ());
         if (fromSide == null)
