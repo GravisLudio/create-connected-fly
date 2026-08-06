@@ -19,6 +19,10 @@ classTweaker v1 official
 #         net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState
 accessible field net/minecraft/client/renderer/blockentity/state/BlockEntityRenderState blockState Lnet/minecraft/world/level/block/state/BlockState;
 
+# Igual que arriba: privado en 26.2, abierto en el classtweaker de Create Fly, y el nuestro lo
+# necesita para llegar al FluidStateModelSet desde FluidVesselRenderer.
+accessible field net/minecraft/client/renderer/block/BlockModelResolver modelManager Lnet/minecraft/client/resources/model/ModelManager;
+
 
 # --- 1. RecipeProvider.getName() ---
 # Original: public-f net.minecraft.data.recipes.RecipeProvider getName()Ljava/lang/String;
