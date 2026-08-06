@@ -5,7 +5,7 @@ import com.hlysine.create_connected.ConnectedLang;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.sequencedpulsegenerator.SequencedPulseGeneratorBlockEntity;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
-import net.minecraft.client.resources.language.I18n;
+import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -166,14 +166,14 @@ public abstract class Instruction {
 
     public String getParamLangKey() {
         String key = getLangKey() + ".param";
-        if (I18n.exists(CreateConnected.MODID + "." + key))
+        if (Language.getInstance().has(CreateConnected.MODID + "." + key))
             return key;
         return "gui.sequenced_pulse_generator.param";
     }
 
     public String getSignalLangKey() {
         String key = getLangKey() + ".signal";
-        if (I18n.exists(CreateConnected.MODID + "." + key))
+        if (Language.getInstance().has(CreateConnected.MODID + "." + key))
             return key;
         return "gui.sequenced_pulse_generator.signal";
     }

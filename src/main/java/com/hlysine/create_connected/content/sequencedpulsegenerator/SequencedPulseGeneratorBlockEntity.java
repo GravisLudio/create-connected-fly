@@ -19,6 +19,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
+import com.mojang.serialization.Codec;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -26,6 +29,8 @@ import static com.hlysine.create_connected.content.sequencedpulsegenerator.Seque
 import static net.minecraft.world.level.block.DiodeBlock.POWERED;
 
 public class SequencedPulseGeneratorBlockEntity extends SmartBlockEntity {
+
+    private static final Codec<List<CompoundTag>> COMPOUND_LIST_CODEC = CompoundTag.CODEC.listOf();
 
     public static final int INSTRUCTION_CAPACITY = 7;
     private static final int MAX_RECURSION_DEPTH = 10;
@@ -190,7 +195,8 @@ public class SequencedPulseGeneratorBlockEntity extends SmartBlockEntity {
         tag.putInt("PrevInput", previousInput);
         tag.putInt("CurrentInput", currentInput);
         tag.putInt("CurrentSignal", currentSignal);
-        tag.put("Instructions", Instruction.serializeAll(instructions));
+        // ValueOutput has no raw tag put; the instruction list goes through the CompoundTag codec.
+        tag.store("Instructions", COMPOUND_LIST_CODEC, new ArrayList<>(Instruction.serializeAll(instructions).stream().map(CompoundTag.class::cast).toList()));
         super.write(tag, clientPacket);
     }
 
@@ -200,7 +206,8 @@ public class SequencedPulseGeneratorBlockEntity extends SmartBlockEntity {
         previousInput = tag.getIntOr("PrevInput", 0);
         currentInput = tag.getIntOr("CurrentInput", 0);
         currentSignal = tag.getIntOr("CurrentSignal", 0);
-        ListTag list = tag.getListOrEmpty("Instructions");
+        ListTag list = new ListTag();
+        tag.read("Instructions", COMPOUND_LIST_CODEC).ifPresent(list::addAll);
         instructions = Instruction.deserializeAll(list);
         super.read(tag, clientPacket);
     }

@@ -17,7 +17,10 @@ public class KineticHelper {
         BlockState state = kineticTE.getBlockState();
         BlockPos pos = kineticTE.getBlockPos();
         Level level = Objects.requireNonNull(kineticTE.getLevel());
-        level.markAndNotifyBlock(pos, level.getChunkAt(pos), state, state, 3, 512);
+        // Level.markAndNotifyBlock is gone; the block did not actually change, so the point was
+        // only to push an update out to neighbours and the renderer.
+        level.sendBlockUpdated(pos, state, state, 3);
+        level.updateNeighborsAt(pos, state.getBlock(), null);
         if (kineticTE instanceof GeneratingKineticBlockEntity generatingBlockEntity) {
             generatingBlockEntity.reActivateSource = true;
         }

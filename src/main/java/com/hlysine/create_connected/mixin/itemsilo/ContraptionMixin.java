@@ -64,7 +64,7 @@ public abstract class ContraptionMixin {
             if (!entry.getValue().nbt().contains("Length") && (
                     blocks.get(NBTHelper.readBlockPos(entry.getValue().nbt(), "Controller")) == null ||
                             !(blocks.get(NBTHelper.readBlockPos(entry.getValue().nbt(), "Controller")).state().getBlock() instanceof ItemSiloBlock))) {
-                entry.getValue().nbt().put("Controller", NbtUtils.writeBlockPos(entry.getKey()));
+                entry.getValue().nbt().store("Controller", BlockPos.CODEC, entry.getKey());
                 entry.getValue().nbt().putInt("Length", 1);
                 entry.getValue().nbt().putInt("Size", 1);
                 iterator.remove();

@@ -15,6 +15,7 @@
     "contraption.AbstractContainerMenuMixin",
     "contraption.ContainerLevelAccessMixin",
     "contraption.ContraptionMixin",
+    "crankwheel.ServerCrankWheelPlacementMixin",
     "contraption.ItemCombinerMenuMixin",
     "copycat.TrackPlacementMixin",
     "copycat.fence.COMPATFenceBlockMixin",

@@ -65,7 +65,7 @@ public class ShearPinBlock extends AbstractBEShaftBlock<ShearPinBlockEntity> {
 
         if (!pLevel.isClientSide()) {
             pLevel.destroyBlock(pPos, false);
-            Vec3 center = pPos.getCenter();
+            Vec3 center = Vec3.atCenterOf(pPos);
             pLevel.sendParticles(ParticleTypes.LARGE_SMOKE, center.x, center.y, center.z, 5, 0.1, 0.1, 0.1, 0.05);
             AdvancementBehaviour.tryAward(kte, CCAdvancements.SHEAR_PIN);
         }
@@ -109,7 +109,7 @@ public class ShearPinBlock extends AbstractBEShaftBlock<ShearPinBlockEntity> {
         // shafts and cogs
 
         private PlacementHelper() {
-            super(Predicates.or(Predicates.or(AllBlocks.SHAFT::has, AllBlocks.POWERED_SHAFT::has), CCBlocks.SHEAR_PIN::has),
+            super(Predicates.or(Predicates.or(s -> s.is(AllBlocks.SHAFT), s -> s.is(AllBlocks.POWERED_SHAFT)), CCBlocks.SHEAR_PIN::has),
                     state -> state.getValue(AXIS), AXIS);
         }
 

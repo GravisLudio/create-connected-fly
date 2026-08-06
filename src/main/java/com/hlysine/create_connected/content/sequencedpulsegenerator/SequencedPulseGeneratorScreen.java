@@ -160,7 +160,7 @@ public class SequencedPulseGeneratorScreen extends AbstractSimiScreen {
                 label(graphics, 209, yOffset - 1, Component.literal(String.valueOf(instruction.getSignal())));
         }
 
-        graphics.drawString(font, title, x + (background.width - 8) / 2 - font.width(title) / 2, y + 4, 0x592424, false);
+        graphics.text(font, title, x + (background.width - 8) / 2 - font.width(title) / 2, y + 4, 0xFF592424, false);
         renderAdditional(graphics, mouseX, mouseY, partialTicks, x, y, background);
     }
 
@@ -173,7 +173,8 @@ public class SequencedPulseGeneratorScreen extends AbstractSimiScreen {
     }
 
     private void label(GuiGraphicsExtractor graphics, int x, int y, Component text) {
-        graphics.drawString(font, text, guiLeft + x, guiTop + 26 + y, 0xFFFFEE);
+        // Colours are full ARGB now, and text() replaces drawString.
+        graphics.text(font, text, guiLeft + x, guiTop + 26 + y, 0xFFFFFFEE, true);
     }
 
     public void sendPacket() {

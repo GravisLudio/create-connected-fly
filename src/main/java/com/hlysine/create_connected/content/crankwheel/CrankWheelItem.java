@@ -14,14 +14,15 @@ import com.zurrtum.create.catnip.placement.PlacementOffset;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -44,30 +45,35 @@ public class CrankWheelItem extends BlockItem {
                 PlacementHelpers.register(large ? new IntegratedLargeCogHelper() : new IntegratedSmallCogHelper());
     }
 
-    @Override
-    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-        Level world = context.getLevel();
-        BlockPos pos = context.getClickedPos();
+    /**
+     * {@code Item.onItemUseFirst} was a NeoForge extension and has no vanilla equivalent. Create Fly
+     * reimplements it as a static handler called from mixins on both game modes; this mirrors its
+     * {@code CogwheelBlockItem.onItemUseFirst} exactly, and {@code CrankWheelPlacementMixin} is the
+     * pair of hooks that reaches it.
+     * <p>
+     * Returning null means "not handled" -- the vanilla interaction continues.
+     */
+    @Nullable
+    public static InteractionResult onItemUseFirst(Level world, @Nullable Player player, ItemStack stack,
+                                                   InteractionHand hand, BlockHitResult ray, BlockPos pos) {
+        if (!(stack.getItem() instanceof CrankWheelItem item))
+            return null;
+
         BlockState state = world.getBlockState(pos);
-
-        IPlacementHelper helper = PlacementHelpers.get(placementHelperId);
-        Player player = context.getPlayer();
-        BlockHitResult ray = new BlockHitResult(context.getClickLocation(), context.getClickedFace(), pos, true);
+        IPlacementHelper helper = PlacementHelpers.get(item.placementHelperId);
         if (helper.matchesState(state) && player != null && !player.isShiftKeyDown()) {
-            return helper.getOffset(player, world, state, pos, ray)
-                    .placeInWorld(world, this, player, context.getHand(), ray).result();
+            InteractionResult result = helper.getOffset(player, world, state, pos, ray)
+                    .placeInWorld(world, item, player, hand);
+            if (result != InteractionResult.TRY_WITH_EMPTY_HAND)
+                return result;
+        } else if (item.integratedCogHelperId != -1) {
+            helper = PlacementHelpers.get(item.integratedCogHelperId);
+
+            if (helper.matchesState(state) && player != null && !player.isShiftKeyDown())
+                return helper.getOffset(player, world, state, pos, ray).placeInWorld(world, item, player, hand);
         }
 
-        if (integratedCogHelperId != -1) {
-            helper = PlacementHelpers.get(integratedCogHelperId);
-
-            if (helper.matchesState(state) && player != null && !player.isShiftKeyDown()) {
-                return helper.getOffset(player, world, state, pos, ray)
-                        .placeInWorld(world, this, player, context.getHand(), ray).result();
-            }
-        }
-
-        return super.onItemUseFirst(stack, context);
+        return null;
     }
 
     public static boolean isCrankWheelItem(ItemStack item) {
