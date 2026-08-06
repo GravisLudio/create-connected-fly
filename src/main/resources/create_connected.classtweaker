@@ -23,6 +23,17 @@ accessible field net/minecraft/client/renderer/blockentity/state/BlockEntityRend
 # necesita para llegar al FluidStateModelSet desde FluidVesselRenderer.
 accessible field net/minecraft/client/renderer/block/BlockModelResolver modelManager Lnet/minecraft/client/resources/model/ModelManager;
 
+# Las dos entradas 2/3 de abajo, ya activadas: los copycat button leen la configuracion del boton
+# vanilla que envuelven. Descriptores verificados contra el jar de 26.2 -- coinciden con la
+# traduccion tentativa original.
+accessible field net/minecraft/world/level/block/ButtonBlock type Lnet/minecraft/world/level/block/state/properties/BlockSetType;
+accessible field net/minecraft/world/level/block/ButtonBlock ticksToStayPressed I
+
+# getCloneItemStack pasó a protected en BlockBehaviour. Los bloques Linked* delegan en OTRA
+# instancia de bloque (la vanilla que envuelven), y protected no alcanza entre objetos distintos,
+# asi que hace falta abrirlo. Create Fly no lo abre porque no delega de esta forma.
+accessible method net/minecraft/world/level/block/state/BlockBehaviour getCloneItemStack (Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)Lnet/minecraft/world/item/ItemStack;
+
 
 # --- 1. RecipeProvider.getName() ---
 # Original: public-f net.minecraft.data.recipes.RecipeProvider getName()Ljava/lang/String;
@@ -35,8 +46,8 @@ accessible field net/minecraft/client/renderer/block/BlockModelResolver modelMan
 # Original: public net.minecraft.world.level.block.ButtonBlock type
 # Original: public net.minecraft.world.level.block.ButtonBlock ticksToStayPressed
 # Descriptores a verificar contra 26.2.
-# accessible field net/minecraft/world/level/block/ButtonBlock type Lnet/minecraft/world/level/block/state/properties/BlockSetType;
-# accessible field net/minecraft/world/level/block/ButtonBlock ticksToStayPressed I
+# (activada arriba)
+# (activada arriba)
 
 # --- 4. JukeboxBlockEntity.jukeboxSongPlayer --- NO HACE FALTA
 # 26.2 expone un getter publico, JukeboxBlockEntity.getSongPlayer(), asi que los call sites lo

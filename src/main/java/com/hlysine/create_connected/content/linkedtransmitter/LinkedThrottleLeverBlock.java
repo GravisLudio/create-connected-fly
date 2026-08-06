@@ -145,13 +145,9 @@ public class LinkedThrottleLeverBlock extends ThrottleLeverBlock implements Spec
     }
 
     @Override
-    public @NotNull ItemStack getCloneItemStack(@NotNull BlockState state,
-                                                @NotNull HitResult target,
-                                                @NotNull LevelReader world,
-                                                @NotNull BlockPos pos,
-                                                @NotNull Player player) {
+    public @NotNull ItemStack getCloneItemStack(@NotNull LevelReader world, @NotNull BlockPos pos, @NotNull BlockState state, boolean includeData) {
         if (isHittingBase(state, world, pos, target))
-            return getBase().getCloneItemStack(state, target, world, pos, player);
+            return getBase().getCloneItemStack(world, pos, state, includeData);
         return new ItemStack(CCItems.LINKED_TRANSMITTER.get());
     }
 

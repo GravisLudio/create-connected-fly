@@ -62,7 +62,7 @@ public class BrassGearboxVisual extends KineticBlockEntityVisual<BrassGearboxBlo
     protected void updateSourceFacing() {
         if (blockEntity.hasSource()) {
             BlockPos source = blockEntity.source.subtract(pos);
-            sourceFacing = Direction.getNearest(source.getX(), source.getY(), source.getZ());
+            sourceFacing = Direction.getApproximateNearest(source.getX(), source.getY(), source.getZ());
         } else {
             sourceFacing = null;
         }
