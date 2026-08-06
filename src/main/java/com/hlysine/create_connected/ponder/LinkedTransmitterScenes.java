@@ -245,7 +245,7 @@ public class LinkedTransmitterScenes {
 
         scene.overlay().showControls(transmitVec, Pointing.DOWN, 40)
                 .rightClick()
-                .withItem(new ItemStack(AllItems.WRENCH.get()));
+                .withItem(new ItemStack(AllItems.WRENCH));
         scene.idle(20);
         scene.world().modifyBlock(lever, s -> Blocks.LEVER.defaultBlockState()
                         .setValue(ATTACH_FACE, s.getValue(ATTACH_FACE))

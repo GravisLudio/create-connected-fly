@@ -120,25 +120,7 @@ public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
         return 1;
     }
 
-    @Override
-    public boolean addToTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean added = super.addToTooltip(tooltip, isPlayerSneaking);
-
-        if (getBlockState().getValue(STATE) == ClutchState.UNCOUPLED) {
-            ConnectedLang.translate("gui.overstress_clutch.uncoupled")
-                    .style(GOLD)
-                    .forGoggles(tooltip);
-            Component hint = ConnectedLang.translateDirect("gui.overstress_clutch.uncoupled_explanation");
-            List<Component> cutString = TooltipHelper.cutTextComponent(hint, FontHelper.Palette.GRAY_AND_WHITE);
-            for (Component component : cutString)
-                ConnectedLang.builder()
-                        .add(component.copy())
-                        .forGoggles(tooltip);
-            added = true;
-        }
-
-        return added;
-    }
+    // addToTooltip moved to a client TooltipBehaviour -- see OverstressClutchTooltipBehaviour.
 
     public void resetClutch() {
         if (getBlockState().getValue(STATE) == ClutchState.UNCOUPLED && !isOverStressed()) {

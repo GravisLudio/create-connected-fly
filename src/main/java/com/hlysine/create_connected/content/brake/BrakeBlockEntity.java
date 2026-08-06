@@ -65,7 +65,8 @@ public class BrakeBlockEntity extends SplitShaftBlockEntity {
             if (level.isClientSide()) {
                 if (isBraking && absSpeed > 0) {
                     Vec3 loc = Vec3.atBottomCenterOf(getBlockPos());
-                    level.addParticle(ParticleTypes.LARGE_SMOKE, false, loc.x, loc.y + 0.5, loc.z, 0, 0.05, 0);
+                    // The overload grew a second boolean (force, alwaysShow).
+                    level.addParticle(ParticleTypes.LARGE_SMOKE, false, false, loc.x, loc.y + 0.5, loc.z, 0, 0.05, 0);
                 }
             } else {
                 if (isBraking && absSpeed > MIN_ADVANCEMENT_SPEED && !advancementAwarded) {

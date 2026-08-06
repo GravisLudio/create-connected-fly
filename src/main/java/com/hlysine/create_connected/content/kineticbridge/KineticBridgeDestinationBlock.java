@@ -113,8 +113,10 @@ public class KineticBridgeDestinationBlock extends DirectionalKineticBlock imple
         if (stillValid(pLevel, pCurrentPos, pState)) {
             BlockPos sourcePos = getSource(pCurrentPos, pState);
             if (pLevel.getBlockState(sourcePos).is(CCBlocks.KINETIC_BRIDGE.get()))
-                if (!pLevel.getBlockTicks().hasScheduledTick(sourcePos, CCBlocks.KINETIC_BRIDGE.get()))
-                    pLevel.scheduleTick(sourcePos, CCBlocks.KINETIC_BRIDGE.get(), 1);
+                // Ticks are scheduled through the ScheduledTickAccess the new signature passes in;
+                // LevelReader has no tick access of its own.
+                if (!tickAccess.getBlockTicks().hasScheduledTick(sourcePos, CCBlocks.KINETIC_BRIDGE.get()))
+                    tickAccess.scheduleTick(sourcePos, CCBlocks.KINETIC_BRIDGE.get(), 1);
             return pState;
         }
         if (!(pLevel instanceof Level level) || level.isClientSide())

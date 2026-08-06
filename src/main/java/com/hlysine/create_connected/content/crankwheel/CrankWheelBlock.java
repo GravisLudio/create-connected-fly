@@ -109,10 +109,11 @@ public class CrankWheelBlock extends HandCrankBlock implements ICogWheel {
         return newState;
     }
 
+    // rotate lost its level and position -- it takes the state alone now.
     @Override
-    public BlockState rotate(BlockState state, LevelAccessor level, BlockPos pos, Rotation direction) {
-        BlockState newState = super.rotate(pos, direction);
-        return newState.setValue(AXIS, newState.getValue(AXIS));
+    public BlockState rotate(BlockState state, Rotation direction) {
+        BlockState newState = super.rotate(state, direction);
+        return newState.setValue(AXIS, newState.getValue(FACING).getAxis());
     }
 
     @Override

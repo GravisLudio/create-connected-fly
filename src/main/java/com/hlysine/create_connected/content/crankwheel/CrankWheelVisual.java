@@ -2,6 +2,7 @@ package com.hlysine.create_connected.content.crankwheel;
 
 import com.hlysine.create_connected.registries.CCPartialModels;
 import com.zurrtum.create.client.content.kinetics.base.KineticBlockEntityVisual;
+import com.zurrtum.create.client.content.kinetics.crank.HandCrankRenderer;
 import com.zurrtum.create.client.content.kinetics.base.RotatingInstance;
 import com.zurrtum.create.content.kinetics.simpleRelays.ICogWheel;
 import com.zurrtum.create.client.foundation.render.AllInstanceTypes;
@@ -49,7 +50,8 @@ public class CrankWheelVisual extends KineticBlockEntityVisual<CrankWheelBlockEn
 
     private void rotateCrank(float pt) {
         var facing = blockState.getValue(BlockStateProperties.FACING);
-        float angle = Math.toRadians(blockEntity.getIndependentAngle(pt));
+        // The block entity no longer exposes this; HandCrankRenderer owns the calculation now.
+        float angle = Math.toRadians(HandCrankRenderer.getHandCrankIndependentAngle(blockEntity, pt));
 
         crank.setIdentityTransform()
                 .translate(getVisualPosition())

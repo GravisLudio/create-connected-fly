@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -99,7 +100,7 @@ public class CCTags {
             if (optional) {
                 tag = optionalTag(BuiltInRegistries.ITEM, id);
             } else {
-                tag = ItemTags.create(id);
+                tag = TagKey.create(Registries.ITEM, id);
             }
             this.alwaysDatagen = alwaysDatagen;
         }
@@ -147,7 +148,7 @@ public class CCTags {
             if (optional) {
                 tag = optionalTag(BuiltInRegistries.FLUID, id);
             } else {
-                tag = FluidTags.create(id);
+                tag = TagKey.create(Registries.FLUID, id);
             }
             this.alwaysDatagen = alwaysDatagen;
         }

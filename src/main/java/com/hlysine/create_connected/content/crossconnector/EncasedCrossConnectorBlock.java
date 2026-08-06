@@ -49,11 +49,11 @@ public class EncasedCrossConnectorBlock extends CrossConnectorBlock implements S
         return Shapes.block();
     }
 
+    // getCloneItemStack lost its HitResult, so the face being aimed at is unknown here. Picking the
+    // encased block itself is the honest answer -- upstream used the face only to hand back a bare
+    // connector when you pointed at its shaft end.
     @Override
     public @NotNull ItemStack getCloneItemStack(@NotNull LevelReader level, @NotNull BlockPos pos, @NotNull BlockState state, boolean includeData) {
-        if (target instanceof BlockHitResult)
-            return ((BlockHitResult) target).getDirection()
-                    .getAxis() == getRotationAxis(state) ? CCBlocks.CROSS_CONNECTOR.asStack() : getCasing().asItem().getDefaultInstance();
         return super.getCloneItemStack(level, pos, state, includeData);
     }
 

@@ -117,9 +117,9 @@ public class InventoryBridgeBlock extends Block
         BlockState target2 = worldIn.getBlockState(pos2);
         int total = 0;
         if (blockState.getValue(ATTACHED_NEGATIVE) && !target1.is(this) && target1.hasAnalogOutputSignal())
-            total += target1.getAnalogOutputSignal(worldIn, pos1);
+            total += target1.getAnalogOutputSignal(worldIn, pos1, getNegativeTarget(blockState).getOpposite());
         if (blockState.getValue(ATTACHED_POSITIVE) && !target2.is(this) && target2.hasAnalogOutputSignal())
-            total += target2.getAnalogOutputSignal(worldIn, pos2);
+            total += target2.getAnalogOutputSignal(worldIn, pos2, getPositiveTarget(blockState).getOpposite());
         return total / 2;
     }
 

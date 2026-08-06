@@ -4,8 +4,10 @@ import com.hlysine.create_connected.ConnectedLang;
 import com.hlysine.create_connected.content.ClutchValueBox;
 import com.hlysine.create_connected.content.RotationScrollValueBehaviour;
 import com.hlysine.create_connected.content.centrifugalclutch.CentrifugalClutchBlockEntity;
+import com.hlysine.create_connected.client.CrankWheelAudioBehaviour;
 import com.hlysine.create_connected.client.tooltip.FluidVesselTooltipBehaviour;
 import com.hlysine.create_connected.client.tooltip.KineticBatteryTooltipBehaviour;
+import com.hlysine.create_connected.client.tooltip.OverstressClutchTooltipBehaviour;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryBlockEntity;
 import com.hlysine.create_connected.content.kineticbattery.KineticBatteryValueBox;
 import com.hlysine.create_connected.content.freewheelclutch.FreewheelClutchBlockEntity;
@@ -64,6 +66,8 @@ public class CCBlockEntityBehaviours {
                 KineticBatteryTooltipBehaviour::new);
         add(CCBlockEntityTypes.INVENTORY_BRIDGE.get(), CCBlockEntityBehaviours::inventoryBridgeFilters);
         add(CCBlockEntityTypes.FREEWHEEL_CLUTCH.get(), CCBlockEntityBehaviours::freewheelClutchDirection);
+        add(CCBlockEntityTypes.CRANK_WHEEL.get(), CrankWheelAudioBehaviour::new);
+        add(CCBlockEntityTypes.OVERSTRESS_CLUTCH.get(), OverstressClutchTooltipBehaviour::new);
         // Goggle tooltips are read off a TooltipBehaviour now, not off the block entity.
         add(CCBlockEntityTypes.FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
         add(CCBlockEntityTypes.CREATIVE_FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);

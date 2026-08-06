@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import com.zurrtum.create.infrastructure.items.ItemInventory;
+import net.minecraft.world.Container;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,17 +141,19 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         tag.putBoolean("Powered", powered);
     }
 
-    private ItemInventory getNegativeHandler() {
+    // InvManipulationBehaviour hands back a vanilla Container -- Create Fly's ItemInventory is a
+    // Container subinterface, and a neighbour need not be one, so these stay at the wider type.
+    private Container getNegativeHandler() {
         if (powered) return null;
-        ItemInventory handler = negativeInventory.getInventory();
+        Container handler = negativeInventory.getInventory();
         // Guard against bridging a bridge, which would recurse across a chain of them.
         if (handler instanceof InventoryBridgeHandler) return null;
         return handler;
     }
 
-    private ItemInventory getPositiveHandler() {
+    private Container getPositiveHandler() {
         if (powered) return null;
-        ItemInventory handler = positiveInventory.getInventory();
+        Container handler = positiveInventory.getInventory();
         if (handler instanceof InventoryBridgeHandler) return null;
         return handler;
     }
@@ -225,8 +228,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public int getContainerSize() {
             return preventRecursion(() -> {
-                ItemInventory negative = getNegativeHandler();
-                ItemInventory positive = getPositiveHandler();
+                Container negative = getNegativeHandler();
+                Container positive = getPositiveHandler();
                 if (negative == null && positive == null) return 0;
                 if (negative == null) return positive.getContainerSize();
                 if (positive == null) return negative.getContainerSize();
@@ -237,8 +240,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public ItemStack getItem(int slot) {
             return preventRecursion(() -> {
-                ItemInventory negative = getNegativeHandler();
-                ItemInventory positive = getPositiveHandler();
+                Container negative = getNegativeHandler();
+                Container positive = getPositiveHandler();
                 if (negative == null && positive == null) return ItemStack.EMPTY;
 
                 int size1 = negative == null ? -1 : negative.getContainerSize();
@@ -255,8 +258,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public void setItem(int slot, ItemStack stack) {
             preventRecursion(() -> {
-                ItemInventory negative = getNegativeHandler();
-                ItemInventory positive = getPositiveHandler();
+                Container negative = getNegativeHandler();
+                Container positive = getPositiveHandler();
                 if (negative == null && positive == null) return null;
 
                 int size1 = negative == null ? -1 : negative.getContainerSize();
@@ -272,8 +275,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public boolean canPlaceItem(int slot, ItemStack stack) {
             return preventRecursion(() -> {
-                ItemInventory negative = getNegativeHandler();
-                ItemInventory positive = getPositiveHandler();
+                Container negative = getNegativeHandler();
+                Container positive = getPositiveHandler();
                 if (negative == null && positive == null) return false;
 
                 int size1 = negative == null ? -1 : negative.getContainerSize();
@@ -288,9 +291,9 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
         @Override
         public int getMaxStackSize() {
             return preventRecursion(() -> {
-                ItemInventory negative = getNegativeHandler();
+                Container negative = getNegativeHandler();
                 if (negative != null) return negative.getMaxStackSize();
-                ItemInventory positive = getPositiveHandler();
+                Container positive = getPositiveHandler();
                 return positive != null ? positive.getMaxStackSize() : 0;
             }, 0);
         }

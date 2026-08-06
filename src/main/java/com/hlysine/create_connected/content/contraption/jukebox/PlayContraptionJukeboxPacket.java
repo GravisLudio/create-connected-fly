@@ -73,7 +73,7 @@ public class PlayContraptionJukeboxPacket implements CustomPacketPayload {
         if (play) {
             Optional<JukeboxSong> song = world.registryAccess()
                     .lookupOrThrow(Registries.JUKEBOX_SONG)
-                    .getHolder(recordId)
+                    .get(recordId)
                     .map(Holder.Reference::value);
             if (song.isEmpty())
                 return;

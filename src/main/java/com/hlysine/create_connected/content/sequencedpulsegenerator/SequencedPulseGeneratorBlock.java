@@ -8,6 +8,7 @@ import com.zurrtum.create.content.redstone.diodes.AbstractDiodeBlock;
 import com.zurrtum.create.content.redstone.diodes.BrassDiodeBlock;
 import com.zurrtum.create.content.redstone.diodes.PoweredLatchBlock;
 import com.zurrtum.create.foundation.block.IBE;
+import com.zurrtum.create.foundation.block.RedStoneConnectBlock;
 import com.zurrtum.create.client.catnip.gui.ScreenOpener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -36,7 +37,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.NotNull;
 
-public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements IBE<SequencedPulseGeneratorBlockEntity> {
+// canConnectRedstone is Create Fly's own RedStoneConnectBlock hook now, not a vanilla override.
+public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements IBE<SequencedPulseGeneratorBlockEntity>, RedStoneConnectBlock {
     public static final BooleanProperty POWERING = BrassDiodeBlock.POWERING;
     public static final BooleanProperty POWERED_SIDE = PoweredLatchBlock.POWERED_SIDE;
 
@@ -118,8 +120,9 @@ public class SequencedPulseGeneratorBlock extends AbstractDiodeBlock implements 
         return 2;
     }
 
+    // 26.2 dropped the level and position -- a block decides this from its own state now.
     @Override
-    public boolean canConnectRedstone(@NotNull BlockState state, @NotNull BlockGetter world, @NotNull BlockPos pos, Direction side) {
+    public boolean canConnectRedstone(@NotNull BlockState state, Direction side) {
         if (side == null)
             return false;
         return side.getAxis().isHorizontal();

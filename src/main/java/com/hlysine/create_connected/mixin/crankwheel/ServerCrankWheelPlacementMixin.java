@@ -1,6 +1,7 @@
 package com.hlysine.create_connected.mixin.crankwheel;
 
 import com.hlysine.create_connected.content.crankwheel.CrankWheelItem;
+import com.hlysine.create_connected.content.linkedtransmitter.LinkedTransmitterItem;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,6 +39,8 @@ public class ServerCrankWheelPlacementMixin {
             @Local BlockPos pos
     ) {
         InteractionResult result = CrankWheelItem.onItemUseFirst(world, player, stack, hand, hit, pos);
+        if (result == null)
+            result = LinkedTransmitterItem.onItemUseFirst(world, player, stack, hand, hit, pos);
         if (result != null)
             cir.setReturnValue(result);
     }

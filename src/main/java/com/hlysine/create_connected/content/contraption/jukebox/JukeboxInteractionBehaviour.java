@@ -107,7 +107,7 @@ public class JukeboxInteractionBehaviour extends MovingInteractionBehaviour {
                                     type == 1010,
                                     silent
                             );
-                        for (ServerPlayer recipient : PlayerLookup.world((ServerLevel) contraptionEntity.level()))
+                        for (ServerPlayer recipient : PlayerLookup.level((ServerLevel) contraptionEntity.level()))
                             ServerPlayNetworking.send(recipient, payload);
                     }
             }

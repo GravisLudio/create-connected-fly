@@ -36,24 +36,13 @@ public class CrankWheelBlockEntity extends HandCrankBlockEntity {
         return neighbours;
     }
 
-    @Override
-    @Environment(EnvType.CLIENT)
-    public SuperByteBuffer getRenderedHandle() {
-        BlockState blockState = getBlockState();
-        Direction facing = blockState.getOptionalValue(HandCrankBlock.FACING)
-                .orElse(Direction.UP);
-        boolean isLarge = blockState.getBlock() instanceof CrankWheelBlock block && block.largeCog;
-        return CachedBuffers.partialFacing(isLarge ? CCPartialModels.LARGE_CRANK_WHEEL_HANDLE : CCPartialModels.CRANK_WHEEL_HANDLE, blockState, facing.getOpposite());
-    }
-
-    @Override
-    @Environment(EnvType.CLIENT)
-    public void tickAudio() {
-        super.tickAudio();
-        if (inUse > 0 && AnimationTickHolder.getTicks() % 10 == 0) {
-            if (!(getBlockState().getBlock() instanceof HandCrankBlock))
-                return;
-            AllSoundEvents.CRANKING.playAt(level, worldPosition, (inUse) / 2.5f, .65f + (10 - inUse) / 10f, true);
-        }
-    }
+    // Two client hooks that used to live on the block entity are gone in 26.2:
+    //
+    // getRenderedHandle: HandCrankRenderer no longer asks the block entity for its handle model,
+    // it names AllPartialModels.HAND_CRANK_HANDLE directly. The crank wheel therefore needs its own
+    // BlockEntityRenderer to draw its handle -- listed with the other missing renderers in
+    // client/CCBlockEntityRenders. Flywheel visuals (CrankWheelVisual) still draw it correctly.
+    //
+    // tickAudio: moved to a client AudioBehaviour, so the cranking sound is
+    // CrankWheelAudioBehaviour, registered in CCBlockEntityBehaviours.
 }

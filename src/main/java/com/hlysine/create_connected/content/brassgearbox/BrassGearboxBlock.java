@@ -55,11 +55,6 @@ public class BrassGearboxBlock extends RotatedPillarKineticBlock implements IBE<
         builder.add(FACE_4_FLIPPED);
     }
 
-    @Override
-    public PushReaction getPistonPushReaction(BlockState state) {
-        return PushReaction.PUSH_ONLY;
-    }
-
     @SuppressWarnings("deprecation")
     @Override
     public @NotNull List<ItemStack> getDrops(BlockState state, @NotNull LootParams.Builder builder) {

@@ -27,11 +27,6 @@ public class SixWayGearboxBlock extends RotatedPillarKineticBlock implements IBE
     }
 
     @Override
-    public PushReaction getPistonPushReaction(@NotNull BlockState state) {
-        return PushReaction.PUSH_ONLY;
-    }
-
-    @Override
     public @NotNull List<ItemStack> getDrops(BlockState state, @NotNull LootParams.Builder builder) {
         if (state.getValue(AXIS).isVertical())
             return super.getDrops(state, builder);
