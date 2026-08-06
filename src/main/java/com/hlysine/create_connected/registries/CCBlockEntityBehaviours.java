@@ -1,0 +1,82 @@
+package com.hlysine.create_connected.registries;
+
+import com.hlysine.create_connected.ConnectedLang;
+import com.hlysine.create_connected.content.ClutchValueBox;
+import com.hlysine.create_connected.content.RotationScrollValueBehaviour;
+import com.hlysine.create_connected.content.centrifugalclutch.CentrifugalClutchBlockEntity;
+import com.hlysine.create_connected.content.kineticbattery.KineticBatteryValueBox;
+import com.hlysine.create_connected.content.kineticbridge.KineticBridgeBlockEntity;
+import com.hlysine.create_connected.content.kineticbridge.StressImpactScrollValueBehaviour;
+import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlock;
+import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlockEntity;
+import com.hlysine.create_connected.content.overstressclutch.TimeDelayScrollValueBehaviour;
+import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
+import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import java.util.function.Function;
+
+/**
+ * Create Fly keeps client-side block entity behaviours in a registry keyed by block entity type,
+ * separate from the server-side ones a block entity adds in {@code addBehaviours}. Value boxes --
+ * the scroll widgets you point at with a wrench -- live on that side, so each of Connected's three
+ * scroll values is registered here while its value lives in a {@code Server*} behaviour.
+ * <p>
+ * This mirrors Create Fly's own {@code AllBlockEntityBehaviours}.
+ */
+@Environment(EnvType.CLIENT)
+public class CCBlockEntityBehaviours {
+
+    @SafeVarargs
+    @SuppressWarnings("unchecked")
+    private static <T extends SmartBlockEntity> void add(
+            BlockEntityType<T> type,
+            Function<T, BlockEntityBehaviour<?>>... factories
+    ) {
+        for (Function<T, BlockEntityBehaviour<?>> factory : factories) {
+            BlockEntityBehaviour.CLIENT_REGISTRY.add(
+                    type,
+                    (Function<SmartBlockEntity, BlockEntityBehaviour<?>>) factory
+            );
+        }
+    }
+
+    public static void register() {
+        add(CCBlockEntityTypes.CENTRIFUGAL_CLUTCH.get(), CCBlockEntityBehaviours::centrifugalClutch);
+        add(CCBlockEntityTypes.KINETIC_BRIDGE.get(), CCBlockEntityBehaviours::kineticBridge);
+        add(CCBlockEntityTypes.OVERSTRESS_CLUTCH.get(), CCBlockEntityBehaviours::overstressClutch);
+    }
+
+    private static BlockEntityBehaviour<?> centrifugalClutch(CentrifugalClutchBlockEntity be) {
+        return new RotationScrollValueBehaviour<>(
+                ConnectedLang.translateDirect("centrifugal_clutch.speed_threshold"),
+                be,
+                new ClutchValueBox()
+        );
+    }
+
+    private static BlockEntityBehaviour<?> kineticBridge(KineticBridgeBlockEntity be) {
+        return new StressImpactScrollValueBehaviour<>(
+                ConnectedLang.translateDirect("kinetic_bridge.stress_impact"),
+                be,
+                new KineticBatteryValueBox(8)
+        );
+    }
+
+    private static BlockEntityBehaviour<?> overstressClutch(OverstressClutchBlockEntity be) {
+        return new TimeDelayScrollValueBehaviour<>(
+                Component.translatable("create_connected.overstress_clutch.uncouple_delay"),
+                be,
+                new CenteredSideValueBoxTransform((state, d) -> {
+                    Direction.Axis axis = d.getAxis();
+                    Direction.Axis bearingAxis = state.getValue(OverstressClutchBlock.AXIS);
+                    return bearingAxis != axis;
+                })
+        );
+    }
+}

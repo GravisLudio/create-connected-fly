@@ -7,7 +7,7 @@ import com.hlysine.create_connected.content.RotationScrollValueBehaviour;
 import com.zurrtum.create.content.kinetics.RotationPropagator;
 import com.zurrtum.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
-import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
+import com.hlysine.create_connected.content.ServerRotationScrollValueBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -25,7 +25,7 @@ public class CentrifugalClutchBlockEntity extends SplitShaftBlockEntity {
     public static final int DEFAULT_SPEED = 64;
     public static final int MAX_SPEED = 256;
 
-    public ScrollValueBehaviour speedThreshold;
+    public ServerRotationScrollValueBehaviour speedThreshold;
 
     public boolean reattachNextTick = false;
 
@@ -36,13 +36,11 @@ public class CentrifugalClutchBlockEntity extends SplitShaftBlockEntity {
     @Override
     public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         super.addBehaviours(behaviours);
-        speedThreshold = new RotationScrollValueBehaviour(
-                ConnectedLang.translateDirect("centrifugal_clutch.speed_threshold"),
-                this,
-                new ClutchValueBox()
-        );
+        // Only the server half is a block entity behaviour now; the value box is registered
+        // client-side in CCBlockEntityBehaviours.
+        speedThreshold = new ServerRotationScrollValueBehaviour(this);
         speedThreshold.between(-MAX_SPEED, MAX_SPEED);
-        speedThreshold.value = DEFAULT_SPEED;
+        speedThreshold.startingValue(DEFAULT_SPEED);
         speedThreshold.withCallback(i -> this.onKineticUpdate());
         behaviours.add(speedThreshold);
     }

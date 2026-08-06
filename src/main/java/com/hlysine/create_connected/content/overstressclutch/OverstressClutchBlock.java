@@ -46,7 +46,7 @@ public class OverstressClutchBlock extends AbstractEncasedShaftBlock implements 
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean $12) {
+    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean pIsMoving) {
         super.neighborChanged(pState, pLevel, pPos, pBlock, orientation, pIsMoving);
         boolean flag = pState.getValue(POWERED);
         boolean flag1 = pLevel.getBestNeighborSignal(pPos) > 0;

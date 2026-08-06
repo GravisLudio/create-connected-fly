@@ -105,7 +105,7 @@ public class CopycatFenceGateBlock extends WaterloggedCopycatWrappedBlock {
     }
 
     @Override
-    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean $12) {
+    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean pIsMoving) {
         ICopycatWithWrappedBlock.wrappedState(fenceGate, pState).handleNeighborChanged(pLevel, pPos, pBlock, orientation, pIsMoving);
     }
 

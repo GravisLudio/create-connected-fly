@@ -47,7 +47,7 @@ public class BrakeBlock extends AbstractEncasedShaftBlock implements IBE<BrakeBl
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborChanged(@NotNull BlockState state, Level worldIn, @NotNull BlockPos pos, @NotNull Block blockIn, Orientation orientation, boolean $12) {
+    public void neighborChanged(@NotNull BlockState state, Level worldIn, @NotNull BlockPos pos, @NotNull Block blockIn, Orientation orientation, boolean isMoving) {
         if (worldIn.isClientSide())
             return;
 

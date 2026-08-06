@@ -14,7 +14,7 @@ import com.zurrtum.create.content.kinetics.base.IRotate;
 import com.zurrtum.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.zurrtum.create.content.redstone.diodes.BrassDiodeBlock;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.*;
+import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
 import com.zurrtum.create.client.foundation.item.TooltipHelper;
 import com.zurrtum.create.client.foundation.utility.CreateLang;
@@ -42,7 +42,7 @@ import static net.minecraft.ChatFormatting.GOLD;
 public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
 
     public int delay;
-    public ScrollValueBehaviour maxDelay;
+    public ServerTimeDelayScrollValueBehaviour maxDelay;
 
     public OverstressClutchBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -51,13 +51,10 @@ public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
     @Override
     public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
         AdvancementBehaviour.registerAwardables(this, behaviours, CCAdvancements.OVERSTRESS_CLUTCH);
-        maxDelay = new TimeDelayScrollValueBehaviour(Component.translatable("create_connected.overstress_clutch.uncouple_delay"), this,
-                new CenteredSideValueBoxTransform((state, d) -> {
-                    Direction.Axis axis = d.getAxis();
-                    Direction.Axis bearingAxis = state.getValue(OverstressClutchBlock.AXIS);
-                    return bearingAxis != axis;
-                })).between(1, 60 * 20 * 60);
-        maxDelay.withFormatter(this::format);
+        // Only the server half is a block entity behaviour now; the value box is registered
+        // client-side in CCBlockEntityBehaviours.
+        maxDelay = new ServerTimeDelayScrollValueBehaviour(this);
+        maxDelay.between(1, 60 * 20 * 60);
         maxDelay.withCallback(this::onMaxDelayChanged);
         maxDelay.setValue(1);
         behaviours.add(maxDelay);
@@ -172,69 +169,4 @@ public class OverstressClutchBlockEntity extends SplitShaftBlockEntity {
         super.write(compound, clientPacket);
     }
 
-    public static class TimeDelayScrollValueBehaviour extends ScrollValueBehaviour {
-
-        public TimeDelayScrollValueBehaviour(Component label, SmartBlockEntity be, ValueBoxTransform slot) {
-            super(label, be, slot);
-        }
-
-        @Override
-        public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
-            return new ValueSettingsBoard(label, 60, 10,
-                    CreateLang.translatedOptions("generic.unit", "ticks", "seconds", "minutes"),
-                    new ValueSettingsFormatter(this::formatSettings));
-        }
-
-        @Override
-        public void onShortInteract(Player player, InteractionHand hand, Direction side, BlockHitResult hitResult) {
-            BlockState blockState = blockEntity.getBlockState();
-            if (blockState.getBlock() instanceof BrassDiodeBlock bdb)
-                bdb.toggle(getLevel(), getPos(), blockState, player, hand);
-        }
-
-        @Override
-        public void setValueSettings(Player player, ValueSettings valueSetting, boolean ctrlHeld) {
-            int value = valueSetting.value();
-            int multiplier = switch (valueSetting.row()) {
-                case 0 -> 1;
-                case 1 -> 20;
-                default -> 60 * 20;
-            };
-            if (!valueSetting.equals(getValueSettings()))
-                playFeedbackSound(this);
-            setValue(Math.max(1, Math.max(1, value) * multiplier));
-        }
-
-        @Override
-        public ValueSettings getValueSettings() {
-            int row = 0;
-            int value = this.value;
-
-            if (value > 60 * 20) {
-                value = value / (60 * 20);
-                row = 2;
-            } else if (value > 60) {
-                value = value / 20;
-                row = 1;
-            }
-
-            return new ValueSettings(row, value);
-        }
-
-        public MutableComponent formatSettings(ValueSettings settings) {
-            int value = Math.max(1, settings.value());
-            return Component.literal(switch (settings.row()) {
-                case 0 -> value + "t";
-                case 1 -> "0:" + (value < 10 ? "0" : "") + value;
-                default -> value + ":00";
-            });
-        }
-
-        @Override
-        public String getClipboardKey() {
-            return "Timings";
-        }
-
-    }
 }
-

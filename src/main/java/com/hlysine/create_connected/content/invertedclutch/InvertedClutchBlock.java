@@ -18,7 +18,7 @@ public class InvertedClutchBlock extends ClutchBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, Orientation orientation, boolean $12) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, Orientation orientation, boolean isMoving) {
         if (worldIn.isClientSide())
             return;
 

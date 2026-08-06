@@ -76,7 +76,7 @@ public class InventoryBridgeBlock extends Block
     }
 
     @Override
-    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean $12) {
+    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean pIsMoving) {
         withBlockEntityDo(pLevel, pPos, InventoryBridgeBlockEntity::updateConnectedInventory);
         super.neighborChanged(pState, pLevel, pPos, pBlock, orientation, pIsMoving);
         Vec3i diff = pFromPos.subtract(pPos);

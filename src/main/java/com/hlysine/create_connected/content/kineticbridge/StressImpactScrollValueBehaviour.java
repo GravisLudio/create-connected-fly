@@ -1,25 +1,27 @@
 package com.hlysine.create_connected.content.kineticbridge;
 
-import com.zurrtum.create.foundation.blockEntity.behaviour.ValueSettings;
-
-
 import com.google.common.collect.ImmutableList;
 import com.hlysine.create_connected.ConnectedLang;
-import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
-import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransform;
+import com.zurrtum.create.client.catnip.lang.LangNumberFormat;
 import com.zurrtum.create.client.foundation.blockEntity.ValueSettingsBoard;
 import com.zurrtum.create.client.foundation.blockEntity.ValueSettingsFormatter;
+import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransform;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
-import com.zurrtum.create.client.catnip.lang.LangNumberFormat;
+import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
+import com.zurrtum.create.foundation.blockEntity.behaviour.ValueSettings;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class StressImpactScrollValueBehaviour extends ScrollValueBehaviour {
+/**
+ * Client half of the kinetic bridge's stress multiplier -- the value box and its board. The value
+ * lives in {@link ServerStressImpactScrollValueBehaviour}.
+ */
+public class StressImpactScrollValueBehaviour<B extends SmartBlockEntity>
+        extends ScrollValueBehaviour<B, ServerStressImpactScrollValueBehaviour> {
 
-    public StressImpactScrollValueBehaviour(Component label, SmartBlockEntity be, ValueBoxTransform slot) {
+    public StressImpactScrollValueBehaviour(Component label, B be, ValueBoxTransform slot) {
         super(label, be, slot);
         withFormatter(v -> String.format("%1sx", LangNumberFormat.format(convertValue(v))));
     }
@@ -41,28 +43,8 @@ public class StressImpactScrollValueBehaviour extends ScrollValueBehaviour {
         return new ValueSettingsBoard(label, 160, 10, rows, formatter);
     }
 
-    @Override
-    public void setValueSettings(Player player, ValueSettings valueSetting, boolean ctrlHeld) {
-        int value = Math.max(0, valueSetting.value());
-        if (!valueSetting.equals(getValueSettings()))
-            playFeedbackSound(this);
-        setValue(Mth.abs(value));
-    }
-
-    @Override
-    public ValueSettings getValueSettings() {
-        return new ValueSettings(0, Math.abs(value));
-    }
-
     public MutableComponent formatSettings(ValueSettings settings) {
         return ConnectedLang.number(Math.max(0, convertValue(settings.value()))).add(Component.literal("x"))
                 .component();
     }
-
-    @Override
-    public String getClipboardKey() {
-        return "Stress Impact";
-    }
-
 }
-
