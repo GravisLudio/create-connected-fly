@@ -7,6 +7,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
+import com.zurrtum.create.api.behaviour.display.DisplayHolder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import com.zurrtum.create.catnip.data.Iterate;
@@ -30,11 +31,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DashboardBlockEntity extends SmartBlockEntity {
+public class DashboardBlockEntity extends SmartBlockEntity implements DisplayHolder {
 
     SignText text = new SignText().setColor(DyeColor.WHITE);
     int cycleTimer = 0;
     boolean wasDisplaying;
+    /**
+     * Line reservation for display links. Create used to stash this in NeoForge's persistent data;
+     * Create Fly formalised it into {@link DisplayHolder}, which the target reserves lines through.
+     */
+    private @Nullable CompoundTag displayLink;
     private static final int LAZY_TICK_RATE = 4;
     private static final int CYCLE_INTERVAL = 40;
 
@@ -45,6 +51,16 @@ public class DashboardBlockEntity extends SmartBlockEntity {
 
     @Override
     public void addBehaviours(List<BlockEntityBehaviour<?>> behaviours) {
+    }
+
+    @Override
+    public @Nullable CompoundTag getDisplayLinkData() {
+        return displayLink;
+    }
+
+    @Override
+    public void setDisplayLinkData(@Nullable CompoundTag data) {
+        displayLink = data;
     }
 
     public SignText getText() {
@@ -141,7 +157,7 @@ public class DashboardBlockEntity extends SmartBlockEntity {
         if (list == null || list.isEmpty()) return false;
 
         Component status = list.get((cycleTimer / CYCLE_INTERVAL) % list.size());
-        player.displayClientMessage(status, true);
+        ClientPlayerAccess.sendOverlayMessage(status);
         cycleTimer += LAZY_TICK_RATE;
         return true;
     }
@@ -164,7 +180,7 @@ public class DashboardBlockEntity extends SmartBlockEntity {
                     if (!getBlockState().getValue(DashboardBlock.OPEN))
                         displayOpenStatus(player, false); // avoid flickering on wrench by displaying the open status instead of empty
                     else
-                        player.displayClientMessage(Component.empty(), true);
+                        ClientPlayerAccess.sendOverlayMessage(Component.empty());
                 }
             }
             wasDisplaying = success;

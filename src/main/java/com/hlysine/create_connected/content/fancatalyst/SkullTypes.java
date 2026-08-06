@@ -1,22 +1,24 @@
 package com.hlysine.create_connected.content.fancatalyst;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.model.SkullModel;
-import net.minecraft.client.model.object.skull.SkullModelBase;
-import net.minecraft.client.model.dragon.DragonHeadModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.object.skull.SkullModelBase;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.world.level.block.SkullBlock;
 import org.joml.Vector3f;
 
-public enum SkullTypes{
-    DRAGON(DragonHeadModel.class, ModelLayers.DRAGON_SKULL, SkullBlock.Types.DRAGON, new Vector3f(0.5F, 0.25F, 0.5F), new Vector3f(-0.5F, -0.5F, 0.5F)),
-    CREEPER(SkullModel.class, ModelLayers.CREEPER_HEAD, SkullBlock.Types.CREEPER, new Vector3f(0.5F, 0.25F, 0.5F), new Vector3f(-1F, -1F, 1F)),
+/**
+ * Upstream picked the model class per skull type and built it reflectively, because vanilla had no
+ * public way to ask for one. 26.2 exposes {@code SkullBlockRenderer.createModel}, which already
+ * knows the mapping -- so the model class and the reflection are both gone, and with them
+ * {@code SkullModel} and {@code DragonHeadModel}, neither of which exists under those names now.
+ */
+public enum SkullTypes {
+    DRAGON(ModelLayers.DRAGON_SKULL, SkullBlock.Types.DRAGON, new Vector3f(0.5F, 0.25F, 0.5F), new Vector3f(-0.5F, -0.5F, 0.5F)),
+    CREEPER(ModelLayers.CREEPER_HEAD, SkullBlock.Types.CREEPER, new Vector3f(0.5F, 0.25F, 0.5F), new Vector3f(-1F, -1F, 1F)),
     ;
-
-    private final Class<? extends SkullModelBase> modelClass;
 
     private final ModelLayerLocation modelLayer;
     private SkullModelBase model;
@@ -24,11 +26,7 @@ public enum SkullTypes{
     private final Vector3f translation;
     private final Vector3f scale;
 
-    SkullTypes(Class<? extends SkullModelBase> modelClass, ModelLayerLocation modelLayer, SkullBlock.Type texture,
-               Vector3f translation, Vector3f scale) {
-
-        this.modelClass = modelClass;
-
+    SkullTypes(ModelLayerLocation modelLayer, SkullBlock.Type texture, Vector3f translation, Vector3f scale) {
         this.modelLayer = modelLayer;
         this.texture = texture;
         this.translation = translation;
@@ -36,12 +34,7 @@ public enum SkullTypes{
     }
 
     public SkullTypes withModelFromContext(BlockEntityRendererProvider.Context context) {
-        if (modelClass != SkullModelBase.class) try {
-            this.model = modelClass.getDeclaredConstructor(ModelPart.class).newInstance(context.getModelSet().bakeLayer(modelLayer));
-            return this;
-        } catch (ReflectiveOperationException ignored) {}
-
-        this.model = new SkullModel(context.getModelSet().bakeLayer(modelLayer));
+        this.model = SkullBlockRenderer.createModel(context.entityModelSet(), texture);
         return this;
     }
 

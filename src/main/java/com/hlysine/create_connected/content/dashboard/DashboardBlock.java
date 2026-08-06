@@ -112,7 +112,10 @@ public class DashboardBlock extends HorizontalDirectionalBlock implements IWrenc
                 dummySign.setText(be.text, true);
                 dummySign.setWaxed(true);
 
-                if (signApplicator.canApplyToSign(be.text, player) && signApplicator.tryApplyToSign(be.getLevel(), dummySign, true, player)) {
+                // Both hooks take the held stack now -- the applicator is no longer assumed
+                // to be the item the player is holding.
+                if (signApplicator.canApplyToSign(be.text, heldItem, player)
+                        && signApplicator.tryApplyToSign(be.getLevel(), dummySign, true, heldItem, player)) {
                     be.setText(dummySign.getText(true));
                     success.setTrue();
                 }
