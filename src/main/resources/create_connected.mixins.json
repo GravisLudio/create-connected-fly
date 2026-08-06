@@ -10,8 +10,6 @@
     "RotationPropagatorMixin",
     "brasschute.ChuteBlockEntityAccessor",
     "chaincogwheel.RotationPropagatorMixin",
-    "compat.CopycatBlockEntityMixin",
-    "compat.CopycatBlockMixin",
     "contraption.AbstractContainerMenuMixin",
     "contraption.ContainerLevelAccessMixin",
     "contraption.ContraptionMixin",
