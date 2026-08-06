@@ -3,7 +3,7 @@ package com.hlysine.create_connected.content.contraption.jukebox;
 import com.hlysine.create_connected.registries.CCPackets;
 import com.mojang.datafixers.util.Function7;
 import com.zurrtum.create.content.contraptions.AbstractContraptionEntity;
-import net.createmod.catnip.net.base.ClientboundPacketPayload;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class PlayContraptionJukeboxPacket implements ClientboundPacketPayload {
+public class PlayContraptionJukeboxPacket implements CustomPacketPayload {
     public static final StreamCodec<RegistryFriendlyByteBuf, PlayContraptionJukeboxPacket> STREAM_CODEC = composite(
             Identifier.STREAM_CODEC, packet -> packet.level,
             ByteBufCodecs.VAR_INT, packet -> packet.contraptionId,
@@ -54,7 +54,7 @@ public class PlayContraptionJukeboxPacket implements ClientboundPacketPayload {
     }
 
     @Override
-    public PacketTypeProvider getTypeProvider() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return CCPackets.PLAY_CONTRAPTION_JUKEBOX;
     }
 

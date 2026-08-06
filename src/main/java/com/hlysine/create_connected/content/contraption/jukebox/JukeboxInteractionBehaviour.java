@@ -16,7 +16,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,17 +81,20 @@ public class JukeboxInteractionBehaviour extends MovingInteractionBehaviour {
             @Override
             public void levelEvent(@Nullable Player player, int type, BlockPos pos, int data) {
                 if (type == 1010 || type == 1011)
-                    PacketDistributor.sendToPlayersInDimension(
-                            (ServerLevel) contraptionEntity.level(),
-                            new PlayContraptionJukeboxPacket(dimension().location(),
+                    {
+                        // PacketDistributor is NeoForge's; Fabric addresses recipients through
+                        // PlayerLookup and sends each payload individually.
+                        PlayContraptionJukeboxPacket payload = new PlayContraptionJukeboxPacket(dimension().location(),
                                     contraptionEntity.getId(),
                                     contraptionPos,
                                     pos,
                                     data,
                                     type == 1010,
                                     silent
-                            )
-                    );
+                            );
+                        for (ServerPlayer recipient : PlayerLookup.world((ServerLevel) contraptionEntity.level()))
+                            ServerPlayNetworking.send(recipient, payload);
+                    }
             }
         });
         action.accept(be);
