@@ -95,8 +95,11 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
 
     private ItemInventory getConnectedItemHandler() {
         if (powered) return null;
-        ItemInventory handler = observedInventory.getInventory();
-        if (handler instanceof WrappedItemHandler) return null;
+        // The behaviour hands back a plain Container; only an ItemInventory can be forwarded.
+        if (!(observedInventory.getInventory() instanceof ItemInventory handler))
+            return null;
+        if (handler instanceof WrappedItemHandler)
+            return null;
         return handler;
     }
 
@@ -105,6 +108,18 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         ItemHelper.invalidateInventoryCache(worldPosition);
     }
 
+    /**
+     * Forwards a neighbour's inventory through the port.
+     * <p>
+     * Under Forge this delegated {@code IItemHandler}: getSlots, getStackInSlot, insertItem,
+     * extractItem, getSlotLimit, isItemValid. Create Fly's {@link ItemInventory} is vanilla's
+     * {@code Container} underneath, which has no notion of a simulated insert or extract, so there
+     * is nothing to forward for those -- {@code removeItem} and the rest come from ItemInventory's
+     * own defaults, built on the four primitives below.
+     * <p>
+     * The recursion guard is the point of the class: two ports facing each other would otherwise
+     * call into one another forever.
+     */
     private class InventoryAccessHandler implements WrappedItemHandler {
 
         private final ThreadLocal<Boolean> recursionGuard = ThreadLocal.withInitial(() -> false);
@@ -118,50 +133,44 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
         }
 
         @Override
-        public int getSlots() {
+        public int getContainerSize() {
             return preventRecursion(() -> {
                 ItemInventory handler = getConnectedItemHandler();
-                return handler == null ? 0 : handler.getSlots();
+                return handler == null ? 0 : handler.getContainerSize();
             }, 0);
         }
 
         @Override
-        public @NotNull ItemStack getStackInSlot(int i) {
+        public @NotNull ItemStack getItem(int slot) {
             return preventRecursion(() -> {
                 ItemInventory handler = getConnectedItemHandler();
-                return handler == null ? ItemStack.EMPTY : handler.getStackInSlot(i);
+                return handler == null ? ItemStack.EMPTY : handler.getItem(slot);
             }, ItemStack.EMPTY);
         }
 
         @Override
-        public @NotNull ItemStack insertItem(int i, @NotNull ItemStack itemStack, boolean b) {
-            return preventRecursion(() -> {
+        public void setItem(int slot, @NotNull ItemStack stack) {
+            preventRecursion(() -> {
                 ItemInventory handler = getConnectedItemHandler();
-                return handler == null ? itemStack : handler.insertItem(i, itemStack, b);
-            }, itemStack);
+                if (handler != null)
+                    handler.setItem(slot, stack);
+                return null;
+            }, null);
         }
 
         @Override
-        public @NotNull ItemStack extractItem(int i, int i1, boolean b) {
+        public int getMaxStackSize() {
             return preventRecursion(() -> {
                 ItemInventory handler = getConnectedItemHandler();
-                return handler == null ? ItemStack.EMPTY : handler.extractItem(i, i1, b);
-            }, ItemStack.EMPTY);
-        }
-
-        @Override
-        public int getSlotLimit(int i) {
-            return preventRecursion(() -> {
-                ItemInventory handler = getConnectedItemHandler();
-                return handler == null ? 0 : handler.getSlotLimit(i);
+                return handler == null ? 0 : handler.getMaxStackSize();
             }, 0);
         }
 
         @Override
-        public boolean isItemValid(int i, @NotNull ItemStack itemStack) {
+        public boolean canPlaceItem(int slot, @NotNull ItemStack stack) {
             return preventRecursion(() -> {
                 ItemInventory handler = getConnectedItemHandler();
-                return handler != null && handler.isItemValid(i, itemStack);
+                return handler != null && handler.canPlaceItem(slot, stack);
             }, false);
         }
     }
