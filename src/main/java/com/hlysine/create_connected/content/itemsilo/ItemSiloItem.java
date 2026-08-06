@@ -125,11 +125,9 @@ public class ItemSiloItem extends BlockItem {
                 if (ItemSiloBlock.isVault(blockState))
                     continue;
                 BlockPlaceContext context = BlockPlaceContext.at(ctx, offsetPos, face);
-                player.getPersistentData()
-                        .putBoolean("SilenceVaultSound", true);
+                // See FluidVesselItem: the silencing flag and the block side that read it are both
+                // gone with NeoForge.
                 super.place(context);
-                player.getPersistentData()
-                        .remove("SilenceVaultSound");
             }
         }
     }

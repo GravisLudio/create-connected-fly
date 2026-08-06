@@ -143,10 +143,10 @@ public class FluidVesselItem extends BlockItem {
 				if (FluidVesselBlock.isVessel(blockState))
 					continue;
 				BlockPlaceContext context = BlockPlaceContext.at(ctx, offsetPos, face);
-				player.getPersistentData()
-						.putBoolean("SilenceVesselSound", true);
+				// The flag that used to silence the per-block placement sound rode on NeoForge's
+				// Entity.getPersistentData, and the block side that read it (getSoundType with an
+				// entity) is gone from vanilla too. See FluidVesselBlock for the consequence.
 				super.place(context);
-				player.getPersistentData().remove("SilenceVesselSound");
 			}
 		}
 	}

@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
+import net.minecraft.server.level.ServerLevel;
+
 import com.hlysine.create_connected.registries.CCItems;
 import com.hlysine.create_connected.compat.SimCompatRegistry;
 import com.zurrtum.create.AllSoundEvents;
@@ -102,7 +104,7 @@ public class LinkedThrottleLeverBlock extends ThrottleLeverBlock implements Spec
     }
 
     @Override
-    public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
+    public void affectNeighborsAfterRemoval(@NotNull BlockState state, @NotNull ServerLevel world, @NotNull BlockPos pos, boolean isMoving) {
         if (!state.is(newState.getBlock()) && !isMoving && getBlockEntityOptional(world, pos).map(be -> ((LinkedThrottleLeverBlockEntity) be).containsBase).orElse(false))
             Block.popResource(world, pos, new ItemStack(CCItems.LINKED_TRANSMITTER.get()));
         getBase().defaultBlockState().onRemove(world, pos, newState, isMoving);

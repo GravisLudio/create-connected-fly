@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.linkedtransmitter;
 
+import net.minecraft.server.level.ServerLevel;
+
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCItems;
 import com.zurrtum.create.AllSoundEvents;
@@ -104,7 +106,7 @@ public class LinkedButtonBlock extends ButtonBlock implements IBE<LinkedTransmit
     }
 
     @Override
-    public void onRemove(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
+    public void affectNeighborsAfterRemoval(@NotNull BlockState state, @NotNull ServerLevel world, @NotNull BlockPos pos, boolean isMoving) {
         if (!state.is(newState.getBlock()) && !isMoving && getBlockEntityOptional(world, pos).map(be -> be.containsBase).orElse(false)) {
             Block.popResource(world, pos, new ItemStack(CCItems.LINKED_TRANSMITTER.get()));
         }

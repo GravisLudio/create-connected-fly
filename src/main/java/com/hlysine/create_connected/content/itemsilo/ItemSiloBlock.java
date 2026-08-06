@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.content.itemsilo;
 
+import net.minecraft.server.level.ServerLevel;
+
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.Container;
 import com.zurrtum.create.infrastructure.items.ItemInventoryProvider;
@@ -51,7 +53,7 @@ public class ItemSiloBlock extends Block
     }
 
     @Override
-    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean pIsMoving) {
+    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean pIsMoving) {
         if (state.hasBlockEntity() && (state.getBlock() != newState.getBlock() || !newState.hasBlockEntity())) {
             BlockEntity be = world.getBlockEntity(pos);
             if (!(be instanceof ItemSiloBlockEntity vaultBE))
@@ -85,14 +87,6 @@ public class ItemSiloBlock extends Block
                     SoundEvents.NETHERITE_BLOCK_PLACE, SoundEvents.NETHERITE_BLOCK_HIT,
                     SoundEvents.NETHERITE_BLOCK_FALL);
 
-    @Override
-    public SoundType getSoundType(BlockState state, LevelReader world, BlockPos pos, Entity entity) {
-        SoundType soundType = super.getSoundType(state, world, pos, entity);
-        if (entity != null && entity.getPersistentData()
-                .contains("SilenceVaultSound"))
-            return SILENCED_METAL;
-        return soundType;
-    }
 
     @Override
     public boolean hasAnalogOutputSignal(BlockState state) {
@@ -125,5 +119,12 @@ public class ItemSiloBlock extends Block
     ) {
         return blockEntity.getItemInventory();
     }
+
+    // getSoundType(state, level, pos, entity) is gone -- 26.2 leaves only getSoundType(state), so a
+    // block cannot vary its sound by who is placing it. Upstream used that to silence the placement
+    // sound while the vessel item places a whole multiblock at once, flagging the player through
+    // NeoForge's Entity.getPersistentData (also gone).
+    // Consequence: placing a multi-block vessel or silo plays one metal step per block instead of
+    // one for the whole structure. Audible, harmless, and it raises no error.
 }
 

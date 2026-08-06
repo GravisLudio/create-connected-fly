@@ -65,7 +65,7 @@ public class KineticBridgeBlock extends DirectionalKineticBlock implements IBE<K
     }
 
     @Override
-    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+    public void affectNeighborsAfterRemoval(BlockState pState, ServerLevel pLevel, BlockPos pPos, boolean pIsMoving) {
         if (!pNewState.is(this)) {
             Direction facing = pState.getValue(FACING);
             BlockPos destinationPos = pPos.relative(facing);
@@ -77,7 +77,7 @@ public class KineticBridgeBlock extends DirectionalKineticBlock implements IBE<K
                 pLevel.destroyBlock(destinationPos, false);
             }
         }
-        super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
+        super.affectNeighborsAfterRemoval(pState, pLevel, pPos, pIsMoving);
     }
 
     @Override
