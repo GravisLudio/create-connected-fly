@@ -8,16 +8,18 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**246 compile errors, down from 7,162.** The mod does not build yet and has never been launched.
+**It builds.** `gradlew build` is green and produces `create_connected-fly-1.3.2-mc26.2.jar`, down from 7,162 compile errors.
 
-Every number in this document was produced by running `gradlew compileJava`, not estimated.
+**It has never been launched.** That is the whole of what is left, and it is not a formality: mixins that compile but no longer mirror their target are silently inert, and everything in *What is missing on purpose* is invisible to javac. See *What is next*.
+
+Every number in this document was produced by running the build, not estimated.
 
 | | |
 |---|---|
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 39 commits of port work on top of upstream history |
+| Branch | `main`, 46 commits of port work on top of upstream history |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
 
 ### Environment
@@ -25,6 +27,10 @@ Every number in this document was produced by running `gradlew compileJava`, not
 - **JDK 25** required (Create Fly demands it). Installed at `C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot`, pointed at via `org.gradle.java.home` in `gradle.properties` so the system `JAVA_HOME` can stay on 21.
 - Gradle 9.4.1, Fabric Loom 1.16.3, MC 26.2-rc-2, fabric-api 0.152.0, Create Fly 6.0.9-1.
 - Everything is cached. **Compiling needs no network.** Do not run `--refresh-dependencies` on a flaky connection — that is the one command that revalidates against remote repos. Adding a new `fabricApi.module(...)` line does need the network once, to fetch that module.
+
+```bash
+cd C:\Users\GravisLudio\dev\create-connected-fly && .\gradlew.bat build
+```
 
 ---
 
@@ -44,6 +50,8 @@ grep -oE "create_connected[\\/][a-zA-Z\\/]*\.java" <output> | sort | uniq -c | s
 ```
 
 Per-file counts are *mentions of the path*, not error counts — good for ranking what to work on, useless for measuring small deltas. Only javac's own total is exact. This tripped me up more than once.
+
+That workflow is kept for whenever a Create Fly bump breaks the build again. Right now the build is green, so the useful command is `build` — see *Environment*.
 
 ---
 
@@ -154,6 +162,8 @@ grep -nE "\.(onRegister|transform)\((CCRegistrate|AssetLookup|BuilderTransformer
 
 Fabric counts droplets at 81 per mB. NeoForge's `1000` is `81000`. Nothing fails at load time — the recipe just quietly asks for 81× less fluid. Spotted because a Create Fly recipe used `8100` where the NeoForge one used `100`.
 
+It is not only recipes. `BoilerData.waterSupplyPerLevel` was `10` and had to become `10 * 81`, because the supply it is compared against is now counted in droplets — Create Fly's own copy says `10 * 81` for the same reason, and its goggle tooltip divides by 81 for display. Any constant that is compared against a fluid amount is suspect, not just the ones in JSON.
+
 ### The fabric-api artifact contains no classes
 
 `net.fabricmc.fabric-api:fabric-api` is a container: 53 nested jars and nothing of its own. Declared as plain `implementation` it puts **nothing** on the compile classpath, and every `net.fabricmc.fabric` import fails with *package does not exist* — an error that names no jar and reads like the import is simply wrong. `modImplementation` would have unpacked it, but those configurations are gone (see above), so each module has to be named:
@@ -161,6 +171,8 @@ Fabric counts droplets at 81 per mB. NeoForge's `1000` is `81000`. Nothing fails
 ```groovy
 implementation fabricApi.module("fabric-creative-tab-api-v1", fabric_version)
 ```
+
+Eight are declared so far. The most recent, `fabric-object-builder-api-v1`, is there for one method: `FabricBlockEntityType.addValidBlock`.
 
 **Artifact names do not follow package names.** `net.fabricmc.fabric.api.itemgroup.v1` was renamed to `net.fabricmc.fabric.api.creativetab.v1` and ships in `fabric-creative-tab-api-v1` — guessing `fabric-item-group-api-v1` fails at configuration time. To find the right one, list the nested jars:
 
@@ -181,6 +193,43 @@ Then read the module's own `-sources.jar` before writing against it — several 
 ### `javax.annotation` does not exist here
 
 Use `org.jetbrains.annotations`. And when adding imports with a script, check whether the file already imports a different type with the same simple name — I created a `Nullable` collision that way.
+
+### A block entity that hard-codes its own type, and the three places that read it
+
+Create Fly gave most of its block entities a **two-argument constructor** that hard-codes their type — `CopycatBlockEntity` passes `AllBlockEntityTypes.COPYCAT`, `AnalogLeverBlockEntity` passes `ANALOG_LEVER`, and so on. Upstream Connected subclassed those and passed its own type in, which is no longer expressible.
+
+`BlockEntity.type` is private. Exactly three methods read it, and **all three are overridable and all three matter**:
+
+```java
+@Override public BlockEntityType<?> getType()                  { return type; }
+@Override public Holder<BlockEntityType<?>> typeHolder()       { return type.builtInRegistryHolder(); }
+@Override public boolean isValidBlockState(BlockState state)   { return type.isValid(state); }
+```
+
+Overriding only `getType` looks right and is not: `typeHolder` is what writes the saved id, so the block entity would come back from disk as Create's plain one. `isValidBlockState` is checked against the type's valid-blocks set, which will not contain our block. Neither failure appears at build time. `LinkedAnalogLeverBlockEntity` and `ShearPinBlockEntity` do all three.
+
+Two cases did not need it, and are worth copying instead:
+
+- **The subclass adds nothing structural.** The inverted clutch and gearshift are only a `getRotationSpeedModifier` override, so they extend `SplitShaftBlockEntity` — the shared parent, which still takes a type.
+- **We do not need our own type at all.** The copycats join *Create's* type through Fabric's `((FabricBlockEntityType) type).addValidBlock(block)`, from `fabric-object-builder-api-v1`. Their block entities now save as `create:copycat`.
+
+### Goggle tooltips are behaviours now, and a block entity that implements the interface shows nothing
+
+`GoggleOverlayRenderer` looks up a `TooltipBehaviour` at the position and **never touches the block entity**. A block entity that merely implements `IHaveGoggleInformation` compiles, keeps its method, and displays nothing — silently. `FluidVesselBlockEntity` was in exactly that state.
+
+The same goes for `addToTooltip` (the no-goggles hover text) and for `tickAudio`, both of which used to sit on the block entity. All of it lives under `client/tooltip/` and `client/` now and is registered in `CCBlockEntityBehaviours`.
+
+Which brings up the thing that made all of the above invisible: **`CCBlockEntityBehaviours.register()` was never called.** The client entrypoint did not list it, so every client behaviour — the three scroll values that were already ported — was dead. It is wired now, but the shape of that bug is worth remembering: a registry class that nothing calls raises nothing anywhere.
+
+### `create_connected.client.mixins.json` named a package that has no classes
+
+It declared `com.hlysine.create_connected.client.mixin`; every client mixin actually lives in `com.hlysine.create_connected.mixin`. All four would have failed to apply at launch. The build has no opinion about it. Worth re-checking after any package move.
+
+### `onItemUseFirst` was NeoForge's, and Create Fly reimplements it by mixin
+
+The hook that lets an item act *before* the block it is pointed at (the crank wheel placing diagonally off a cogwheel, the linked transmitter attaching to a lever) does not exist in vanilla. Create Fly turns it into a static `onItemUseFirst(world, player, stack, hand, ray, pos)` returning null for "not handled", and calls a hardcoded list of them from mixins on `ServerPlayerGameMode.useItemOn` and `MultiPlayerGameMode.performUseItemOn`.
+
+There is no extension point in that list, so Connected has its own pair — `mixin/crankwheel/{Server,Client}CrankWheelPlacementMixin` — injected at the same target. Both halves are needed; the server one alone leaves the client mispredicting the placement.
 
 ---
 
@@ -244,12 +293,36 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 - `SmartBlockEntity.addBehaviours` takes `List<BlockEntityBehaviour<?>>` — a raw list silently stops overriding it
 - `Item.getDescriptionId` is final; declare a custom key with `Properties.overrideDescription`
 - `Direction.getNearest` lost its three-int overload (`getApproximateNearest`), and `getNormal` is `getUnitVec3i`
-- `Direction.fromDelta` is gone entirely, and no replacement returns null for a non-unit delta
+- `Direction.fromDelta` is gone entirely, and no replacement returns null for a non-unit delta — `foundation/DirectionHelper` reimplements it
+- `rotate` and `mirror` take the state alone; `rotate` lost its level and position
+- **`getPistonPushReaction` is not an override.** It moved into `Properties.pushReaction(...)`, so it is set at registration
+- **`canConnectRedstone` is Create Fly's, not vanilla's** — implement `foundation.block.RedStoneConnectBlock`, signature `(BlockState, @Nullable Direction)`
+- `getLightEmission(state, level, pos)` is gone; light is baked per state from `Properties.lightLevel(ToIntFunction<BlockState>)`, so anything dynamic needs a state property to read (see `FluidVesselBlock.LIGHT_LEVEL`)
+- `Level.addParticle` grew a second boolean; `Level.markAndNotifyBlock` is gone
+- `Level.updateNeighborsAt` / `updateNeighborsAtExceptFromFacing` take a trailing `Orientation`, and the vanilla path passes **null** for it — so a block receiving `neighborChanged` cannot recover the source position from it
+- `Player.displayClientMessage` is gone; the action bar is `Minecraft.getInstance().gui.hud.setOverlayMessage`
+- `getShapeForEachState` returns a `Function<BlockState, VoxelShape>`, not an `ImmutableMap`
+- `SignApplicator.canApplyToSign` / `tryApplyToSign` both take the held `ItemStack` now
+- `ItemTags.create` / `FluidTags.create` are gone — `TagKey.create(Registries.ITEM, id)`
+- `Item.appendHoverText` takes `(stack, context, TooltipDisplay, Consumer<Component>, flag)` — a consumer, not a list
+- The crafting remainder is `Item.getCraftingRemainder()` returning a nullable `ItemStackTemplate`; `stack.create()` makes it a stack
+- `ItemStackHandler` is a vanilla `Container`: the change hook is `setChanged()`, with no slot
+- `LivingEntity.getSlotForHand` is gone — pick `EquipmentSlot.MAINHAND` / `OFFHAND` off the hand
+- `I18n.exists` is gone; `Language.getInstance().has(key)`
+- `NbtUtils.writeBlockPos` is gone — `tag.store(key, BlockPos.CODEC, pos)`
+- `ResourceKey.location()` is `identifier()`; `RegistryAccess.registryOrThrow` is `lookupOrThrow`; `Registry.getHolder(int)` is `get(int)`
+- `PlayerLookup.world` is `PlayerLookup.level` (Fabric API)
+- Reading raw NBT into a block entity goes through `TagValueInput.create(problemReporter, registryAccess, tag)`
 
 ### Gone with no code equivalent
 
 - **`BlockColor` / `ItemColor`.** Tinting is data-driven: a `BlockTintSource` or `ItemTintSource` declared in the model JSON. Nothing to register from code — see `CCColorHandlers`, now a stub recording which two assets need entries.
-- **`BakedModel`, `MultiBufferSource`, `GuiGraphics`.** Replaced by `QuadCollection` / `BlockStateModel`, `SubmitNodeCollector`, and `GuiGraphicsExtractor` respectively. This is the largest piece of work left; see below.
+- **`BakedModel`, `MultiBufferSource`, `GuiGraphics`.** Replaced by `QuadCollection` / `BlockStateModel`, `SubmitNodeCollector`, and `GuiGraphicsExtractor` respectively.
+- **`Item.onItemUseFirst`** — NeoForge's; see *Traps*.
+- **`CommonHooks.onNoteChange`** — NeoForge's veto hook for note block changes. Contraption note blocks just cycle the note now.
+- **`LevelRenderer.notifyNearbyEntities`** — moved to `LevelEventHandler` and private there. It is a three-block sweep calling `LivingEntity.setRecordPlayingNearby`, inlined in `ContraptionMusicManager`. This is what makes parrots dance.
+- **`GuiGraphics.drawString`** → `GuiGraphicsExtractor.text(font, text, x, y, argb, shadow)`. Note the colours are **full ARGB** — `0xFFFFEE` becomes `0xFFFFFFEE`, and dropping the alpha byte draws nothing.
+- **`ValueOutput` has no raw tag put** and `ValueInput` no raw list get. Anything still shaped as a `ListTag` goes through `CompoundTag.CODEC.listOf()`.
 
 ### Data and asset formats
 
@@ -278,6 +351,12 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 | Fan washing catalyst tint | Renders grey instead of water-coloured | `CCColorHandlers` (stub) — needs tint entries in two JSONs |
 | Creative tab ordering | The tab no longer sits after Create's palettes tab | `withTabsBefore` was removed from the builder |
 | Copycats+ migration | Copycat blocks never convert to their Copycats+ equivalents | `CopycatsManager` excluded; the gated branches were collapsed to their fallbacks |
+| Crank wheel handle renderer | Without Flywheel (or with it off) the crank wheel draws no handle | `HandCrankRenderer` no longer asks the block entity for its model — it needs its own renderer. Flywheel visuals do draw it |
+| Copycat block entity id | Connected's copycat blocks now save as `create:copycat` | They joined Create's block entity type rather than registering a second one — see *Traps*. No 26.2 world predates this, but it is a one-way change |
+| Pick-block on a linked transmitter | Picks the module rather than the base when the crosshair target is unavailable | `getCloneItemStack` lost its `HitResult`; `LinkedTransmitterBlock.isHittingBase(state, level, pos)` reads the client target instead |
+| Pick-block on an encased cross connector | Always gives the encased block, never the bare connector | Same removal, and here there is no sensible fallback |
+| Contraption note blocks | Other mods can no longer veto or rewrite a note change | `CommonHooks.onNoteChange` has no Fabric equivalent |
+| Inventory bridge neighbour updates | Notifies every side including the one that notified it, bounded by a re-entrancy guard | `neighborChanged` gets a null `Orientation`, so the source side is unknowable |
 
 The first two are stubs with the full mapping recorded in their class docs — block, sprite shift, predicate, renderer, visual. They are ready to implement, not ready to guess at.
 
@@ -293,9 +372,15 @@ Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated,
 
 ## What is next
 
-The `registries/` package is essentially done — every one of its files is now under five errors. What is left splits into one large redesign and a long tail.
+**Launch it.** That is the entire remaining task, and the compile being clean says very little about it:
 
-### Block entity renderers — 7 of 9 done
+1. **Mixins.** A mixin whose signature no longer mirrors its target compiles fine and is silently inert. There are around fifty. `injectors.defaultRequire = 1` means a mixin that matches nothing *should* fail loudly at load — read the log rather than trusting silence, and note that the client config was pointed at a package with no classes in it until now, so those four have never been exercised at all.
+2. **Registration order.** Nothing here has ever run its entrypoints. The shim registers eagerly at class-init, `CCBlockEntityTypes.register()` now adds the copycat blocks to Create's block entity type, and `EncasingRegistry.addVariant` runs from `onRegister` — all of it is first-run-only code.
+3. **The table above.** *What is missing on purpose* is the test script.
+
+Then the visible gaps, roughly in order of how much they cost: the block entity renderers and Flywheel visuals (`client/CCBlockEntityRenders`), connected textures (`client/CCConnectedTextures`), and server→client config sync (`config/CCommon`). All three are stubs whose class docs record the exact mapping needed.
+
+### Block entity renderers — done, and the shape to follow
 
 **This is a redesign, not a sweep.** 26.2 split block entity rendering into two phases, and `renderSafe(be, partialTicks, poseStack, bufferSource, light, overlay)` no longer exists in any form:
 
@@ -320,12 +405,12 @@ Points that only showed up while doing it:
 - Renderers that add Create behaviour overlays subclass the parent's render state and extract `FilteringRenderer.getFilterRenderState` / `LinkRenderer.getLinkRenderState` into it — see `LinkedAnalogLeverRenderer`.
 - `Direction.getNearest` lost its three-int overload; `getApproximateNearest` takes a delta.
 
-**Left: `FanCatalystRotatingHeadRenderer` and `DashboardRenderer`.** Both draw *entity models* rather than `SuperByteBuffer`s, which is a different sub-problem:
+**The two entity-model renderers are across too** — `FanCatalystRotatingHeadRenderer` and `DashboardRenderer` draw models rather than `SuperByteBuffer`s, which was a separate sub-problem:
 
-- `Model.setupAnim` takes a state object now — for skulls, `SkullModelBase.State` with `animationPos` / `yRot` / `xRot`.
-- `SkullBlockRenderer.createModel(EntityModelSet, SkullBlock.Type)` is public and replaces the reflective model construction in `SkullTypes`; `context.getModelSet()` is `context.entityModelSet()`.
-- `SkullBlockRenderer.getSkullRenderType(type, identifier)` is public and replaces reaching into the private `SKIN_BY_TYPE`.
-- **Unresolved:** `SkullBlockRenderer.submitSkull(float, PoseStack, SubmitNodeCollector, int, SkullModelBase, RenderType, int, CrumblingOverlay)` takes *two* `int`s and nothing in Create Fly calls it, so which is light and which is colour/outline could not be confirmed from either source. Guessing the order compiles and then renders wrong silently. Decompile `SkullBlockRenderer.submit` before writing this one.
+- `SkullBlockRenderer.createModel(EntityModelSet, SkullBlock.Type)` is public and replaces the reflective model construction in `SkullTypes`, which takes `SkullModel` and `DragonHeadModel` with it — neither exists under those names now. `context.getModelSet()` is `context.entityModelSet()`.
+- `SkullBlockRenderer.getSkullRenderType(type, identifier)` is public and replaces reaching into the private `SKIN_BY_TYPE`. A null identifier falls back to that map, which is what the old code did.
+- **`submitSkull` argument order, previously unresolved and now settled by decompiling `SkullBlockRenderer.submit`:** `submitSkull(animationProgress, poseStack, collector, lightCoords, model, renderType, outlineColor, crumbling)`. The first int is light, the second is the outline colour, and vanilla always passes `0` for it. Guessing would have compiled and rendered wrong in silence.
+- The dashboard draws text, so it follows vanilla's `AbstractSignRenderer` instead: `Font.drawInBatch` took a `MultiBufferSource`, so text goes through `SubmitNodeCollector.submitText`. `SignRenderer.getDarkColor` moved to `AbstractSignRenderer`.
 
 ### The model layer — done
 
@@ -351,8 +436,6 @@ protected abstract void assembleQuads(
 
 `BakedQuad` is a record now — `direction()`, and no raw vertices. `BakedModelHelper.cropAndMove(quad, aabb, offset)` takes and returns a whole quad, which is why `BakedQuadHelper` did **not** need reimplementing after all: it has no callers left. Cross it off the missing-classes list.
 
-Still outstanding in this area: `FluidVesselModel`.
-
 Note Create Fly's own warning on `CopycatModel`: if FRAPI is loaded, `FabricBlockStateModel#emitQuads` has to be overridden for ambient occlusion and emissive flags to survive.
 
 ### Scroll values and value boxes — done
@@ -364,41 +447,33 @@ Create Fly split `ScrollValueBehaviour` in two, and this is worth knowing before
 
 Upstream's three behaviours each overrode both halves, so each became a pair. Upstream also seeded defaults by assigning the `value` field directly; it is protected on the parent and `setValue` clamps against a range that is not set yet, so the server halves carry an explicit `startingValue`.
 
-**`LinkBehaviour` is split the same way** — `ServerLinkBehaviour` carries the transmission and frequency, the client `LinkBehaviour` carries the value box slots. Assume any Create behaviour with both a value and a widget is a pair now, and check which half you actually want before importing: the two classes share a simple name, so picking the wrong one surfaces as *missing methods*, not a missing class.
+**`LinkBehaviour` is split the same way** — `ServerLinkBehaviour` carries the transmission and frequency, the client `LinkBehaviour` carries the value box slots. So are **`ScrollOptionBehaviour`** (`ServerScrollOptionBehaviour` holds the value; the client half is abstract, and Create Fly's own `RotationDirectionScrollBehaviour` was directly reusable for the battery and the freewheel clutch) and **`FilteringBehaviour`** / **`SidedFilteringBehaviour`**.
+
+Assume any Create behaviour with both a value and a widget is a pair now, and check which half you actually want before importing: the two classes share a simple name, so picking the wrong one surfaces as *missing methods*, not a missing class.
 
 `ValueBoxTransform.rotate` / `shouldRender` / `getLocalOffset` all dropped their level and position — the block state alone now.
 
-### The tail
+### The missing-classes list, as it ended up
 
-| File | Errors | What it needs |
-|---|---|---|
-| `content/fluidvessel/BoilerData` | 9 | |
-| `content/fluidvessel/FluidVesselBlock` | 9 | |
-| `content/fancatalyst/FanCatalystRotatingHeadRenderer` | 8 | Entity-model renderer — see above |
-| `content/dashboard/DashboardRenderer` | 8 | Entity-model renderer — see above |
-| `content/fluidvessel/FluidVesselMountedStorage` | 8 | |
-| `content/kineticbattery/KineticBatteryBlockEntity` | 8 | `ScrollOptionBehaviour` is split too |
-| `content/fancatalyst/SkullTypes` | 7 | Goes with its renderer |
-| `content/dashboard/DashboardBlock` | 6 | |
-
-**Nothing left has real mass** — the largest single file is 9. `fluidvessel` is still the biggest package at ~30 across four files, but its capability layer and its model are done.
-
-**Only one thing left is still a *shape* rather than a one-off:** the two entity-model renderers, `FanCatalystRotatingHeadRenderer` and `DashboardRenderer`, with the `submitSkull` unknown described above. Everything else is per-file work against the API list.
-
-Also outstanding: Create classes with no Create Fly equivalent, needing reimplementation rather than renaming — `SafeBlockEntityRenderer`, `ItemUseOverrides`, `CreateBuiltInRegistries`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `ICapabilityProvider`, `ChuteGenerator`, `EncasedCogRenderer`, `ChainDriveGenerator`, `ClipboardOverrides`.
-
-Three came off that list by turning out not to need reimplementing at all, which is worth checking for before writing a replacement:
+Create classes with no Create Fly equivalent. **Six of the original list turned out not to need reimplementing**, which is worth checking for before writing a replacement:
 
 - **`BakedQuadHelper`** — `BakedModelHelper.cropAndMove` now takes a whole quad, leaving it with no callers.
-- **`SmartFluidTank`** — it existed to take a change callback; Create Fly subclasses `FluidTank` and overrides `markDirty` instead.
+- **`SmartFluidTank`** — it existed to take a change callback; Create Fly subclasses `FluidTank` and overrides `markDirty` instead. Same for `CreativeSmartFluidTank`, which is `CreativeFluidTankBlockEntity.CreativeFluidTankInventory`.
 - **`BlockEntityConfigurationPacket`** — it carried the permission, distance and load checks; Create Fly folded those into one helper, and with a single such packet here they inline.
+- **`ClipboardOverrides`** — `ClipboardType` is a top-level type in `infrastructure.component`.
+- **`CreateBuiltInRegistries`** — `api.registry.CreateRegistries`.
+- **`EncasedCogRenderer`** — the import was left over from the stripped renderer registration; nothing used it.
 
-Two capability migrations remain: `BrassChute` and `InventoryAccessPort` (`FluidVessel` is partly done). The pattern is under *Architecture decisions*.
+Still genuinely absent, and none of them currently referenced: `SafeBlockEntityRenderer`, `ItemUseOverrides`, `ItemStackHandlerAccessor`, `VersionedInventoryWrapper`, `ReducedDestroyEffects`, `ICapabilityProvider`, `ChuteGenerator`, `ChainDriveGenerator`.
 
-After it compiles, the real work starts: mixins that compile but do not apply fail **at launch**, not at build. A mixin whose signature no longer mirrors its target is silently inert.
+Capability migrations are done — the pattern is under *Architecture decisions* if another one comes up.
 
 ---
 
 ## Standing risk
 
-Create Fly is at `26.2-rc-2`. It is a release candidate and its API moves. Some of this will need redoing.
+Create Fly is at `26.2-rc-2`. It is a release candidate and its API moves. Some of this will need redoing — and the port now leans on three things that are more fragile than an ordinary API call, so check these first after any bump:
+
+- The **three type-redirect overrides** on `LinkedAnalogLeverBlockEntity` and `ShearPinBlockEntity`. If vanilla adds a fourth reader of `BlockEntity.type`, they break silently.
+- The **two placement mixins**, which inject at the same target as Create Fly's own and depend on that target existing.
+- **`SkullBlockRenderer.submitSkull`'s argument order**, established by decompiling rather than by any published signature.
