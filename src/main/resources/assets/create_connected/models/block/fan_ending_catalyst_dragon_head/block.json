@@ -1,15 +1,4 @@
 {
-  "parent": "minecraft:block/block",
-  "loader": "neoforge:composite",
-  "textures": {
-    "particle": "create:block/funnel/brass_funnel_frame"
-  },
-  "children": {
-    "frame": {
-      "parent": "create_connected:block/fan_catalyst/empty"
-    },
-    "dragon_head": {
-      "parent": "create_connected:block/fan_ending_catalyst_dragon_head/dragon_head"
-    }
-  }
+  "comment": "Frame only. The head is drawn by FanCatalystRotatingHeadRenderer; baking it here too would draw it twice. Was neoforge:composite, which Fabric ignores -- leaving an empty model.",
+  "parent": "create_connected:block/fan_catalyst/empty"
 }
