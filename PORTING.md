@@ -8,11 +8,14 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**It builds.** `gradlew build` is green and produces `create_connected-fly-1.3.2-mc26.2.jar`, down from 7,162 compile errors.
+**It builds and it starts loading.** `gradlew build` is green, down from 7,162 compile errors.
 
-**It has never been launched.** That is the whole of what is left, and it is not a formality: mixins that compile but no longer mirror their target are silently inert, and everything in *What is missing on purpose* is invisible to javac. See *What is next*.
+**Launch is now the frontier.** All ~50 mixins apply cleanly, and block and item registration
+completes. What remains fails at runtime, and that is a different kind of work from what came
+before — see *The launch phase* for what has already been cleared and how, and *What is next* for
+where it stands.
 
-Every number in this document was produced by running the build, not estimated.
+Every number in this document was produced by running the tool, not estimated.
 
 | | |
 |---|---|
@@ -360,23 +363,117 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 
 The first two are stubs with the full mapping recorded in their class docs — block, sprite shift, predicate, renderer, visual. They are ready to implement, not ready to guess at.
 
+| Legacy contraption storage | Item silos riding a contraption saved in a 1.21.1 world do not come back | `MountedStorageManagerMixin`, excluded |
+
 ### Excluded from compilation
 
 Integrations with mods that have no 26.2 release, excluded per-file in `build.gradle` rather than deleted — one line each to re-enable: **Copycats+, Additional Placements, Dye Depot, Simulated, JEI**. `FeatureRefreshEvent` goes with JEI: it exists only to tell JEI to refresh its list when a feature toggles.
 
-Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated, never at Create) and `SubMenuConfigScreenMixin` (Create Fly has no config UI). `ItemUseOverridesMixin` goes with `ItemUseOverrides`, which Create Fly removed outright.
+Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated, never at Create) and `SubMenuConfigScreenMixin` (Create Fly has no config UI). `ItemUseOverridesMixin` goes with `ItemUseOverrides`, which Create Fly removed outright. `MountedStorageManagerMixin` joins them: `readLegacy` was not renamed, Create Fly deleted legacy contraption storage reading entirely, so there is nowhere to inject and no data to migrate either way.
+
+**Every one of these must also be absent from `create_connected.mixins.json`.** Nothing enforces that — see *The launch phase*.
 
 341 JSONs of compat data for those mods were deleted, along with two recipes upstream had disabled with an always-false condition.
 
 ---
 
+## The launch phase
+
+Both predictions above turned out right, so this section records what the first launches cost and
+how each class of failure was found. The method matters more than the list: **Mixin stops at the
+first hard failure**, so launching repeatedly discovers one bug per run. Auditing statically found
+seven in one pass.
+
+### Audit the mixins against the jar rather than launching
+
+For each mixin, resolve its `@Mixin` target from the file's own imports, `javap` that class, and
+check every `method = "..."` name exists. Build the classpath as:
+
+```bash
+CF=$(ls ~/.gradle/caches/modules-2/files-2.1/maven.modrinth/create-fly/*/*/*.jar | grep -v sources | head -1)
+MC=~/.gradle/caches/fabric-loom/26.2-rc-2
+javap -p -cp "$CF:$MC/minecraft-common.jar:$MC/minecraft-client.jar:$MC/minecraft-client-only.jar" <class>
+```
+
+Skip anything carrying `require = 0` / `expect = 0`, and anything whose target class is absent
+because the mod is not installed — both are fine and will otherwise drown the signal. Checking the
+*name* is not enough on its own: a stale descriptor fails exactly like a stale name, and
+`@Accessor` / `@Invoker` declare no `method =` at all, so they need checking separately from their
+own method names.
+
+Seven were broken. `onRemove` → `affectNeighborsAfterRemoval` accounted for three of them.
+
+### A mixin listed in the config but excluded from compilation kills the game
+
+`mixin/compat/**` is excluded in `build.gradle`, but two of its entries were still named in
+`create_connected.mixins.json`. The config is `"required": true`, so Mixin fails to load the class
+and takes the game with it. The build has no opinion about this at all — the two lists are only
+kept in agreement by hand. If you exclude a mixin, remove it from the config in the same change.
+
+### The mass rename never touched annotation strings
+
+Two separate silent failures, both from the `com.simibubi.create` → `com.zurrtum.create` sweep
+having only rewritten imports and code:
+
+- `@At(value = "INVOKE", target = "Lcom/simibubi/create/...")` still naming the NeoForge package.
+  With `remap = false` these match nothing, and an injection that matches nothing inside an
+  otherwise-valid mixin is simply inert. `SteamEngineBlockMixin`'s `onPlace` was in this state and
+  would have surfaced only after its sibling `onRemove` was fixed.
+- Thirteen descriptors written `Lcom.zurrtum.create...;` **with dots**. A descriptor takes slashes.
+
+Both are invisible to javac and to the launch log. Sweep for them directly:
+
+```bash
+grep -rnE 'L(com|net|org|java)\.[A-Za-z0-9_.$]+;' src/main/java/.../mixin/   # dotted descriptors
+grep -rn "Lcom/simibubi" src/main/java/.../mixin/                            # stale package
+```
+
+### `Item.Properties` needs its registry key before the Item is constructed
+
+26.2 resolves an item's description id inside `Item`'s constructor, so a bare `Properties` throws
+`NullPointerException: Item id not set`. The shim now calls `setId(ResourceKey<Item>)` first.
+
+Block items additionally need `useBlockDescriptionPrefix()` — that is what makes the id read
+`block.<ns>.<name>`, which is the shape all 172 block keys in the committed lang files use. Without
+it there is no error, just every block showing an untranslated name.
+
+Vanilla does both in `Items.registerBlock`, but every overload of it is private and access wideners
+are not transitive, so the shim does it by hand — the same reason it avoids the `BlockItemId`
+overload of `Blocks.register`.
+
+### Eager registration exposes static-init cycles Registrate hid
+
+Registrate deferred block construction until after `CCBlocks` had finished initialising. The shim
+registers eagerly, so a block's `<clinit>` now runs *inside* `CCBlocks.<clinit>`, at the moment the
+very field being assigned is still null.
+
+Three `PlacementHelper`s passed a **bound method reference** — `CCBlocks.SHEAR_PIN::has` and the two
+copycat equivalents — to their super constructor. A bound reference evaluates its receiver
+immediately, so each one NPE'd on the block it belonged to. A lambda defers the read to call time,
+which is always after init.
+
+This is worth knowing generally, not just for these three: **anything evaluated from a `static`
+field of a block or item class now runs mid-registration.** Reads of `CCBlocks` / `CCItems` from
+there have to be lazy. Registries initialised from `onInitialize` (`CCCreativeTabs` and friends) are
+fine, because that runs after every `register()` call has returned.
+
+---
+
 ## What is next
 
-**Launch it.** That is the entire remaining task, and the compile being clean says very little about it:
+**Keep launching.** Each run gets further; the remaining failures are runtime-only and the build
+says nothing about them.
 
-1. **Mixins.** A mixin whose signature no longer mirrors its target compiles fine and is silently inert. There are around fifty. `injectors.defaultRequire = 1` means a mixin that matches nothing *should* fail loudly at load — read the log rather than trusting silence, and note that the client config was pointed at a package with no classes in it until now, so those four have never been exercised at all.
-2. **Registration order.** Nothing here has ever run its entrypoints. The shim registers eagerly at class-init, `CCBlockEntityTypes.register()` now adds the copycat blocks to Create's block entity type, and `EncasingRegistry.addVariant` runs from `onRegister` — all of it is first-run-only code.
-3. **The table above.** *What is missing on purpose* is the test script.
+1. **The table below.** *What is missing on purpose* is the test script for the first run that
+   reaches a world.
+2. **Inert injections.** A mixin can apply and still do nothing if its inner `@At` target moved.
+   The audit above covers the outer method; the inner targets were checked for class resolution but
+   not for the member within it.
+3. **The sequencer GUI.** Create Fly stripped every field off `SequencerInstructions` and moved the
+   display properties to `client...SequencedGearshiftScreen`. The enum side is ported — the three
+   added instructions (`TURN_AWAIT`, `TURN_TIME`, `LOOP`) carry name and ordinal only — but the
+   screen has **not** been taught about them. Expect the sequenced gearshift UI to be wrong for
+   those three. This is the one known-incomplete piece rather than a deliberate omission.
 
 Then the visible gaps, roughly in order of how much they cost: the block entity renderers and Flywheel visuals (`client/CCBlockEntityRenders`), connected textures (`client/CCConnectedTextures`), and server→client config sync (`config/CCommon`). All three are stubs whose class docs record the exact mapping needed.
 
