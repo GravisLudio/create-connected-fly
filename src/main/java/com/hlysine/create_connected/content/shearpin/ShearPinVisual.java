@@ -7,6 +7,6 @@ import com.zurrtum.create.client.flywheel.lib.model.Models;
 
 public class ShearPinVisual extends SingleAxisRotatingVisual<ShearPinBlockEntity> {
     public ShearPinVisual(VisualizationContext context, ShearPinBlockEntity blockEntity, float partialTick) {
-        super(context, blockEntity, partialTick, Models.partial(CCPartialModels.SHEAR_PIN));
+        super(context, blockEntity, partialTick, Models.chunkPartial(CCPartialModels.SHEAR_PIN));
     }
 }

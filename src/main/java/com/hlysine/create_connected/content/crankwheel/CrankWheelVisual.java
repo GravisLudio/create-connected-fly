@@ -29,12 +29,12 @@ public class CrankWheelVisual extends KineticBlockEntityVisual<CrankWheelBlockEn
 
         final boolean isLarge = ICogWheel.isLargeCog(blockEntity.getBlockState());
 
-        crank = instancerProvider().instancer(InstanceTypes.TRANSFORMED, Models.partial(isLarge ? CCPartialModels.LARGE_CRANK_WHEEL_HANDLE : CCPartialModels.CRANK_WHEEL_HANDLE))
+        crank = instancerProvider().instancer(InstanceTypes.TRANSFORMED, Models.chunkPartial(isLarge ? CCPartialModels.LARGE_CRANK_WHEEL_HANDLE : CCPartialModels.CRANK_WHEEL_HANDLE))
                 .createInstance();
 
         rotateCrank(partialTick);
 
-        rotatingModel = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(isLarge ? CCPartialModels.LARGE_CRANK_WHEEL_BASE : CCPartialModels.CRANK_WHEEL_BASE))
+        rotatingModel = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.chunkPartial(isLarge ? CCPartialModels.LARGE_CRANK_WHEEL_BASE : CCPartialModels.CRANK_WHEEL_BASE))
                 .createInstance();
 
         rotatingModel.setup(this.blockEntity)

@@ -34,7 +34,7 @@ public class KineticBatteryVisual extends KineticBlockEntityVisual<KineticBatter
 
             float splitSpeed = speed * blockEntity.getRotationSpeedModifier(dir);
 
-            var instance = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF))
+            var instance = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.chunkPartial(AllPartialModels.SHAFT_HALF))
                     .createInstance();
 
             instance.setup(blockEntity, splitSpeed)

@@ -34,9 +34,9 @@ public class KineticBridgeVisual extends KineticBlockEntityVisual<KineticBlockEn
 
         direction = facing;
         opposite = direction.getOpposite();
-        shaft = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF))
+        shaft = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.chunkPartial(AllPartialModels.SHAFT_HALF))
                 .createInstance();
-        coupling = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(isDestination ? CCPartialModels.KINETIC_BRIDGE_DESTINATION : CCPartialModels.KINETIC_BRIDGE_SOURCE))
+        coupling = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.chunkPartial(isDestination ? CCPartialModels.KINETIC_BRIDGE_DESTINATION : CCPartialModels.KINETIC_BRIDGE_SOURCE))
                 .createInstance();
 
         shaft.setup(blockEntity)

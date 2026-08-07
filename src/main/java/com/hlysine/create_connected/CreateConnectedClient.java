@@ -16,9 +16,9 @@ import net.fabricmc.api.ClientModInitializer;
  * sits next to common code; Fabric only loads it on a client because it is declared under the
  * {@code client} entrypoint in {@code fabric.mod.json}.
  * <p>
- * TODO: block entity renderers and Flywheel visuals used to be chained onto registration through
- * Registrate. They need a {@code CCBlockEntityRenders} registered from here, mirroring Create Fly's
- * {@code AllBlockEntityRenders}.
+ * Order matters in one place: {@code CCPartialModels.register()} has to run before
+ * {@code CCBlockEntityRenders.register()}, because the Flywheel visuals resolve partial models at
+ * construction.
  */
 public class CreateConnectedClient implements ClientModInitializer {
     @Override

@@ -28,7 +28,7 @@ public class SixWayGearboxVisual extends KineticBlockEntityVisual<SixWayGearboxB
 
         updateSourceFacing();
 
-        var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
+        var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.chunkPartial(AllPartialModels.SHAFT_HALF));
 
         for (Direction direction : Iterate.directions) {
             final Direction.Axis axis = direction.getAxis();
