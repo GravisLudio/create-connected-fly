@@ -8,12 +8,14 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**It builds and it starts loading.** `gradlew build` is green, down from 7,162 compile errors.
+**It runs.** The client reaches the main menu, loads into a world, and the creative tab is full of
+blocks that place and render with their proper names. Down from 7,162 compile errors.
 
-**Launch is now the frontier.** All ~50 mixins apply cleanly, and block and item registration
-completes. What remains fails at runtime, and that is a different kind of work from what came
-before — see *The launch phase* for what has already been cleared and how, and *What is next* for
-where it stands.
+What is left is polish, not bring-up: renderers that are still stubs, connected textures not wired,
+and a short list of cosmetic gaps recorded below. Nothing on that list stops the game.
+
+*The launch phase* records what the first runs cost and — more usefully — how each class of failure
+was found, because the finding technique transfers and the individual bugs do not.
 
 Every number in this document was produced by running the tool, not estimated.
 
@@ -478,23 +480,71 @@ field of a block or item class now runs mid-registration.** Reads of `CCBlocks` 
 there have to be lazy. Registries initialised from `onInitialize` (`CCCreativeTabs` and friends) are
 fine, because that runs after every `register()` call has returned.
 
+The deepest instance crossed two classes: `CCBlocks` reached a block whose factory named a
+`CCBlockEntityTypes` field, which triggered *that* class's initialiser, which read a `CCBlocks`
+entry declared two hundred lines further down and still null. Java does not re-enter an initialiser
+already running on the same thread — it hands back the partially-built class. The cycle had a narrow
+waist worth looking for: `CCBlockEntityTypes` referenced `CCBlocks` thirty-seven times, but only two
+blocks referenced back.
+
+### Then the data layer, which fails quietly
+
+Reaching a world turned up 108 recipe parse errors and 37 loot table errors. **Almost none of these
+crash** — the file is logged and dropped, so the recipe simply is not in the game and nothing tells
+you again. One did throw hard (`SequencedAssemblyRecipe`'s codec) and hung world creation, which is
+the only reason the rest were found at all.
+
+Read the target shape off a real file rather than inferring it: vanilla's from the 26.2 jar,
+Create's from Create Fly's own `data/create/recipe/<type>/`. Every fix below came from doing that,
+and one of them corrected an earlier claim in this document.
+
+The formats are catalogued under *Data and asset formats*. The pattern worth carrying forward:
+
+- **A whole class of file can be silently wrong.** 63 recipes died on ingredients still written as
+  `{"item": ...}` objects. Nothing warns; they just do not exist.
+- **A validator that is new in 26.2 rejects what used to pass.** Loot tables meaning "drops nothing"
+  spelled it with an `air` item entry, which is now an error that voids the whole table. Create Fly
+  ships no `pools` key at all instead — see its `blocks/clipboard.json`.
+- **Deleting compat assets can leave the blocks behind.** Sixteen Dye Depot loot tables failed
+  because their blocks do not exist; the sweep that removed 341 compat JSONs had missed 64 more.
+
+`tools/migrate-recipes.js` does the mechanical part. It reports before it writes and only rewrites
+what it actually transformed — walking the data tree also reaches loot tables and tags, which carry
+a `type` and would otherwise be reformatted into a diff that says nothing.
+
 ---
 
 ## What is next
 
-**Keep launching.** Each run gets further; the remaining failures are runtime-only and the build
-says nothing about them.
+The game runs, so the question is no longer "what crashes" but "what is wrong and says nothing".
 
-1. **The table below.** *What is missing on purpose* is the test script for the first run that
-   reaches a world.
-2. **Inert injections.** A mixin can apply and still do nothing if its inner `@At` target moved.
-   The audit above covers the outer method; the inner targets were checked for class resolution but
-   not for the member within it.
-3. **The sequencer GUI.** Create Fly stripped every field off `SequencerInstructions` and moved the
-   display properties to `client...SequencedGearshiftScreen`. The enum side is ported — the three
-   added instructions (`TURN_AWAIT`, `TURN_TIME`, `LOOP`) carry name and ordinal only — but the
-   screen has **not** been taught about them. Expect the sequenced gearshift UI to be wrong for
-   those three. This is the one known-incomplete piece rather than a deliberate omission.
+**Play it against the table.** *What is missing on purpose* is the test script, and it has never
+been walked through in a world.
+
+### Known cosmetic gaps, both found by reading the log of a working session
+
+- **`linked_pale_oak_button` has no model** — 48 "missing model for variant" warnings, all one
+  block. Pale oak is vanilla wood added *after* 1.21.1. The code registers a linked button per wood
+  type, so 26.2 handed it one automatically, but the committed JSONs were generated for the
+  thirteen woods that existed then. Purely additive: copy another wood's blockstate and models.
+- **Seven fan catalysts render untextured** — `enriched`, `glooming`, `transmutation`,
+  `chocolate_coating`, `honey_coating`, `soul_stripping`, `ending_catalyst_dragons_breath`. Their
+  models and textures went out with the 341 deleted compat JSONs, but the blocks are still
+  registered unconditionally, so they sit in the creative tab as missing-texture cubes. Only three
+  catalyst textures remain in the repo (`fan_catalyst_core`, `sanding`, `seething`). Either gate the
+  blocks behind their mod being present, or draw the art — a product decision, not a technical one.
+
+### Still open from before
+
+- **Inert injections.** A mixin can apply and still do nothing if its inner `@At` target moved. The
+  audit under *The launch phase* covers the outer method; inner targets were checked for class
+  resolution but not for the member within the class.
+- **The sequencer GUI.** Create Fly stripped every field off `SequencerInstructions` and moved the
+  display properties to `client...SequencedGearshiftScreen`. The enum side is ported — the three
+  added instructions (`TURN_AWAIT`, `TURN_TIME`, `LOOP`) carry name and ordinal only — but the
+  screen has **not** been taught about them, and its `updateParamsOfRow` injection additionally
+  warns about a `Shift.BY=2` that exceeds `maxShiftBy`. Two signals pointing at the same place.
+  This is the one known-incomplete piece rather than a deliberate omission.
 
 Then the visible gaps, roughly in order of how much they cost: the block entity renderers and Flywheel visuals (`client/CCBlockEntityRenders`), connected textures (`client/CCConnectedTextures`), and server→client config sync (`config/CCommon`). All three are stubs whose class docs record the exact mapping needed.
 

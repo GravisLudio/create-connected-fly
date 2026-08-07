@@ -4,8 +4,12 @@
 > porting it from NeoForge 1.21.1 to **Fabric on Minecraft 26.2**, targeting
 > [Create Fly](https://github.com/ZurrTum/Create-Fly) by ZurrTum.
 >
-> **It does not build yet.** This repository is published so the work is visible, not because it
-> is usable. Do not report bugs here that belong upstream.
+> **It runs, and it is not finished.** The client loads into a world and the blocks place and
+> render, but several renderers are still stubs — cogwheels do not turn, the fluid vessel shows no
+> fluid — connected textures are not wired, and a handful of blocks have no model. There is no
+> release. `PORTING.md` records the state honestly, including what is deliberately missing.
+>
+> Do not report bugs here that belong upstream.
 >
 > All credit for the mod itself goes to **Lysine** and the Create: Connected contributors, and for
 > the 26.2 Create port to **ZurrTum**. Licensed AGPL-3.0, same as upstream.

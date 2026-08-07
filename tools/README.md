@@ -9,6 +9,7 @@ Artefacts from the 26.2 port. See `../PORTING.md` for how they were used.
 | `import-mapping.tsv` | Deterministic old→new import map, with a main/client column |
 | `import-unmatched.txt` | Imports Create Fly has no equivalent for |
 | `strip-datagen.pl` | Removes datagen calls from Registrate-style builder chains |
+| `migrate-recipes.js` | Rewrites recipe JSONs from the 1.21.1 shapes to the 26.2 / Create Fly ones |
 
 Regenerate the class lists after updating Create Fly:
 
@@ -26,3 +27,16 @@ calls nested inside *other* calls' arguments, which leaves a dangling receiver s
 ```bash
 grep -nE "\.(onRegister|transform)\((CCRegistrate|AssetLookup|BuilderTransformers|ModelGen|BlockStateGen)\)"
 ```
+
+`migrate-recipes.js` reports before it writes; pass `--write` to apply.
+
+```bash
+node tools/migrate-recipes.js src/generated/resources/data          # dry run
+node tools/migrate-recipes.js src/generated/resources/data --write
+```
+
+Every shape it targets was read off a real file — vanilla's from the 26.2 jar, Create's from Create
+Fly's own `data/create/recipe/<type>/` — rather than inferred. It deliberately rewrites only what it
+transformed: the walk also reaches loot tables and tags, which carry a `type` and would otherwise
+come back reformatted with no change of meaning. `create:sequenced_assembly` changed shape rather
+than names and is skipped by design.
