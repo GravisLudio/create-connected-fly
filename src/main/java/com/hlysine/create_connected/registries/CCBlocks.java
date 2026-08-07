@@ -948,6 +948,14 @@ public class CCBlocks {
 
                     .register();
 
+    public static final BlockEntry<WrappedStairsBlock> WRAPPED_COPYCAT_STAIRS =
+            REGISTRATE.block("wrapped_copycat_stairs", p -> new WrappedStairsBlock(Blocks.STONE.defaultBlockState(), p))
+                    .initialProperties(() -> Blocks.STONE_STAIRS)
+                    .onRegister(b -> CopycatStairsBlock.stairs = b)
+                    .tag(BlockTags.STAIRS)
+
+                    .register();
+
     public static final BlockEntry<CopycatStairsBlock> COPYCAT_STAIRS =
             REGISTRATE.block("copycat_stairs", CopycatStairsBlock::new)
                     .transform(CCBuilderTransformers.copycat())
@@ -958,11 +966,11 @@ public class CCBlocks {
 
                     .register();
 
-    public static final BlockEntry<WrappedStairsBlock> WRAPPED_COPYCAT_STAIRS =
-            REGISTRATE.block("wrapped_copycat_stairs", p -> new WrappedStairsBlock(Blocks.STONE.defaultBlockState(), p))
-                    .initialProperties(() -> Blocks.STONE_STAIRS)
-                    .onRegister(b -> CopycatStairsBlock.stairs = b)
-                    .tag(BlockTags.STAIRS)
+    public static final BlockEntry<WrappedFenceBlock> WRAPPED_COPYCAT_FENCE =
+            REGISTRATE.block("wrapped_copycat_fence", WrappedFenceBlock::new)
+                    .initialProperties(() -> Blocks.OAK_FENCE)
+                    .onRegister(b -> CopycatFenceBlock.fence = b)
+                    .tag(BlockTags.FENCES)
 
                     .register();
 
@@ -976,11 +984,11 @@ public class CCBlocks {
 
                     .register();
 
-    public static final BlockEntry<WrappedFenceBlock> WRAPPED_COPYCAT_FENCE =
-            REGISTRATE.block("wrapped_copycat_fence", WrappedFenceBlock::new)
-                    .initialProperties(() -> Blocks.OAK_FENCE)
-                    .onRegister(b -> CopycatFenceBlock.fence = b)
-                    .tag(BlockTags.FENCES)
+    public static final BlockEntry<WrappedWallBlock> WRAPPED_COPYCAT_WALL =
+            REGISTRATE.block("wrapped_copycat_wall", WrappedWallBlock::new)
+                    .initialProperties(() -> Blocks.COBBLESTONE_WALL)
+                    .onRegister(b -> CopycatWallBlock.wall = b)
+                    .tag(BlockTags.WALLS)
 
                     .register();
 
@@ -995,11 +1003,11 @@ public class CCBlocks {
 
                     .register();
 
-    public static final BlockEntry<WrappedWallBlock> WRAPPED_COPYCAT_WALL =
-            REGISTRATE.block("wrapped_copycat_wall", WrappedWallBlock::new)
-                    .initialProperties(() -> Blocks.COBBLESTONE_WALL)
-                    .onRegister(b -> CopycatWallBlock.wall = b)
-                    .tag(BlockTags.WALLS)
+    public static final BlockEntry<WrappedFenceGateBlock> WRAPPED_COPYCAT_FENCE_GATE =
+            REGISTRATE.block("wrapped_copycat_fence_gate", p -> new WrappedFenceGateBlock(WoodType.OAK, p))
+                    .initialProperties(() -> Blocks.OAK_FENCE_GATE)
+                    .onRegister(b -> CopycatFenceGateBlock.fenceGate = b)
+                    .tag(BlockTags.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
 
                     .register();
 
@@ -1011,14 +1019,6 @@ public class CCBlocks {
                     .transform(FeatureToggle.register(FeatureCategory.COPYCATS))
                     .item()
                     .tag(CCTags.Items.COPYCAT_FENCE_GATE.tag)
-
-                    .register();
-
-    public static final BlockEntry<WrappedFenceGateBlock> WRAPPED_COPYCAT_FENCE_GATE =
-            REGISTRATE.block("wrapped_copycat_fence_gate", p -> new WrappedFenceGateBlock(WoodType.OAK, p))
-                    .initialProperties(() -> Blocks.OAK_FENCE_GATE)
-                    .onRegister(b -> CopycatFenceGateBlock.fenceGate = b)
-                    .tag(BlockTags.FENCE_GATES, BlockTags.UNSTABLE_BOTTOM_CENTER, AllBlockTags.MOVABLE_EMPTY_COLLIDER)
 
                     .register();
 
