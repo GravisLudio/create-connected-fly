@@ -21,33 +21,37 @@ public class LinkedAnalogLeverBlockEntity extends AnalogLeverBlockEntity {
     public boolean containsBase = true;
     private ServerLinkBehaviour link;
 
-    private final BlockEntityType<?> type;
-
+    /** Unused: the type is read from the registry entry below, not carried through the constructor.
+     *  The signature stays three-argument because BlockEntityBuilder's factory demands it. */
     public LinkedAnalogLeverBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(pos, state);
-        this.type = type;
     }
 
     // Create Fly's AnalogLeverBlockEntity only has a two-argument constructor and hard-codes
     // AllBlockEntityTypes.ANALOG_LEVER into it, so the type this instance actually belongs to is
-    // carried here instead. BlockEntity reads its private type field from exactly three places --
+    // resolved here instead. BlockEntity reads its private type field from exactly three places --
     // getType, typeHolder (which writes the saved id) and isValidBlockState -- and all three are
     // overridable, so redirecting them is enough. Miss one and the block entity saves under
     // Create's id and comes back as a plain analog lever, silently.
+    //
+    // Do not turn this back into a field assigned in the constructor. BlockEntity's own constructor
+    // calls validateBlockState, so isValidBlockState below runs while super() is still executing --
+    // before any field declared here has been assigned. A field is still null on that first call and
+    // the game crashes the moment the block is placed.
 
     @Override
     public BlockEntityType<?> getType() {
-        return type;
+        return CCBlockEntityTypes.LINKED_ANALOG_LEVER.get();
     }
 
     @Override
     public Holder<BlockEntityType<?>> typeHolder() {
-        return type.builtInRegistryHolder();
+        return getType().builtInRegistryHolder();
     }
 
     @Override
     public boolean isValidBlockState(BlockState state) {
-        return type.isValid(state);
+        return getType().isValid(state);
     }
 
     @Override

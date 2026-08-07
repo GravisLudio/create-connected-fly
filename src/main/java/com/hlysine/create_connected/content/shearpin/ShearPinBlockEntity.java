@@ -1,5 +1,6 @@
 package com.hlysine.create_connected.content.shearpin;
 
+import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCBlocks;
 import com.hlysine.create_connected.datagen.advancements.AdvancementBehaviour;
 import com.hlysine.create_connected.datagen.advancements.CCAdvancements;
@@ -18,30 +19,34 @@ public class ShearPinBlockEntity extends BracketedKineticBlockEntity {
 
     static final int RANDOM_DELAY = 5;
 
-    private final BlockEntityType<?> type;
-
+    /** Unused: the type is read from the registry entry below, not carried through the constructor.
+     *  The signature stays three-argument because BlockEntityBuilder's factory demands it. */
     public ShearPinBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(pos, state);
-        this.type = type;
     }
 
     // Create Fly's BracketedKineticBlockEntity hard-codes AllBlockEntityTypes.BRACKETED_KINETIC in
     // its only constructor. BlockEntity reads its private type field from these three methods, so
     // all three redirect -- see LinkedAnalogLeverBlockEntity for the same problem.
+    //
+    // Do not turn this back into a field assigned in the constructor. BlockEntity's own constructor
+    // calls validateBlockState, so isValidBlockState below runs while super() is still executing --
+    // before any field declared here has been assigned. A field is still null on that first call and
+    // the game crashes the moment the block is placed.
 
     @Override
     public BlockEntityType<?> getType() {
-        return type;
+        return CCBlockEntityTypes.SHEAR_PIN.get();
     }
 
     @Override
     public Holder<BlockEntityType<?>> typeHolder() {
-        return type.builtInRegistryHolder();
+        return getType().builtInRegistryHolder();
     }
 
     @Override
     public boolean isValidBlockState(BlockState state) {
-        return type.isValid(state);
+        return getType().isValid(state);
     }
 
     @Override
