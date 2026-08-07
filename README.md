@@ -1,18 +1,25 @@
-> ## ⚠️ Unofficial work-in-progress port
+> ## ⚠️ Unofficial port
 >
 > This is a **fork** of [hlysine/create_connected](https://github.com/hlysine/create_connected),
 > porting it from NeoForge 1.21.1 to **Fabric on Minecraft 26.2**, targeting
 > [Create Fly](https://github.com/ZurrTum/Create-Fly) by ZurrTum.
 >
-> **It runs, and it is not finished.** The client loads into a world and the blocks place and
-> render, but several renderers are still stubs — cogwheels do not turn, the fluid vessel shows no
-> fluid — connected textures are not wired, and a handful of blocks have no model. There is no
-> release. `PORTING.md` records the state honestly, including what is deliberately missing.
+> **It works.** Block entity renderers and Flywheel visuals are across, connected textures are
+> wired, kinetics propagate correctly, and block tints are registered. Tested on a singleplayer
+> client and on a dedicated server.
 >
-> Do not report bugs here that belong upstream.
+> Released as beta on
+> [Modrinth](https://modrinth.com/mod/create-connected-fly-port). Known gaps — the sequenced
+> gearshift screen not knowing Connected's three added instructions, no server→client config sync,
+> no in-game config screen — are listed there and in `PORTING.md`, which records the whole port
+> including what is deliberately missing.
+>
+> **Report issues with this port here, not upstream.** Lysine did not publish this and does not
+> maintain it.
 >
 > All credit for the mod itself goes to **Lysine** and the Create: Connected contributors, and for
-> the 26.2 Create port to **ZurrTum**. Licensed AGPL-3.0, same as upstream.
+> the 26.2 Create port to **ZurrTum**. Licensed AGPL-3.0 with the original's additional terms —
+> see [`LICENSE`](LICENSE).
 
 <p align="center"><img src="https://raw.githubusercontent.com/hlysine/create_connected/main/src/main/resources/create_connected_icon.png" alt="Logo" width="128"></p>
 

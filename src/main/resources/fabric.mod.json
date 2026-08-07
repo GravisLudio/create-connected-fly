@@ -5,16 +5,18 @@
   "name": "${mod_name}",
   "description": "${mod_description}",
   "authors": [
-    "${mod_authors}"
+    "${mod_authors}",
+    "GravisLudio (Fabric 26.2 port)"
   ],
   "contributors": [
     "ZurrTum (Create Fly)",
     "sashafiesta (port Fabric 1.20.1)"
   ],
   "contact": {
-    "homepage": "https://github.com/hlysine/create_connected",
-    "sources": "https://github.com/hlysine/create_connected",
-    "issues": "https://github.com/hlysine/create_connected/issues"
+    "homepage": "https://github.com/GravisLudio/create-connected-fly",
+    "sources": "https://github.com/GravisLudio/create-connected-fly",
+    "issues": "https://github.com/GravisLudio/create-connected-fly/issues",
+    "original": "https://github.com/hlysine/create_connected"
   },
   "license": "${mod_license}",
   "icon": "create_connected_icon.png",
