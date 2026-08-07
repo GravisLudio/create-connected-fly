@@ -238,7 +238,19 @@ There is no extension point in that list, so Connected has its own pair — `mix
 
 ## Reference material
 
-In `dev/_reference/`, all reusable:
+> **`_reference/` is a sibling of this repository, not a directory inside it** — the layout is
+> `dev/{create-connected-fly, _reference}`. A tool or agent whose working directory is the repo
+> cannot see it. Work from `C:\Users\GravisLudio\dev` instead, or grant access explicitly.
+
+**`_reference/Create-Fly` is the single most useful thing here.** It is the full source of the
+target, and nearly every question this port raises — what did this method become, how is this
+registered now, does an equivalent even exist — is answered faster by grepping it than by reasoning
+from the API. Where Create Fly solved the same problem, copy its answer; it is a native 26.2 mod
+and its solutions are known to work. `_reference/create-connected-fabric` is the authorised 1.20.1
+Fabric port: useful for seeing *how* a NeoForge-ism was resolved, but it leans on Porting Lib and
+Registrate, neither of which exists here, so it is never a source to copy from.
+
+Alongside them, in `dev/_reference/` directly, all reusable:
 
 | File | What it is |
 |---|---|
