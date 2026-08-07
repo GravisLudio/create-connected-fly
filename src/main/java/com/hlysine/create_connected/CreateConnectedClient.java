@@ -2,6 +2,7 @@ package com.hlysine.create_connected;
 
 import com.hlysine.create_connected.client.CCConnectedTextures;
 import com.hlysine.create_connected.client.CCBlockEntityRenders;
+import com.hlysine.create_connected.client.CCModels;
 import com.hlysine.create_connected.client.display.CCDisplaySourceRenders;
 import com.hlysine.create_connected.registries.CCBlockEntityBehaviours;
 import com.hlysine.create_connected.registries.CCPartialModels;
@@ -24,6 +25,7 @@ public class CreateConnectedClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         CCPartialModels.register();
+        CCModels.register();
         CCBlockEntityRenders.register();
         CCBlockEntityBehaviours.register();
         CCDisplaySourceRenders.register();
