@@ -15,10 +15,13 @@ import com.hlysine.create_connected.content.inventorybridge.InventoryBridgeBlock
 import com.hlysine.create_connected.content.inventorybridge.InventoryBridgeFilterSlot;
 import com.hlysine.create_connected.content.kineticbridge.KineticBridgeBlockEntity;
 import com.hlysine.create_connected.content.kineticbridge.StressImpactScrollValueBehaviour;
+import com.hlysine.create_connected.content.linkedtransmitter.LinkedTransmitterFrequencySlot;
+import com.hlysine.create_connected.mixin.linkedtransmitter.LinkBehaviourAccessor;
 import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlock;
 import com.hlysine.create_connected.content.overstressclutch.OverstressClutchBlockEntity;
 import com.hlysine.create_connected.content.overstressclutch.TimeDelayScrollValueBehaviour;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
+import com.zurrtum.create.client.content.redstone.link.LinkBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.filtering.SidedFilteringBehaviour;
 import com.zurrtum.create.client.foundation.blockEntity.behaviour.scrollValue.RotationDirectionScrollBehaviour;
@@ -71,6 +74,35 @@ public class CCBlockEntityBehaviours {
         // Goggle tooltips are read off a TooltipBehaviour now, not off the block entity.
         add(CCBlockEntityTypes.FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
         add(CCBlockEntityTypes.CREATIVE_FLUID_VESSEL.get(), FluidVesselTooltipBehaviour::new);
+
+        // The link half. ServerLinkBehaviour, which the block entities add themselves in
+        // addBehaviours, carries the frequency and does the transmitting; this is the other half --
+        // the two coloured slots you right-click to set that frequency. Without it a linked lever
+        // works internally and offers the player no way to tune it, which reads as "the block is
+        // dead". Create Fly registers the same class for its own REDSTONE_LINK.
+        //
+        // LINKED_TRANSMITTER covers the linked lever and all fourteen linked buttons; the analog
+        // lever has its own block entity type.
+        add(CCBlockEntityTypes.LINKED_TRANSMITTER.get(), CCBlockEntityBehaviours::link);
+        add(CCBlockEntityTypes.LINKED_ANALOG_LEVER.get(), CCBlockEntityBehaviours::link);
+    }
+
+    /**
+     * The client half of the redstone link, with Connected's own slot placement.
+     * <p>
+     * {@code LinkBehaviour}'s constructor installs {@code RedstoneLinkFrequencySlot}, which reads a
+     * six-valued {@code FACING} off the block state. A lever does not have that property, so the
+     * default slots crash the client one tick later inside {@code LinkRenderer.tick}. Upstream
+     * avoided this by passing its own slots to {@code LinkBehaviour.transmitter(...)}; that overload
+     * went with the server/client split, so the slots are swapped in afterwards instead — see
+     * {@code mixin/linkedtransmitter/LinkBehaviourAccessor}.
+     */
+    private static BlockEntityBehaviour<?> link(SmartBlockEntity be) {
+        LinkBehaviour behaviour = new LinkBehaviour(be);
+        LinkBehaviourAccessor slots = (LinkBehaviourAccessor) behaviour;
+        slots.create_connected$setFirstSlot(new LinkedTransmitterFrequencySlot(true));
+        slots.create_connected$setSecondSlot(new LinkedTransmitterFrequencySlot(false));
+        return behaviour;
     }
 
     private static BlockEntityBehaviour<?> kineticBatteryDirection(KineticBatteryBlockEntity be) {

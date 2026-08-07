@@ -8,6 +8,7 @@
     "sequencedgearshift.AbstractSimiScreenAccessor",
     "sequencedgearshift.SequencedGearshiftScreenMixin",
     "crankwheel.ClientCrankWheelPlacementMixin",
+    "linkedtransmitter.LinkBehaviourAccessor",
     "tint.BlockColorsMixin"
   ],
   "injectors": {
