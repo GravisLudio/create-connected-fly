@@ -230,6 +230,139 @@ Two cases did not need it, and are worth copying instead:
 - **The subclass adds nothing structural.** The inverted clutch and gearshift are only a `getRotationSpeedModifier` override, so they extend `SplitShaftBlockEntity` — the shared parent, which still takes a type.
 - **We do not need our own type at all.** The copycats join *Create's* type through Fabric's `((FabricBlockEntityType) type).addValidBlock(block)`, from `fabric-object-builder-api-v1`. Their block entities now save as `create:copycat`.
 
+### Block tints: the API survived, the event did not
+
+`CCColorHandlers` was a stub whose doc claimed 26.2 had made tinting purely data-driven with nothing
+left to register from code. That was inferred, and it was wrong.
+`BlockColors.register(List<BlockTintSource>, Block...)` is still there, and
+`BlockTintSources.water()` is the old `BiomeColors.getAverageWaterColor` under a new name. What
+actually went away is NeoForge's `RegisterColorHandlersEvent` — Fabric has no hook into
+`BlockColors.createDefault()`, so registration goes through a mixin, which is how Create Fly reaches
+its own `AllBlockTints`. Inject at `RETURN` rather than `TAIL` and the return value is populated, so
+no MixinExtras `@Local` is needed to get at the instance being built.
+
+Two things were missing, and the second is the one worth remembering:
+
+- **`BlockTintSources.water()` on the fan washing catalyst.** Its water rendered white. Needs
+  `tintindex: 0` on the faces it should colour, which the model carries.
+- **`AllBlockTints.WrappedBlockColor` on all nine copycats.** A copycat draws the material's quads
+  but not the material's *tint*, so every biome-tinted material came out with its raw texture — grass
+  is grey in the file and gets its green entirely from the tint. `WrappedBlockColor` forwards the
+  lookup to whatever block is being copied. Create Fly registers three of them, one per tint index,
+  for `COPYCAT_STEP` and `COPYCAT_PANEL`; Connected's nine were simply never added to that list.
+
+The item side is still open and is genuinely data-driven: an `ItemTintSource` in
+`assets/create_connected/items/<id>.json`, with no code-side registration at all. Until it is
+written the washing catalyst's water is still white **in the inventory**, correct in the world.
+
+### A no-op builder transformer cost three wrong hypotheses in the model layer
+
+**Copycats rendered see-through, with or without a material applied, and light leaked through them.**
+The cause was `CCBuilderTransformers.copycat()` returning its builder untouched. Create's version
+sets the block's base properties, and the one that mattered is `noOcclusion()`. Without it a copycat
+claims to be a solid full cube: its neighbours cull the faces touching it, while its own model is a
+slab, a wall or a fence. What you see through the holes is the neighbours' missing faces.
+
+**The symptom was in rendering; the bug was in registration.** Three hypotheses were tried in the
+model layer first and all three are wrong — recorded so nobody pays for them twice:
+
+1. *The port bucketed quads by the wrong face.* `CCCopycatModel` puts quads assembled from source
+   face `D` into `D`'s culled bucket, which would delete a wall's interior pole when a solid
+   neighbour sits to the north. Plausible, and it even matched the "wall looks like several
+   overlapping" symptom. Emitting everything unculled instead **changed nothing**. Reverted.
+2. *`assemblePiece` was mistranslated.* It is not — a line-by-line diff against upstream shows the
+   same cull mask, the same crop, the same offset. Only `BakedQuadHelper.cloneWithCustomGeometry` →
+   `BakedModelHelper.cropAndMove` differs, which is the documented API change.
+3. *The blockstate points at the wrong model.* It points at `minecraft:block/air` — and so does
+   upstream's. The copycat model is generated entirely in code; the blockstate is a placeholder.
+
+Two process lessons, both expensive:
+
+- **A transformer that returns its argument unchanged is a stub, and it does not look like one.**
+  Grep for them: `grep -n "return builder;\|return b;" registries/CCBuilderTransformers.java`. This
+  one even carried a comment confidently explaining why it had nothing to do.
+- **When a rendering symptom does not reproduce in Create Fly alone, the difference is in this mod —
+  and it need not be in a renderer.** Registration is the other half. The instinct to keep digging
+  in the model layer, three times, was the wrong instinct.
+
+Create Fly's property set for its own copycats, which this now mirrors:
+
+```java
+Properties.ofFullCopy(Blocks.GOLD_BLOCK).noOcclusion().mapColor(MapColor.NONE)
+    .isValidSpawn(Blocks::never).emissiveRendering(CopycatPanelBlock::hasEmissiveLighting)
+```
+
+`SharedProperties.softMetal()` is already `GOLD_BLOCK`, so the base copy matches. Per-shape extras
+compose after the transform — two call sites add `forceSolidOn()`, exactly as Create Fly does for
+`COPYCAT_STEP`.
+
+**`emissiveRendering` is deliberately left off, and there is a real bug behind that.** Adding it made
+every copycat glow in the dark. The predicate reads `CopycatBlock.EMISSIVE`, and nothing in this mod
+ever sets it: `BooleanProperty.create` lists `true` before `false`, `StateDefinition` takes the first
+value of each property for the default state, and `CopycatBlock`'s constructor does not override it —
+so the property defaults to `true` on all nine blocks. Their own `registerDefaultState` calls chain
+off `defaultBlockState()` and preserve it.
+
+Fixing it properly means adding `.setValue(CopycatBlock.EMISSIVE, false)` to `registerDefaultState`
+in all nine block classes; then the predicate can go back on. Leaving it off costs only the feature —
+a copycat of glowstone will not glow — and that never worked here anyway, because before this nothing
+read the property. Note the signature also narrowed to `Predicate<BlockState>` in 26.2; it took
+`(state, level, pos)` before.
+
+The lesson that generalises: **before fixing a rendering oddity in a block this mod inherits from
+Create, reproduce it on Create Fly alone.** It costs one launch and it has now twice pointed the
+work somewhere other than where the symptom appeared.
+
+### Registrate registered things for you; porting the class is only half of it
+
+Three times now the same shape: a class was ported, compiled, and never called, and the symptom was
+silence rather than an error.
+
+| What was written | What was never called | Symptom |
+|---|---|---|
+| Every block entity renderer and Flywheel visual | `CCBlockEntityRenders.register()` | Nothing turned |
+| All nine copycat models, plus the fluid vessel's | `CCModels.register()` | Copycats **invisible**, in world and in inventory |
+| `ItemSiloCTBehaviour`, `FluidVesselCTBehaviour` | `CCConnectedTextures.register()` | A stack of silos read as separate blocks instead of one vessel |
+| The tint sources | nothing at all — the class was a stub | Catalyst water white, copycat grass grey |
+| The client `LinkBehaviour` | `CCBlockEntityBehaviours.register()` | Linked levers and buttons had no frequency slots — no way to tune them, so they read as dead blocks |
+
+Five for five. Every one compiled, and every one was silent.
+
+The last is the sharpest illustration of the split this port keeps running into: a behaviour with a
+value **and** a widget is two classes now. `ServerLinkBehaviour` is added by the block entity in
+`addBehaviours` and carries the frequency and the transmitting; the client `LinkBehaviour` carries
+the value box slots and goes in the type-keyed client registry. Register one and the block half
+works, invisibly. **Any Create behaviour with both a value and a widget needs both halves —
+`ScrollValueBehaviour`, `LinkBehaviour`, `ScrollOptionBehaviour`, `FilteringBehaviour`.**
+
+The cause is structural, not carelessness. Registrate chained these onto block registration —
+`.onRegister(CreateRegistrate.blockModel(() -> CopycatSlabModel::new))` — and the port had to strip
+those calls because they name client classes from a class that runs on both sides. Stripping them
+left no compiler error behind, so nothing pointed at the hole.
+
+The copycat one is the nastiest to diagnose from in-game symptoms: **a model that bakes to nothing
+is not a missing model.** No warning is logged, because the file resolved fine — it simply had no
+material and therefore no quads. Grepping the log finds nothing at all.
+
+So: **if a class in this port is referenced only by its own file, suspect it is dead.**
+
+```bash
+grep -rn "ClassName" --include=*.java src/ | grep -v "/ClassName.java:"
+```
+
+Create Fly's side is `AllModels.ALL`, a public `Map<Block, BiFunction<BlockState, UnbakedRoot,
+UnbakedRoot>>` that its `BlockStateModelLoaderMixin` consults while baking, so registering into it
+from the client entrypoint is all that is required. The authoritative list of what to register is
+upstream's, not memory:
+
+```bash
+git show b5e21592:src/main/java/com/hlysine/create_connected/registries/CCBlocks.java | grep -B6 blockModel
+```
+
+That turns up twelve bindings, and only nine of them are copycats — the fluid vessel binds two
+variants through static factories rather than a constructor, and the shear pin borrows Create's own
+`BracketedKineticBlockModel`.
+
 ### A block drawn by its renderer needs a particle-only blockstate model, and `Models.chunkPartial`
 
 Symptom: the crank wheels rendered as two wheels Z-fighting, one static and one turning. It appeared
@@ -292,6 +425,22 @@ hazard in the block and missed it in the mixin.
 not read that block entity's own block out of the world. It is gone. This bites harder in 26.2
 because `onRemove(state, level, pos, newState, isMoving)` — which handed you the outgoing state —
 became `affectNeighborsAfterRemoval(state, level, pos, movedByPiston)`, and the name is the warning.
+
+**A second bug lived in the same helper: detaching without re-attaching.** Placing or breaking a
+cross connector stopped whatever sat past it, permanently — and breaking that block and putting it
+back started it again, which is a workaround that makes a logic bug look like a rendering one.
+
+`KineticHelper.updateKineticBlock` calls `detachKinetics()` and `removeSource()`, leaving the block
+entity with no source and no reason to look for one. `KineticBlockEntity.tick` only calls
+`attachKinetics()` when `needsSpeedUpdate()` is true, and `updateSpeed` is otherwise set in exactly
+one place: the constructor. So replacing the block was the *only* thing that could revive it.
+
+Upstream never had to think about it because `markAndNotifyBlock(pos, chunk, state, state, 3, 512)`
+carried a flag-1 neighbour update and a 512-deep shape-update recursion, and the two-call replacement
+(`sendBlockUpdated` + `updateNeighborsAt`) reproduces neither. Setting `kineticTE.updateSpeed = true`
+is the direct expression of what was lost. When a vanilla helper is replaced by "the parts of it we
+appeared to need", write down which parts were dropped — this is the second bug to come out of that
+one substitution.
 
 ### Goggle tooltips are behaviours now, and a block entity that implements the interface shows nothing
 
@@ -441,7 +590,7 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 | What | Consequence | Where |
 |---|---|---|
 | ~~Block entity renderers and Flywheel visuals~~ | **Done.** All 24 are registered — see *Block entity renderers* below | `client/CCBlockEntityRenders` |
-| Connected textures | Encased gearboxes and the item silo show unconnected casing | `client/CCConnectedTextures` |
+| ~~Connected textures~~ | **Done.** Both halves — the CT model and the casing connectivity | `client/CCConnectedTextures` |
 | Server→client config sync | Feature toggles can disagree between sides | `config/CCommon` |
 | Item-use priority | Right-clicking a linked transmitter holding a placeable item may place it | `registries/PreciseItemUseOverrides` |
 | Battery charge level | Kinetic battery renders empty at every charge | `assets/.../items/kinetic_battery.json` |
@@ -449,10 +598,11 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 | Lighter-than-air fluids | Gases pool at the bottom of a vessel instead of floating to the top | Create Fly has no fluid-type API; it stubs the same branch out |
 | Multiblock placement sound | Placing a vessel or silo plays one metal step per block, not one per structure | `getSoundType(state, level, pos, entity)` is gone from vanilla |
 | Feature toggle UI | No in-game config screen; toggles are edited by file | Create Fly has no `catnip.config.ui` |
-| Fan washing catalyst tint | Renders untinted | `CCColorHandlers` (stub). Its class doc is **wrong** that nothing can be registered from code: `BlockColors.register(List<BlockTintSource>, Block...)` exists, `BlockTintSources.water()` is the water source, and Create Fly reaches it from `mixin/BlockColorsMixin` because there is no event. Blocked behind the composite-model bug below, which stops this block rendering at all |
+| ~~Fan washing catalyst tint~~ | **Done.** See *Block tints* below — the same change also fixed biome tinting on the copycats | `client/CCBlockTints` |
 | Creative tab ordering | The tab no longer sits after Create's palettes tab | `withTabsBefore` was removed from the builder |
 | Copycats+ migration | Copycat blocks never convert to their Copycats+ equivalents | `CopycatsManager` excluded; the gated branches were collapsed to their fallbacks |
-| Crank wheel handle renderer | Without Flywheel (or with it off) the crank wheel draws no handle | `HandCrankRenderer` no longer asks the block entity for its model — it needs its own renderer. Flywheel visuals do draw it |
+| ~~Crank wheel handle renderer~~ | **Done.** `CrankWheelRenderer` covers the no-Flywheel path | `content/crankwheel/CrankWheelRenderer` |
+| **Never launched a dedicated server** | Unknown. `run/` has no server files at all | Several block entities import client-only classes — `CrankWheelBlockEntity` pulls in `CachedBuffers` and `SuperByteBuffer` — with no `@Environment(EnvType.CLIENT)` guard |
 | Copycat block entity id | Connected's copycat blocks now save as `create:copycat` | They joined Create's block entity type rather than registering a second one — see *Traps*. No 26.2 world predates this, but it is a one-way change |
 | Pick-block on a linked transmitter | Picks the module rather than the base when the crosshair target is unavailable | `getCloneItemStack` lost its `HitResult`; `LinkedTransmitterBlock.isHittingBase(state, level, pos)` reads the client target instead |
 | Pick-block on an encased cross connector | Always gives the encased block, never the bare connector | Same removal, and here there is no sensible fallback |
@@ -655,11 +805,24 @@ this long.
 
 `net.minecraft.client.renderer.block.model.CompositeBlockModel` exists in 26.2 but is **not** a
 drop-in: its `Unbaked` is `(normal, custom, transformation)`, a pairing rather than a list of named
-children with independent render types. The honest fix is to flatten each into a single model the
-way `fan_catalyst/with_content.json` already does for the other thirteen catalysts — frame, core and
-content elements in one file under one render type. That is model authoring, not a JSON rename, and
-`fan_splashing_catalyst` additionally needs `tintindex: 0` kept on its content faces for the water
-tint above to have anything to colour.
+children with independent render types.
+
+**Fixed by flattening, and the split is worth knowing.** All five are `frame` — which is always
+`fan_catalyst/empty` — plus one extra child:
+
+- **Splashing, purifying, sculking** became one model each: the frame's seven elements followed by
+  the child's, under the frame's single `render_type`. Merge the `textures` maps carefully — the
+  child's keys can collide with the frame's `0` and `1`, and a collision silently repaints the
+  frame. Check `texture_size` before merging too; it is per-model, so a child on a different one
+  cannot be merged at all without rescaling every UV. These three were all on the default 16.
+  `fan_splashing_catalyst` keeps `tintindex: 0` on its six water faces so the water tint above has
+  something to colour.
+- **Exploding and the dragon head** became **frame only**. Their heads are drawn by
+  `FanCatalystRotatingHeadRenderer`, so baking the head into the block model would draw it twice —
+  the crank wheel bug again. `dragon_head` is also `texture_size: [256, 256]` against the frame's
+  16, which rules out merging regardless. The cost is that their inventory icons show a bare frame,
+  since block entity renderers do not run for items; `item.json` inherits `block.json` today, so
+  giving them a proper icon means splitting the two.
 
 ### Still open from before
 
