@@ -11,8 +11,16 @@ Written to be read cold. If you are picking this up with no context, read *State
 **It runs.** The client reaches the main menu, loads into a world, and the creative tab is full of
 blocks that place and render with their proper names. Down from 7,162 compile errors.
 
-What is left is polish, not bring-up: renderers that are still stubs, connected textures not wired,
-and a short list of cosmetic gaps recorded below. Nothing on that list stops the game.
+What is left is polish, not bring-up: connected textures not wired, server→client config sync
+missing, and a short list of cosmetic gaps recorded below. Nothing on that list stops the game.
+
+Block entity renderers and Flywheel visuals are **across and registered** — moving parts move.
+
+A warning about this document, earned the hard way: three separate claims in it — one in a table,
+two in class docs — turned out to be reasoned from what the code looked like rather than from what
+it did, and all three were wrong. Where an entry below records a *consequence* without recording how
+it was observed, treat it as a hypothesis and audit it before acting on it. The corrected entries
+say what was actually measured.
 
 *The launch phase* records what the first runs cost and — more usefully — how each class of failure
 was found, because the finding technique transfers and the individual bugs do not.
@@ -206,17 +214,84 @@ Create Fly gave most of its block entities a **two-argument constructor** that h
 `BlockEntity.type` is private. Exactly three methods read it, and **all three are overridable and all three matter**:
 
 ```java
-@Override public BlockEntityType<?> getType()                  { return type; }
-@Override public Holder<BlockEntityType<?>> typeHolder()       { return type.builtInRegistryHolder(); }
-@Override public boolean isValidBlockState(BlockState state)   { return type.isValid(state); }
+@Override public BlockEntityType<?> getType()                  { return CCBlockEntityTypes.SHEAR_PIN.get(); }
+@Override public Holder<BlockEntityType<?>> typeHolder()       { return getType().builtInRegistryHolder(); }
+@Override public boolean isValidBlockState(BlockState state)   { return getType().isValid(state); }
 ```
 
 Overriding only `getType` looks right and is not: `typeHolder` is what writes the saved id, so the block entity would come back from disk as Create's plain one. `isValidBlockState` is checked against the type's valid-blocks set, which will not contain our block. Neither failure appears at build time. `LinkedAnalogLeverBlockEntity` and `ShearPinBlockEntity` do all three.
+
+**The type must come from the registry entry, not from a field.** The obvious version — take the type as a constructor argument, store it, return the field from all three — compiles and then crashes on the first block placement with `NullPointerException: ... because "this.type" is null`. `BlockEntity`'s own constructor calls `validateBlockState`, which calls the `isValidBlockState` override *while `super()` is still running*, before any field declared in the subclass has been assigned. The three-argument constructor stays, because `BlockEntityBuilder`'s factory demands that shape, but its `type` argument is deliberately ignored.
+
+That is the general hazard, not a quirk of these two classes: **anything reachable from a Create Fly superclass constructor sees a subclass whose fields are all still default.** `SmartBlockEntity`'s constructor also calls `addBehaviours`, so a behaviour that reads a constructor-assigned field has the same problem, and a field with a declaration-site initialiser assigned inside `addBehaviours` gets silently overwritten a moment later. Both were audited across the mod on 2026-08-06 and only the two type fields were affected.
 
 Two cases did not need it, and are worth copying instead:
 
 - **The subclass adds nothing structural.** The inverted clutch and gearshift are only a `getRotationSpeedModifier` override, so they extend `SplitShaftBlockEntity` — the shared parent, which still takes a type.
 - **We do not need our own type at all.** The copycats join *Create's* type through Fabric's `((FabricBlockEntityType) type).addValidBlock(block)`, from `fabric-object-builder-api-v1`. Their block entities now save as `create:copycat`.
+
+### A block drawn by its renderer needs a particle-only blockstate model, and `Models.chunkPartial`
+
+Symptom: the crank wheels rendered as two wheels Z-fighting, one static and one turning. It appeared
+the moment the renderers were registered, and nothing in the port had changed — upstream's
+blockstate, partial models and visual are byte-for-byte what we carried over.
+
+What changed is 1.21.1 → 26.2. **`RenderShape.ENTITYBLOCK_ANIMATED` no longer exists**; the enum is
+down to `INVISIBLE` and `MODEL`. That constant was how a block said "do not bake me into the chunk
+mesh, my renderer draws me". Create Fly replaced it with a convention instead: nine of its blocks —
+`hand_crank`, `flywheel`, `belt`, `crushing_wheel`, the doors — point their blockstate at a
+**particle-only model**, a file whose entire content is one `particle` texture:
+
+```json
+{ "textures": { "particle": "create:block/axis" } }
+```
+
+Connected's crank wheel is a subclass of Create's hand crank and its visual draws the same partial
+model the blockstate was baking, so the geometry landed twice. Fixed by mirroring `hand_crank`
+exactly: `crank_wheel/particle.json` and `large_crank_wheel/particle.json`, both blockstates
+repointed, and a `CrankWheelRenderer` for the no-Flywheel path.
+
+**That renderer is not optional.** Once the blockstate is particle-only, nothing else draws the
+block when Flywheel is off. Create Fly's `HandCrankRenderer` hard-codes Create's own partial models
+— it will not draw a Connected block — so reusing it leaves the wheel invisible or wearing Create's
+hand crank. Any block given a particle-only model needs its own renderer in the same change.
+
+**Second, related: `Models.partial` versus `Models.chunkPartial`.** Flywheel gained the split in
+this version, so every visual carried over from upstream uses `partial` — all nine of ours did.
+Create Fly's own split is by context, 128 `chunkPartial` against 30 `partial`:
+
+| Use | Which |
+|---|---|
+| A visual for a block sitting in the world | `chunkPartial` — applies world-space normal darkening |
+| A contraption actor (`*ActorVisual`, `StabilizedBearingVisual`) | `partial` — there is no chunk to light against |
+
+All nine were moved to `chunkPartial`. Wrong here is not a crash or a missing model; it is lighting
+that looks subtly flat, which is exactly the kind of thing that gets blamed on a shader pack.
+
+### `detachKinetics` runs after the block is already air
+
+The cross connector forwarded rotation when a source was **attached** and not when one was
+**removed**: everything past the connector kept spinning at its old speed, and the goggles agreed —
+16 RPM with nothing driving it. So the block entity was genuinely stale, server side, not just its
+visual.
+
+`RotationPropagatorMixin.forwardConnection` walks the chain by asking each block to forward the
+connection, and hands `CrossConnectorBlock.forwardConnection` the state of the block the hop starts
+from. It read that state out of the world. But the mixin sits on
+`RotationPropagator.getPotentialNeighbourLocations`, and one of that method's callers is
+`handleRemoved` ← `KineticBlockEntity.detachKinetics` ← the block entity's `remove()` — which the
+chunk calls **after** it has already replaced the block with air. `forwardConnection` opens with an
+`instanceof IRotate` test, air fails it, forwarding stops at the connector, and nothing beyond it is
+ever told its source is gone.
+
+Fix: for the first hop use `be.getBlockState()`, the block entity's cached state, which is still the
+real one. `CrossConnectorBlock.updateConnections` already guarded this way — upstream knew the
+hazard in the block and missed it in the mixin.
+
+**The general shape is worth carrying:** any code reached from a block entity's removal path must
+not read that block entity's own block out of the world. It is gone. This bites harder in 26.2
+because `onRemove(state, level, pos, newState, isMoving)` — which handed you the outgoing state —
+became `affectNeighborsAfterRemoval(state, level, pos, movedByPiston)`, and the name is the warning.
 
 ### Goggle tooltips are behaviours now, and a block entity that implements the interface shows nothing
 
@@ -365,7 +440,7 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 
 | What | Consequence | Where |
 |---|---|---|
-| Block entity renderers and Flywheel visuals | Cogwheels and clutches do not turn, fluid vessel shows no fluid, dashboard shows no text | `client/CCBlockEntityRenders` |
+| ~~Block entity renderers and Flywheel visuals~~ | **Done.** All 24 are registered — see *Block entity renderers* below | `client/CCBlockEntityRenders` |
 | Connected textures | Encased gearboxes and the item silo show unconnected casing | `client/CCConnectedTextures` |
 | Server→client config sync | Feature toggles can disagree between sides | `config/CCommon` |
 | Item-use priority | Right-clicking a linked transmitter holding a placeable item may place it | `registries/PreciseItemUseOverrides` |
@@ -374,7 +449,7 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 | Lighter-than-air fluids | Gases pool at the bottom of a vessel instead of floating to the top | Create Fly has no fluid-type API; it stubs the same branch out |
 | Multiblock placement sound | Placing a vessel or silo plays one metal step per block, not one per structure | `getSoundType(state, level, pos, entity)` is gone from vanilla |
 | Feature toggle UI | No in-game config screen; toggles are edited by file | Create Fly has no `catnip.config.ui` |
-| Fan washing catalyst tint | Renders grey instead of water-coloured | `CCColorHandlers` (stub) — needs tint entries in two JSONs |
+| Fan washing catalyst tint | Renders untinted | `CCColorHandlers` (stub). Its class doc is **wrong** that nothing can be registered from code: `BlockColors.register(List<BlockTintSource>, Block...)` exists, `BlockTintSources.water()` is the water source, and Create Fly reaches it from `mixin/BlockColorsMixin` because there is no event. Blocked behind the composite-model bug below, which stops this block rendering at all |
 | Creative tab ordering | The tab no longer sits after Create's palettes tab | `withTabsBefore` was removed from the builder |
 | Copycats+ migration | Copycat blocks never convert to their Copycats+ equivalents | `CopycatsManager` excluded; the gated branches were collapsed to their fallbacks |
 | Crank wheel handle renderer | Without Flywheel (or with it off) the crank wheel draws no handle | `HandCrankRenderer` no longer asks the block entity for its model — it needs its own renderer. Flywheel visuals do draw it |
@@ -521,18 +596,70 @@ The game runs, so the question is no longer "what crashes" but "what is wrong an
 **Play it against the table.** *What is missing on purpose* is the test script, and it has never
 been walked through in a world.
 
-### Known cosmetic gaps, both found by reading the log of a working session
+### Known cosmetic gaps — both were resolved, and neither was what it looked like
 
-- **`linked_pale_oak_button` has no model** — 48 "missing model for variant" warnings, all one
-  block. Pale oak is vanilla wood added *after* 1.21.1. The code registers a linked button per wood
-  type, so 26.2 handed it one automatically, but the committed JSONs were generated for the
-  thirteen woods that existed then. Purely additive: copy another wood's blockstate and models.
-- **Seven fan catalysts render untextured** — `enriched`, `glooming`, `transmutation`,
-  `chocolate_coating`, `honey_coating`, `soul_stripping`, `ending_catalyst_dragons_breath`. Their
-  models and textures went out with the 341 deleted compat JSONs, but the blocks are still
-  registered unconditionally, so they sit in the creative tab as missing-texture cubes. Only three
-  catalyst textures remain in the repo (`fan_catalyst_core`, `sanding`, `seething`). Either gate the
-  blocks behind their mod being present, or draw the art — a product decision, not a technical one.
+- **`linked_pale_oak_button` had no model** — **done.** Pale oak is vanilla wood added *after*
+  1.21.1, and the buttons are registered by iterating `BlockSetType.values()`, so 26.2 handed the
+  mod a fourteenth button that the committed JSONs knew nothing about. Purely additive, and the
+  only wood-specific content in the blockstate is two references to `minecraft:block/oak_button`.
+  Added: blockstate, loot table, `create:safe_nbt` tag entry, `en_us` and `en_ud`. Take `en_ud`
+  glyphs from entries already in the file rather than typing codepoints — `l` is `ן` (U+05DF, final
+  nun) and `B` is `ᗺ` (U+15FA), and both are easy to get subtly wrong.
+- **"Seven fan catalysts render untextured"** — **the diagnosis was wrong on every count.** What an
+  audit actually found:
+  - They are *not* registered unconditionally. All seven carry
+    `FeatureToggle.addCondition(Mods.X::isLoaded)`, and `CCCreativeTabs` filters both the tab and
+    the search list on `FeatureToggle.isEnabled`. They never appear in the creative tab.
+  - Their models and textures were *not* deleted. Every blockstate resolves to a model that exists,
+    and of 1,414 texture references in the mod's models, every `create_connected:` one resolves.
+  - Five of them reference textures belonging to mods with no 26.2 release (`createnuclear`,
+    `create_shimmer`, `create_dragons_plus`, `createnetherindustry`, `twilightforest`). That is
+    inherent to gated compat content, not a porting gap. Nothing to fix.
+  - **Two were a real bug, now fixed**: chocolate and honey coating pointed at
+    `create:fluid/chocolate_still` / `honey_still`. **Create Fly moved fluid textures from
+    `textures/fluid/` to `textures/block/`.** Of 833 `create:` texture references in the mod those
+    two were the only broken ones — worth re-running that check after any Create Fly bump.
+
+The audit that produced this is worth repeating rather than describing: parse every model's
+`textures` node (parse the JSON — a regex for `"…": "create:…"` also matches `parent` and reports
+nonsense), resolve each id against `src/{main,generated}/resources` and against the Create Fly jar's
+`assets/<ns>/textures/<path>.png` entries, and group what is left by namespace. Missing entries in
+another mod's namespace are gated content; missing entries in `create:` are the port's own bugs.
+
+**Run the same audit over `parent` as well as `textures`, and check `create:` ids against the jar
+rather than assuming a foreign namespace is fine.** Skipping that hid a live bug for a whole
+session: `block/inverted_clutch/item` and `block/inverted_gearshift/item` inherited
+`create:item/clutch` and `create:item/gearshift`, which Create Fly moved to `create:block/clutch/item`
+and `create:block/gearshift/item`. Both items rendered as missing-texture cubes in the hand and the
+hotbar. Of eight `create:` parent references in the mod, those were the only two broken.
+
+The log had been saying so all along — `Missing block model: create:item/clutch` — which is the
+better lesson: **grep `run/logs/latest.log` for `Missing`, `Unable to load` and `Couldn't parse`
+before reasoning about a resource problem.** After these fixes the only such warnings left are the
+eleven belonging to the five mod-gated catalysts above.
+
+### Five models still carry NeoForge's composite loader
+
+Found by the same audit and **not previously recorded**. These five block models are
+`"loader": "neoforge:composite"` with named `children`, each child carrying its own `render_type`:
+
+```
+fan_splashing_catalyst  fan_purifying_catalyst  fan_sculking_catalyst
+fan_exploding_catalyst  fan_ending_catalyst_dragon_head
+```
+
+Fabric has no such loader. Vanilla's model parser ignores the unknown `loader` and `children` keys,
+finds no `elements`, and inherits `minecraft:block/block` — so these blocks build an **empty** model
+rather than a wrong one. It raises no error and no missing-model warning, which is why it survived
+this long.
+
+`net.minecraft.client.renderer.block.model.CompositeBlockModel` exists in 26.2 but is **not** a
+drop-in: its `Unbaked` is `(normal, custom, transformation)`, a pairing rather than a list of named
+children with independent render types. The honest fix is to flatten each into a single model the
+way `fan_catalyst/with_content.json` already does for the other thirteen catalysts — frame, core and
+content elements in one file under one render type. That is model authoring, not a JSON rename, and
+`fan_splashing_catalyst` additionally needs `tintindex: 0` kept on its content faces for the water
+tint above to have anything to colour.
 
 ### Still open from before
 
@@ -564,6 +691,14 @@ So a renderer implements `BlockEntityRenderer<BE, S>` and **needs its own `Block
 Read `client/content/kinetics/gearbox/GearboxRenderer` in Create Fly first: it is the closest analogue and shows the whole shape end to end.
 
 **Done**, all following that shape: the three gearboxes, the kinetic battery, the kinetic bridge, the linked analog lever, the fluid vessel.
+
+**And they are registered now.** Writing the renderer classes was only half of it — `CCBlockEntityRenders.register()` sat empty for a while afterwards, so every one of them was dead code and the cogwheels still did not turn. All 24 entries are wired, through Create Fly's `AllBlockEntityRenders.visual` / `.render`. Three things that only became clear while doing it:
+
+- **Take the list from `git show b5e21592:…/CCBlockEntityTypes.java`**, not from notes. The table this class used to carry in its own doc comment was missing `brake` and `kinetic_battery` outright.
+- **`visual()` versus `normal()`.** Upstream's flag was Registrate's `renderNormally`; Create Fly's `visual(...)` sets `skipVanillaRender = true` and `normal(...)` sets it false. Two of Connected's calls omitted the flag, and rather than guess Registrate's default, note that their Create counterparts (`HAND_CRANK`, `ANALOG_LEVER`) used the identical spelling and Create Fly registers both with `visual(...)`. Nothing in this mod needs `normal`.
+- **`EncasedCogRenderer::small` does not exist** — Create Fly split it into `EncasedSmallCogRenderer` and `EncasedLargeCogRenderer`. The visual side kept the `EncasedCogVisual::small` factory, so only the renderer half changes.
+
+`CCPartialModels.register()` must run before this, because the visuals resolve partial models during construction. `CreateConnectedClient` already had the order right.
 
 Points that only showed up while doing it:
 
