@@ -344,7 +344,16 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 - Item models need a **definition file** at `assets/<ns>/items/<name>.json` alongside `models/item/`
 - `overrides` + `predicate` was removed from the model format
 - `neoforge:conditions` → `fabric:load_conditions`, and each entry's discriminator goes from `"type"` to **`"condition"`** (confirmed by reading `ResourceCondition.class` in fabric-resource-conditions-api-v1)
-- Fluids leave `ingredients` for a separate `fluid_ingredients` array typed `fluid_stack`
+- **Recipe ingredients are bare strings.** `{"item": "create:shaft"}` is `"create:shaft"`, and `{"tag": "c:ingots/zinc"}` is `"#c:ingots/zinc"`. The object form is gone from every ingredient position — `ingredients`, `ingredient`, and a shaped recipe's `key` values. `result` is unaffected and keeps `{"count": n, "id": ...}`
+- **Create's processing recipes went singular**, which corrects an earlier note here claiming fluids move to a `fluid_ingredients` array. Read off Create Fly's own `data/create/recipe/<type>/`:
+
+| type | ingredient side | result side |
+|---|---|---|
+| `create:cutting`, `create:pressing` | `ingredient` | `results` (list) |
+| `create:item_application`, `create:deploying` | `target` **and** `ingredient` — the old `ingredients` list was `[target, applied]` | `results` (list) |
+| `create:filling` | `ingredient` and `fluid_ingredient` (one object) | `result` (single) |
+
+- **`create:sequenced_assembly` changed shape, not names.** `results` was a weight table whose first entry was the real product; it splits into `result` — carrying a *probability* — and `junks`, keeping the weights. Divide the old first weight by the total to get it: control chip's `120` of `150` is `0.8`, exactly as Create's own precision mechanism converts. Sequence steps use the placeholders `"$ingredient"` and `"$result"`
 
 ---
 
@@ -385,7 +394,7 @@ Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated,
 
 **Every one of these must also be absent from `create_connected.mixins.json`.** Nothing enforces that — see *The launch phase*.
 
-341 JSONs of compat data for those mods were deleted, along with two recipes upstream had disabled with an always-false condition.
+341 JSONs of compat data for those mods were deleted, along with **three** recipes upstream had disabled with an always-false condition. The third, `item_application/withering_catalyst_from_empty`, was missed the first time: its `neoforge:false` had been rewritten to a `fabric:not` carrying no `value` rather than deleted, which is a parse error rather than a disabled recipe. Fabric has no direct spelling of "always false", so deleting is the honest translation.
 
 ---
 

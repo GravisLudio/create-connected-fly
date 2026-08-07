@@ -6,17 +6,11 @@
     }
   ],
   "type": "create:item_application",
-  "ingredients": [
-    {
-      "item": "create_connected:empty_fan_catalyst"
-    },
-    {
-      "item": "minecraft:water_bucket"
-    }
-  ],
   "results": [
     {
       "id": "create_connected:fan_splashing_catalyst"
     }
-  ]
+  ],
+  "target": "create_connected:empty_fan_catalyst",
+  "ingredient": "minecraft:water_bucket"
 }

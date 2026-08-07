@@ -6,21 +6,13 @@
     }
   ],
   "type": "create:filling",
-  "ingredients": [
-    {
-      "item": "create_connected:empty_fan_catalyst"
-    }
-  ],
-  "fluid_ingredients": [
-    {
-      "type": "fluid_stack",
-      "amount": 81000,
-      "fluid": "minecraft:water"
-    }
-  ],
-  "results": [
-    {
-      "id": "create_connected:fan_splashing_catalyst"
-    }
-  ]
+  "ingredient": "create_connected:empty_fan_catalyst",
+  "fluid_ingredient": {
+    "type": "fluid_stack",
+    "amount": 81000,
+    "fluid": "minecraft:water"
+  },
+  "result": {
+    "id": "create_connected:fan_splashing_catalyst"
+  }
 }

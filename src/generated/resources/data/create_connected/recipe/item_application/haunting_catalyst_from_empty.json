@@ -6,17 +6,11 @@
     }
   ],
   "type": "create:item_application",
-  "ingredients": [
-    {
-      "item": "create_connected:empty_fan_catalyst"
-    },
-    {
-      "item": "minecraft:soul_sand"
-    }
-  ],
   "results": [
     {
       "id": "create_connected:fan_haunting_catalyst"
     }
-  ]
+  ],
+  "target": "create_connected:empty_fan_catalyst",
+  "ingredient": "minecraft:soul_sand"
 }
