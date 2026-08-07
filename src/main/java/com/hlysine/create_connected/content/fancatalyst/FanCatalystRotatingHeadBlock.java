@@ -11,9 +11,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class FanCatalystRotatingHeadBlock extends Block implements IBE<FanCatalystRotatingHeadBlockEntity>, IWrenchable {
-    private final BlockEntityEntry<? extends FanCatalystRotatingHeadBlockEntity> blockEntityType;
+    private final java.util.function.Supplier<BlockEntityType<? extends FanCatalystRotatingHeadBlockEntity>> blockEntityType;
 
-    public FanCatalystRotatingHeadBlock(Properties properties, BlockEntityEntry<? extends FanCatalystRotatingHeadBlockEntity> blockEntityType) {
+    public FanCatalystRotatingHeadBlock(Properties properties, java.util.function.Supplier<BlockEntityType<? extends FanCatalystRotatingHeadBlockEntity>> blockEntityType) {
         super(properties);
         this.blockEntityType = blockEntityType;
     }
