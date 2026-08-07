@@ -2,6 +2,7 @@ package com.hlysine.create_connected.client;
 
 import com.hlysine.create_connected.content.brassgearbox.BrassGearboxRenderer;
 import com.hlysine.create_connected.content.brassgearbox.BrassGearboxVisual;
+import com.hlysine.create_connected.content.chaincogwheel.ChainCogwheelRenderer;
 import com.hlysine.create_connected.content.crankwheel.CrankWheelRenderer;
 import com.hlysine.create_connected.content.crankwheel.CrankWheelVisual;
 import com.hlysine.create_connected.content.dashboard.DashboardRenderer;
@@ -21,7 +22,6 @@ import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.zurrtum.create.client.AllBlockEntityRenders;
 import com.zurrtum.create.client.content.kinetics.simpleRelays.BracketedKineticBlockEntityRenderer;
 import com.zurrtum.create.client.content.kinetics.simpleRelays.encased.EncasedCogVisual;
-import com.zurrtum.create.client.content.kinetics.simpleRelays.encased.EncasedSmallCogRenderer;
 import com.zurrtum.create.client.content.kinetics.transmission.SplitShaftRenderer;
 import com.zurrtum.create.client.content.kinetics.transmission.SplitShaftVisual;
 import com.zurrtum.create.client.content.logistics.chute.ChuteRenderer;
@@ -52,8 +52,10 @@ import com.zurrtum.create.client.foundation.blockEntity.renderer.SmartBlockEntit
  * <h2>Two substitutions</h2>
  * <ul>
  *   <li>{@code EncasedCogRenderer::small} has no Create Fly equivalent — that class was split into
- *       {@code EncasedSmallCogRenderer} and {@code EncasedLargeCogRenderer}. The chain cogwheel is
- *       the small one.</li>
+ *       {@code EncasedSmallCogRenderer} and {@code EncasedLargeCogRenderer}, and <em>neither</em>
+ *       fits: both are written against {@code EncasedCogwheelBlock} and read its {@code TOP_SHAFT}
+ *       and {@code BOTTOM_SHAFT}, which {@code ChainCogwheelBlock} does not have. See
+ *       {@link com.hlysine.create_connected.content.chaincogwheel.ChainCogwheelRenderer}.</li>
  *   <li>{@code HandCrankRenderer} no longer asks the block entity for its model, so registering it
  *       for the crank wheel drew <em>Create's</em> hand crank. {@link
  *       com.hlysine.create_connected.content.crankwheel.CrankWheelRenderer} replaces it.</li>
@@ -68,7 +70,7 @@ public final class CCBlockEntityRenders {
     }
 
     public static void register() {
-        AllBlockEntityRenders.visual(CCBlockEntityTypes.ENCASED_CHAIN_COGWHEEL.get(), EncasedSmallCogRenderer::new, EncasedCogVisual::small);
+        AllBlockEntityRenders.visual(CCBlockEntityTypes.ENCASED_CHAIN_COGWHEEL.get(), ChainCogwheelRenderer::new, EncasedCogVisual::small);
         AllBlockEntityRenders.visual(CCBlockEntityTypes.CRANK_WHEEL.get(), CrankWheelRenderer::new, CrankWheelVisual::new);
         AllBlockEntityRenders.visual(CCBlockEntityTypes.PARALLEL_GEARBOX.get(), ParallelGearboxRenderer::new, ParallelGearboxVisual::new);
         AllBlockEntityRenders.visual(CCBlockEntityTypes.SIX_WAY_GEARBOX.get(), SixWayGearboxRenderer::new, SixWayGearboxVisual::new);

@@ -363,6 +363,43 @@ That turns up twelve bindings, and only nine of them are copycats — the fluid 
 variants through static factories rather than a constructor, and the shear pin borrows Create's own
 `BracketedKineticBlockModel`.
 
+### Borrowing a Create Fly renderer means inheriting the block state it reads
+
+This one bit twice, in the same session, and both times the class compiled and crashed at runtime:
+
+| Registered | Reads | On a block that is |
+|---|---|---|
+| `LinkBehaviour` (its default `RedstoneLinkFrequencySlot`) | a six-valued `FACING` | a lever |
+| `EncasedSmallCogRenderer` | `EncasedCogwheelBlock.TOP_SHAFT`, `BOTTOM_SHAFT` | a `ChainDriveBlock` |
+
+Create Fly's renderers and behaviours are written against Create's *own* blocks and reach straight
+into their properties. `StateHolder.getValue` throws `IllegalArgumentException` on a property the
+block does not have — not a warning, not a fallback. Nothing catches it, so it takes the client down
+on the first frame the block is visible.
+
+Both were invisible in the dev instance, for different reasons: the frequency slot needs the block
+in view, and the cog renderer only runs when Flywheel is off — with a visual registered and
+`skipVanillaRender` true, the BER never fires. The chain cogwheel crash arrived from a modpack with
+Sodium, which extracts block entities down its own path. **Testing with Flywheel on tests only half
+of what you registered.**
+
+The check is one grep per borrowed class, and it is cheap:
+
+```bash
+grep -oE "getValue\([A-Za-z]+\.[A-Z_]+\)" <TheCreateFlyClass>.java | sort -u
+```
+
+Then confirm our block extends the class those properties belong to. Run over everything currently
+borrowed, only the two above failed: `BrassChuteBlock extends ChuteBlock` and
+`LinkedAnalogLeverBlock extends AnalogLeverBlock`, so `ChuteRenderer` and `AnalogLeverVisual` are
+safe by inheritance, and `SplitShaftRenderer`, `SplitShaftVisual`,
+`BracketedKineticBlockEntityRenderer`, `SmartBlockEntityRenderer` and `BracketedKineticBlockModel`
+name no properties at all.
+
+When a borrowed class does not fit, copy the branch that applies and drop the query. For the chain
+cogwheel only the shaftless branch was ever reachable, so `ChainCogwheelRenderer` is that branch
+alone — which is also exactly what `EncasedCogVisual.small` draws on the Flywheel path.
+
 ### A block drawn by its renderer needs a particle-only blockstate model, and `Models.chunkPartial`
 
 Symptom: the crank wheels rendered as two wheels Z-fighting, one static and one turning. It appeared
