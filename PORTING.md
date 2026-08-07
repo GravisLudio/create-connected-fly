@@ -8,19 +8,35 @@ Written to be read cold. If you are picking this up with no context, read *State
 
 ## State
 
-**It runs.** The client reaches the main menu, loads into a world, and the creative tab is full of
-blocks that place and render with their proper names. Down from 7,162 compile errors.
+**Released.** Published on Modrinth as a beta on 2026-08-07, from 7,162 compile errors five days
+earlier. Renderers and Flywheel visuals registered, connected textures wired, block tints
+registered, kinetics propagating. Verified in game: item silo, fluid vessel, copycats, shear pin
+through a cross connector, linked transmitters. The dedicated server loads all 44 mods, applies its
+mixins in `Env=SERVER` and reaches `Done` with no `create_connected` errors.
 
-What is left is polish, not bring-up: connected textures not wired, server→client config sync
-missing, and a short list of cosmetic gaps recorded below. Nothing on that list stops the game.
+What is left is genuinely small, and all of it is listed in *What is missing on purpose*. One `TODO`
+remains in the whole mod: `config/CCommon.java:21`, the server→client config sync, which only
+matters in multiplayer.
 
-Block entity renderers and Flywheel visuals are **across and registered** — moving parts move.
+**Two habits this port was repeatedly punished for not having.** They are worth more than any
+individual fix below:
 
-A warning about this document, earned the hard way: three separate claims in it — one in a table,
-two in class docs — turned out to be reasoned from what the code looked like rather than from what
-it did, and all three were wrong. Where an entry below records a *consequence* without recording how
-it was observed, treat it as a hypothesis and audit it before acting on it. The corrected entries
-say what was actually measured.
+1. **A class that compiles is not a class that runs.** Five separate bugs this session were code
+   that had been written, compiled, and never called — Registrate used to chain the registration
+   onto the block, the port had to strip those calls because they name client classes, and stripping
+   them leaves no compiler error behind. If something "doesn't work but doesn't error", check it is
+   registered before you read it:
+   ```bash
+   grep -rn "ClassName" --include=*.java src/ | grep -v "/ClassName.java:"
+   ```
+2. **Verify an API against the jar before writing against it.** Two crashes came from registering a
+   Create Fly class without checking which block state properties it reads. `javap` and `grep` are
+   both cheaper than a crash report.
+
+A warning about this document, earned the hard way: several claims in it turned out to be reasoned
+from what the code looked like rather than from what it did, and every one was wrong. Where an entry
+records a *consequence* without recording how it was observed, treat it as a hypothesis and audit it
+before acting on it. The corrected entries say what was actually measured.
 
 *The launch phase* records what the first runs cost and — more usefully — how each class of failure
 was found, because the finding technique transfers and the individual bugs do not.
@@ -30,10 +46,26 @@ Every number in this document was produced by running the tool, not estimated.
 | | |
 |---|---|
 | Repository | https://github.com/GravisLudio/create-connected-fly |
+| Modrinth | https://modrinth.com/mod/create-connected-fly-port |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
-| Branch | `main`, 46 commits of port work on top of upstream history |
+| Branch | `main` |
 | Reference clones | `C:\Users\GravisLudio\dev\_reference\{Create-Fly, create-connected-fabric}` |
+| Licence | AGPL-3.0 **plus additional terms** at the end of `LICENSE` — distinct name and icon, link back to the original, handle your own issues. All met; re-check after any rename or icon change. |
+
+### Testing, and the half that was nearly missed
+
+Everything renders through one of two paths and they are not both exercised by playing normally:
+
+- **Flywheel on** (default) — the visual runs and the block entity renderer is skipped entirely,
+  because `skipVanillaRender` is true for most registrations.
+- **Flywheel off, or Sodium installed** — the block entity renderer runs instead.
+
+Four days of testing happened on the first path only, and the encased chain cogwheel crash arrived
+from a modpack running the second. **Force the Flywheel backend off in Create Fly's config and walk
+the blocks again** — that is the only way the 24 registered renderers actually execute.
+
+Same for sides: `runServer` is a thirty-second test that no amount of singleplayer covers.
 
 ### Environment
 
@@ -778,10 +810,31 @@ a `type` and would otherwise be reformatted into a diff that says nothing.
 
 ## What is next
 
-The game runs, so the question is no longer "what crashes" but "what is wrong and says nothing".
+It is released, so the question is no longer "what is wrong" but "what is worth doing".
 
-**Play it against the table.** *What is missing on purpose* is the test script, and it has never
-been walked through in a world.
+In rough order of value:
+
+1. **Walk the blocks with the Flywheel backend forced off.** The 24 registered block entity
+   renderers have barely run — see *Testing* above. This is where the next crash lives, and it costs
+   ten minutes.
+2. **The sequenced gearshift screen.** The one thing marked incomplete rather than deliberately
+   omitted: Connected's three added instructions (`TURN_AWAIT`, `TURN_TIME`, `LOOP`) carry name and
+   ordinal only, and the screen was never taught about them. There is also a `Shift.BY=2` mixin
+   warning in the log pointing at the same place.
+3. **Server→client config sync** (`config/CCommon.java:21`), the last `TODO` in the mod.
+4. **Small, cheap parity items**: `.setValue(CopycatBlock.EMISSIVE, false)` in the nine copycat
+   blocks so `emissiveRendering` can go back on; the `ItemTintSource` for the washing catalyst so
+   its water is not white in the inventory; separate `item.json` files for the exploding and dragon
+   head catalysts so their icons are not bare frames.
+5. **Re-enable the compat integrations** as those mods reach 26.2 — one `exclude` line each in
+   `build.gradle` for Copycats+, Additional Placements, Dye Depot, Simulated and JEI.
+
+**If a 1.21.11 port comes up**, Create Fly already publishes for it —
+`maven.modrinth:create-fly:1.21.11-6.0.9-5`, the same Create 6.0.9. That means starting from this
+branch rather than from upstream: same `com.zurrtum.create` API, same renderers, same models, same
+mixins, and only the vanilla deltas between 1.21.11 and 26.2 to fix. Measure it before promising
+anything — branch, swap the dependency and `minecraft_version`, then
+`.\gradlew.bat compileJava --continue` and read the error count. That number is the estimate.
 
 ### Known cosmetic gaps — both were resolved, and neither was what it looked like
 
