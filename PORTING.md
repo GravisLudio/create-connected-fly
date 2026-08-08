@@ -65,6 +65,10 @@ Four days of testing happened on the first path only, and the encased chain cogw
 from a modpack running the second. **Force the Flywheel backend off in Create Fly's config and walk
 the blocks again** — that is the only way the 24 registered renderers actually execute.
 
+**Done on 2026-08-07 and it came back clean** — no crash on any of the 16, one z-fighting bug found
+and fixed. Details under *What is next*. Re-run it after any Create Fly bump; it costs ten minutes
+and it is the only test that covers half of what this mod registers.
+
 Same for sides: `runServer` is a thirty-second test that no amount of singleplayer covers.
 
 ### Environment
@@ -302,6 +306,7 @@ model layer first and all three are wrong — recorded so nobody pays for them t
    face `D` into `D`'s culled bucket, which would delete a wall's interior pole when a solid
    neighbour sits to the north. Plausible, and it even matched the "wall looks like several
    overlapping" symptom. Emitting everything unculled instead **changed nothing**. Reverted.
+   **This entry was half wrong, and the half it got wrong is instructive — see below.**
 2. *`assemblePiece` was mistranslated.* It is not — a line-by-line diff against upstream shows the
    same cull mask, the same crop, the same offset. Only `BakedQuadHelper.cloneWithCustomGeometry` →
    `BakedModelHelper.cropAndMove` differs, which is the documented API change.
@@ -344,6 +349,41 @@ read the property. Note the signature also narrowed to `Predicate<BlockState>` i
 The lesson that generalises: **before fixing a rendering oddity in a block this mod inherits from
 Create, reproduce it on Create Fly alone.** It costs one launch and it has now twice pointed the
 work somewhere other than where the symptom appeared.
+
+### The copycat wall z-fought, and it was a `return` lost in a signature change
+
+**The "wall looks like several overlapping" symptom above was real and outlived the `noOcclusion()`
+fix.** In game it reads as a diagonal moiré across the panel that shimmers when the camera moves, so
+it looks like several walls in one block, or like the block is drifting.
+
+Upstream's `getCroppedQuads` returned `List<BakedQuad>`, and its straight-panel special case ended
+with `return quads;` — the panel spans the whole block, so the centre and side assembly below it
+must not run. The port converted the method to `void assembleQuads(state, face, source, dest)`,
+which appends instead of returning. `return quads;` had no direct translation and **was dropped
+rather than becoming a bare `return;`**. So a straight wall assembled the full panel, then fell
+through and assembled the centre four more times and the sides on top of it — coplanar duplicate
+geometry, which z-fights.
+
+Fixed by restoring the early return. **`CopycatWallModel` was the only one of the nine affected**,
+confirmed by counting `return quads;` per model against `b5e21592`: every other model has exactly
+one, the final one, which correctly translates to falling off the end.
+
+```bash
+for m in block slab beam board verticalstep fence fencegate stairs wall; do
+  echo -n "$m "; git show b5e21592:src/main/java/.../copycat/$m/Copycat*Model.java | grep -c "return quads;"
+done
+```
+
+Two things worth carrying:
+
+- **A return-type change is a silent behaviour change at every early return.** Converting a method
+  from "build a list and return it" to "append to an out-parameter" quietly deletes control flow.
+  Count the returns in the source before and after; the compiler has no opinion.
+- **The hypothesis above was dismissed under confounded conditions.** "Emitting everything unculled
+  changed nothing" was measured while `noOcclusion()` was still missing and every copycat was
+  see-through — a geometry duplication is invisible through a transparent block. The measurement was
+  real; the conclusion drawn from it was not. **When a fix "changes nothing", check that the symptom
+  you were watching was observable at all.**
 
 ### Registrate registered things for you; porting the class is only half of it
 
@@ -427,6 +467,13 @@ borrowed, only the two above failed: `BrassChuteBlock extends ChuteBlock` and
 safe by inheritance, and `SplitShaftRenderer`, `SplitShaftVisual`,
 `BracketedKineticBlockEntityRenderer`, `SmartBlockEntityRenderer` and `BracketedKineticBlockModel`
 name no properties at all.
+
+**Correction, 2026-08-07:** re-running the grep over all seven borrowed classes turned up a third
+that reads a property and was not listed here — `EncasedCogVisual` reads
+`BlockStateProperties.AXIS`. It is safe, because `ChainCogwheelBlock extends ChainDriveBlock extends
+RotatedPillarKineticBlock`, whose `AXIS` *is* `BlockStateProperties.AXIS`. Safe, but the earlier
+sentence claiming the visuals "name no properties at all" was wrong, which is the kind of claim this
+document warns about in *State*. The grep is cheap; re-run it rather than trusting this table.
 
 When a borrowed class does not fit, copy the branch that applies and drop the query. For the chain
 cogwheel only the shaftless branch was ever reachable, so `ChainCogwheelRenderer` is that branch
@@ -669,6 +716,7 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 | Feature toggle UI | No in-game config screen; toggles are edited by file | Create Fly has no `catnip.config.ui` |
 | ~~Fan washing catalyst tint~~ | **Done.** See *Block tints* below — the same change also fixed biome tinting on the copycats | `client/CCBlockTints` |
 | Creative tab ordering | The tab no longer sits after Create's palettes tab | `withTabsBefore` was removed from the builder |
+| Copycat ambient occlusion | Connected's copycats shade differently from Create Fly's, visibly on the layer against the ground | `CCCopycatModel` does not override `FabricBlockStateModel#emitQuads` — see *The model layer* |
 | Copycats+ migration | Copycat blocks never convert to their Copycats+ equivalents | `CopycatsManager` excluded; the gated branches were collapsed to their fallbacks |
 | ~~Crank wheel handle renderer~~ | **Done.** `CrankWheelRenderer` covers the no-Flywheel path | `content/crankwheel/CrankWheelRenderer` |
 | **Never launched a dedicated server** | Unknown. `run/` has no server files at all | Several block entities import client-only classes — `CrankWheelBlockEntity` pulls in `CachedBuffers` and `SuperByteBuffer` — with no `@Environment(EnvType.CLIENT)` guard |
@@ -814,9 +862,18 @@ It is released, so the question is no longer "what is wrong" but "what is worth 
 
 In rough order of value:
 
-1. **Walk the blocks with the Flywheel backend forced off.** The 24 registered block entity
-   renderers have barely run — see *Testing* above. This is where the next crash lives, and it costs
-   ten minutes.
+1. ~~**Walk the blocks with the Flywheel backend forced off.**~~ **Done, 2026-08-07, and it came
+   back clean.** All 16 `visual(...)` registrations — the ones whose renderer never ran, because
+   `skipVanillaRender` is true — were walked with `/flywheel backend off`. No crash, no missing
+   geometry, no wrong model. The other 8 are `render(...)` and were already exercised in normal
+   play. The log's only `Missing` entries are the eleven belonging to the five mod-gated catalysts,
+   as expected. Two cosmetic findings came out of it: the copycat wall z-fighting (**fixed** — see
+   *Traps*) and the copycat ambient occlusion (**open** — see *The model layer*).
+
+   The command is `/flywheel backend off` in chat, not a config edit: `BackendArgument` defaults to
+   the `flywheel` namespace, and the command calls `levelExtractor.allChanged()`, so renderers
+   reload live and you can toggle back to `DEFAULT` standing in front of the same block. That
+   side-by-side is what makes a wrong model obvious.
 2. **The sequenced gearshift screen.** The one thing marked incomplete rather than deliberately
    omitted: Connected's three added instructions (`TURN_AWAIT`, `TURN_TIME`, `LOOP`) carry name and
    ordinal only, and the screen was never taught about them. There is also a `Shift.BY=2` mixin
@@ -993,6 +1050,21 @@ protected abstract void assembleQuads(
 `BakedQuad` is a record now — `direction()`, and no raw vertices. `BakedModelHelper.cropAndMove(quad, aabb, offset)` takes and returns a whole quad, which is why `BakedQuadHelper` did **not** need reimplementing after all: it has no callers left. Cross it off the missing-classes list.
 
 Note Create Fly's own warning on `CopycatModel`: if FRAPI is loaded, `FabricBlockStateModel#emitQuads` has to be overridden for ambient occlusion and emissive flags to survive.
+
+**This is not done, and it has a visible consequence — measured 2026-08-07.** Connected's copycats
+shade differently from Create Fly's, most noticeably on the block layer sitting on the ground, where
+ambient occlusion against the floor is strongest. Create Fly satisfies its own warning through
+**per-model mixins** rather than overrides in the model classes:
+
+```
+CopycatPanelModelMixin   @Mixin(CopycatPanelModel.class) implements FabricBlockStateModel
+CopycatStepModelMixin    idem
+```
+
+Connected's nine models have no equivalent, so under Indigo they lose the per-quad ambient-occlusion
+control that Create Fly's two keep. Fixing it means `CCCopycatModel` implementing
+`FabricBlockStateModel` and overriding `emitQuads` once for all nine — the natural place, since the
+per-part loop already lives there. Cosmetic and mild; listed under *What is missing on purpose*.
 
 ### Scroll values and value boxes — done
 

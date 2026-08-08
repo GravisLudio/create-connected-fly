@@ -135,6 +135,10 @@ public class CopycatWallModel extends CCCopycatModel {
                             cull(WEST)
                     );
                 }
+
+                // The panel already spans the whole block. Upstream returned here; the centre and
+                // sides below would land on top of it and z-fight.
+                return;
             }
 
             // Assemble the center if needed
