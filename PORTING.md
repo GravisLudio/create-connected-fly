@@ -576,6 +576,59 @@ The hook that lets an item act *before* the block it is pointed at (the crank wh
 
 There is no extension point in that list, so Connected has its own pair — `mixin/crankwheel/{Server,Client}CrankWheelPlacementMixin` — injected at the same target. Both halves are needed; the server one alone leaves the client mispredicting the placement.
 
+### A ponder structure carried an `Owner` UUID, and Create Fly writes an `OwnerName` beside it
+
+Hovering a Kinetic Battery in the creative inventory crashed the client on a `NullPointerException`
+deep inside `DeployerBlockEntity.write` — reported by a player on 2026-09-08, and entirely this
+port's doing. It is worth reading as a *class* of bug, because the other fourteen ponder structures
+are the same vintage and only this one had the fatal combination.
+
+`PonderTooltipHandler` compiles every scene tagged for the hovered item, and `PonderLevel.createBackup`
+serialises **every block entity in the scene** with `saveWithFullMetadata`. A ponder structure is not
+merely read — it is written back out, through the *current* Create Fly code, on hover.
+
+`kinetic_battery_automation.nbt` came from upstream with a deployer carrying `Owner: [I; ...]`, the
+UUID of whoever placed it in Lysine's dev world. Create Fly's `DeployerBlockEntity` reads the two
+halves independently and writes them together:
+
+```java
+// read (l.405-406) — both default to null
+owner     = view.read("Owner",     UUIDUtil.CODEC).orElse(null);
+ownerName = view.read("OwnerName", Codec.STRING  ).orElse(null);
+
+// write (l.434-436) — guarded on owner, but OwnerName is stored unconditionally
+if (owner != null) {
+    output.store("Owner",     UUIDUtil.CODEC, owner);
+    output.store("OwnerName", Codec.STRING,   ownerName);   // <- null here
+}
+```
+
+`OwnerName` did not exist when that structure was saved, so `owner` came back set and `ownerName`
+null, and `Codec.STRING` has nothing to say about a null: `NbtOps.createString(null)` throws
+`Cannot invoke "String.isEmpty()" because "data" is null`. The fix is to drop the key —
+**none of Create Fly's own eight ponder deployers carry `Owner`**, which answers what the field
+should look like and took one scan of its jar to establish.
+
+**Only the deployer is exposed.** `grep -rl OwnerName` over the unpacked jar returns exactly two
+classes, both deployer. Five other block entities in these structures still carry a stale `Owner`
+(`create:saw` x4, `chute`, `display_link`, `water_wheel`, `rotation_speed_controller`) and are
+harmless, because nothing writes a companion string beside it. They were left alone.
+
+**What is still wrong, and is not a crash.** These structures are full of payloads in the old shape,
+and the game says so on every ponder compile — enum constants are `SCREAMING_CASE` where 26.2 wants
+lowercase (`"RETRACTING"` against Create Fly's `"retracting"`, plus `"USE"`, `"SEARCH_OUTPUTS"`,
+`"TAKE"`), `Source` is `{X,Y,Z}` in the 1.20.1-vintage files where a list of three ints is wanted,
+and inventories disagree about list-versus-compound in both directions. Each one fails to decode
+silently as far as the player is concerned: the field keeps its default and the scene plays slightly
+wrong. Look for `Serialization errors:` in the log — the block entity is named on the line under it.
+Fixing them properly means re-saving the structures from a 26.2 world rather than hand-patching NBT,
+so they are left for a session that can test the scenes afterwards.
+
+**The tool.** `tools/ponder-nbt.py` reads and writes gzipped NBT with no dependencies. Its round-trip
+is byte-exact on all fifteen files — assert that before trusting an edit, because it is the only
+thing standing between a one-key change and a corrupted structure.
+
+
 ---
 
 ## Reference material
