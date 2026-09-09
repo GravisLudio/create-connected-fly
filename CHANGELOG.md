@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## The Fabric port
+
+Versions numbered `1.3.2-mc26.2-N` are builds of the unofficial Fabric / Minecraft 26.2 port,
+which sits on top of upstream 1.3.2 and adds no content of its own. All of them need Minecraft
+26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Create-Fly) 6.0.9-1 and Java 25.
+Upstream's history continues below and is untouched.
+
+## 1.3.2-mc26.2-4 - 2026-09-08
+
+### Fixed
+
+- Jade, and any other mod reading Fabric's transfer API, showed no contents for the Fluid Vessel,
+  Item Silo, Inventory Bridge or Inventory Access Port -- the Fluid Vessel had no fluid bar and no
+  bucket count, even though Create's own pipes filled it normally. Declaring an inventory the way
+  Create Fly does exposes it to Create; it does not expose it to anything else, and each block
+  entity type has to be registered with `ItemStorage.SIDED` / `FluidStorage.SIDED` separately.
+- 142 pieces of block entity data in the ponder structures were still in pre-26.2 formats and
+  failed to load silently, so scenes played with details missing -- a deployer not holding its
+  item, machines not showing where their rotation came from -- and the log filled with
+  `Serialization errors:` lines.
+
+### Note
+
+- `Serialization errors:` in the log is not necessarily this mod. Create Fly ships some of the same
+  format drift in its own ponder structures, so its scenes produce those lines too.
+
+## 1.3.2-mc26.2-3 - 2026-09-08
+
+### Fixed
+
+- **Hovering a Kinetic Battery crashed the client**, from anything that drew the item's tooltip --
+  the creative inventory, JEI, a chest. Hovering an item compiles every ponder scene tagged for it,
+  and that writes every block entity in the scene back out; one structure carried a deployer with an
+  owner UUID left over from upstream's dev world, and the field written beside it did not exist when
+  that structure was saved, so it was serialised as null.
+
+## 1.3.2-mc26.2-2 - 2026-08-08
+
+### Fixed
+
+- Copycat walls rendered as several overlapping walls -- a straight run showed a diagonal shimmer
+  that moved with the camera. The straight-panel case built the full panel and then built the centre
+  four more times on top of it, which z-fights.
+
+### Changed
+
+- No longer marked as a beta. The previous builds had been tested almost entirely with Flywheel on,
+  which skips block entity renderers; the sixteen registrations that only draw with Flywheel off were
+  walked separately and came back clean.
+
+## 1.3.2-mc26.2-1 - 2026-08-07
+
+### Added
+
+- First public build of the port, released as a beta.
+
 ## 1.3.2 - 2026-06-22
 
 ### Fixed
