@@ -184,10 +184,147 @@ def legacy_findings(tag):
         v = tag.get(key)
         if v and v[0] == 'S' and v[1].isupper():
             out.append('enum %s=%r should be lowercase' % (key, v[1]))
-    src = tag.get('Source')
-    if src and src[0] == 'C':
-        out.append('Source is a compound {X,Y,Z}; 26.2 wants a list of three ints')
+    # Match on the shape, not the key name. `Source` is a BlockPos on the kinetic
+    # block entities and an unrelated {Label, Id} on create:display_link, and a
+    # name-only check reports that second one as broken when it is correct.
+    for key, value in tag.items():
+        if _is_xyz_compound(value):
+            out.append('%s is a compound {X,Y,Z}; 26.2 wants a list of three ints' % key)
     return out
+
+
+# --- migration ---------------------------------------------------------------
+# Each rule below is grounded in a real sample from Create Fly's own ponder
+# structures, found by unzipping its jar and reading the same block entity. None
+# of them is inferred from what a codec "probably" wants, and each one refuses
+# rather than guesses when it meets input it was not shown. Rules that would have
+# to invent a shape are deliberately absent -- see PORTING.md for those.
+
+# 3D data values, which is the order Direction.values() has always had.
+DIRECTIONS = ['down', 'up', 'north', 'south', 'west', 'east']
+
+# (block entity id, key) whose value is an enum constant. 26.2 serialises these
+# lowercase; the committed files still hold the SCREAMING_CASE that Java's
+# name() produced. Reference: blaze_burner.nbt has State='waiting', Mode='use',
+# Phase='search_inputs'; basin.nbt has Casing='none'.
+ENUM_KEYS = {
+    ('create:belt', 'Casing'),
+    ('create:deployer', 'State'),
+    ('create:deployer', 'Mode'),
+    ('create:mechanical_arm', 'Phase'),
+}
+
+# Inventories that used to be a compound wrapping an Items list plus some
+# processing bookkeeping, and are a bare list now. Reference: depot.nbt and
+# item_vault entries, both ('L', (0, [])). The extra keys are the ones we are
+# willing to drop -- anything else and the rule refuses.
+FLATTEN_INVENTORY = {
+    'create:saw': {'AppliedRecipe', 'ProcessingTime', 'RecipeTime', 'Size'},
+    'create:item_vault': {'Size'},
+}
+
+
+def _blockpos_list(x, y, z):
+    return ('L', (INT, [('i', x), ('i', y), ('i', z)]))
+
+
+def _is_xyz_compound(value):
+    """A BlockPos written the old way. Shape-guarded on purpose: `Source` also
+    names an unrelated compound on create:display_link ({Label, Id}), and that
+    one must not be touched."""
+    if value[0] != 'C':
+        return False
+    d = value[1]
+    return set(d) == {'X', 'Y', 'Z'} and all(v[0] == 'i' for v in d.values())
+
+
+def _unpack_block_pos(packed):
+    """BlockPos.asLong packing: 26 bits x, 26 bits z, 12 bits y."""
+    def signed(v, bits):
+        v &= (1 << bits) - 1
+        return v - (1 << bits) if v >> (bits - 1) else v
+    return signed(packed >> 38, 26), signed(packed, 12), signed(packed >> 12, 26)
+
+
+def migrate_tag(tag, log):
+    """Rewrites one block entity compound in place. Appends a line to `log` for
+    every change, so a dry run reports exactly what a write would do."""
+    be_id = tag.get('id', ('S', '?'))[1]
+
+    for key, value in list(tag.items()):
+        # A BlockPos as {X,Y,Z}. 26.2 reads it with BlockPos.CODEC, which wants a
+        # list -- "Failed to decode ... Not a list" in the log.
+        if _is_xyz_compound(value):
+            d = value[1]
+            tag[key] = _blockpos_list(d['X'][1], d['Y'][1], d['Z'][1])
+            log.append('%s / %s: {X,Y,Z} compound -> list of ints' % (be_id, key))
+            continue
+
+        if (be_id, key) in ENUM_KEYS and value[0] == 'S' and value[1].isupper():
+            tag[key] = ('S', value[1].lower())
+            log.append('%s / %s: %r -> %r' % (be_id, key, value[1], value[1].lower()))
+            continue
+
+        if be_id in FLATTEN_INVENTORY and key == 'Inventory' and value[0] == 'C':
+            inner = value[1]
+            extra = set(inner) - {'Items'}
+            if 'Items' not in inner or not extra <= FLATTEN_INVENTORY[be_id]:
+                raise ValueError('%s / Inventory has unexpected keys %s; refusing to flatten'
+                                 % (be_id, sorted(extra)))
+            items = inner['Items']
+            if items[1][1]:
+                raise ValueError('%s / Inventory is not empty; the item shape inside it was never '
+                                 'grounded against a reference, so this refuses to convert it' % be_id)
+            tag[key] = items
+            log.append('%s / Inventory: compound -> list (dropped %s, all defaults)'
+                       % (be_id, ', '.join(sorted(extra))))
+            continue
+
+        if be_id == 'create:redstone_link' and key == 'LastKnownPosition' and value[0] == 'l':
+            x, y, z = _unpack_block_pos(value[1])
+            tag[key] = _blockpos_list(x, y, z)
+            log.append('%s / %s: packed long -> [%d, %d, %d]' % (be_id, key, x, y, z))
+            continue
+
+    # The deployer's inventory is the fake player's, and it moved one level down:
+    # DeployerBlockEntity.write builds a TagValueOutput, hands its "Inventory"
+    # list to Inventory.save, and stores the whole compound. So the list the old
+    # files hold at the top belongs inside a compound under the same name.
+    # The element shape is already right -- ItemStackWithSlot.CODEC is a "Slot"
+    # unsigned byte plus ItemStack.MAP_CODEC inlined, which is exactly {Slot, id,
+    # count}. Create Fly's own deployers only ever ship ('C', {}), an empty one,
+    # which confirms the outer type but shows nothing about the contents.
+    if be_id == 'create:deployer':
+        inv = tag.get('Inventory')
+        if inv and inv[0] == 'L':
+            for element in inv[1][1]:
+                if element[0] != 'C' or not {'Slot', 'id'} <= set(element[1]):
+                    raise ValueError('create:deployer Inventory holds %r, which is not an '
+                                     'ItemStackWithSlot; refusing to move it' % (element,))
+            tag['Inventory'] = ('C', {'Inventory': inv})
+            log.append('create:deployer / Inventory: top-level list -> compound wrapping it')
+
+    # A depot's held item stores the face it came in through. That used to be a
+    # 3D data value and is a Direction name now, which is the "Not a string"
+    # in the log. Reference: display_link_redstone.nbt, InDirection='east'.
+    held = tag.get('HeldItem')
+    if be_id == 'create:depot' and held and held[0] == 'C':
+        d = held[1].get('InDirection')
+        if d and d[0] == 'i':
+            if not 0 <= d[1] < len(DIRECTIONS):
+                raise ValueError('create:depot InDirection %d is not a 3D data value' % d[1])
+            held[1]['InDirection'] = ('S', DIRECTIONS[d[1]])
+            log.append('create:depot / HeldItem.InDirection: %d -> %r' % (d[1], DIRECTIONS[d[1]]))
+
+    # The arm's interaction points carry their own enum, one level down.
+    points = tag.get('InteractionPoints')
+    if be_id == 'create:mechanical_arm' and points and points[0] == 'L':
+        for point in points[1][1]:
+            mode = point[1].get('Mode')
+            if mode and mode[0] == 'S' and mode[1].isupper():
+                point[1]['Mode'] = ('S', mode[1].lower())
+                log.append('create:mechanical_arm / InteractionPoints[].Mode: %r -> %r'
+                           % (mode[1], mode[1].lower()))
 
 
 def show(v, indent=0, key=None):
@@ -240,6 +377,26 @@ def main(argv):
             for pos, tag in block_entities(load(p)[1]):
                 print('  %-34s @ %s' % (tag.get('id', ('S', '?'))[1], pos))
                 print('      %s' % ', '.join(k for k in tag if k != 'id'))
+        return 0
+
+    if cmd == 'migrate':
+        write = '--write' in argv
+        total = 0
+        for p in files:
+            name, root = load(p)
+            log = []
+            for pos, tag in block_entities(root):
+                migrate_tag(tag, log)
+            if not log:
+                continue
+            total += len(log)
+            print('%s (%d)' % (os.path.basename(p), len(log)))
+            for line in sorted(set(log)):
+                print('    %-4d %s' % (log.count(line), line))
+            if write:
+                save(p, name, root)
+        print('\n%d changes across %d files%s' % (total, len(files),
+                                                 '' if write else ' -- dry run, pass --write to apply'))
         return 0
 
     if cmd == 'legacy':

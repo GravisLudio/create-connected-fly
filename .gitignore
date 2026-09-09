@@ -30,3 +30,5 @@ libs
 /runs
 /run
 /run-*
+# Python bytecode from tools/
+__pycache__/

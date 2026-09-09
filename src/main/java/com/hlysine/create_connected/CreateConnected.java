@@ -49,6 +49,9 @@ public class CreateConnected implements ModInitializer {
         CCInteractionBehaviours.register();
         CCMovementBehaviours.register();
         CCMountedStorageTypes.register();
+        // Mounted storage is the contraption side; CCTransfer is the world side, and publishes the
+        // same inventories to fabric-transfer-api-v1 so that Jade and other mods can read them.
+        CCTransfer.register();
         CCDisplaySources.register();
         CCDisplayTargets.register();
 

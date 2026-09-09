@@ -614,19 +614,75 @@ classes, both deployer. Five other block entities in these structures still carr
 (`create:saw` x4, `chute`, `display_link`, `water_wheel`, `rotation_speed_controller`) and are
 harmless, because nothing writes a companion string beside it. They were left alone.
 
-**What is still wrong, and is not a crash.** These structures are full of payloads in the old shape,
-and the game says so on every ponder compile — enum constants are `SCREAMING_CASE` where 26.2 wants
-lowercase (`"RETRACTING"` against Create Fly's `"retracting"`, plus `"USE"`, `"SEARCH_OUTPUTS"`,
-`"TAKE"`), `Source` is `{X,Y,Z}` in the 1.20.1-vintage files where a list of three ints is wanted,
-and inventories disagree about list-versus-compound in both directions. Each one fails to decode
-silently as far as the player is concerned: the field keeps its default and the scene plays slightly
-wrong. Look for `Serialization errors:` in the log — the block entity is named on the line under it.
-Fixing them properly means re-saving the structures from a 26.2 world rather than hand-patching NBT,
-so they are left for a session that can test the scenes afterwards.
+**The rest of the drift was migrated too, in the same pass.** 142 further payloads across all
+fifteen files were in shapes 26.2 cannot decode, each one logging a `Serialization errors:` line
+and then falling back to a default, so scenes played slightly wrong rather than failing: `BlockPos`
+written as a `{X,Y,Z}` compound instead of a list, enum constants in `SCREAMING_CASE`
+(`"RETRACTING"`, `"USE"`, `"SEARCH_OUTPUTS"`, `"TAKE"`, `"NONE"`), saw and vault inventories
+wrapping their items in a compound that is now a bare list, a redstone link position still packed
+into a long, a depot's `InDirection` as a 3D data value where a Direction name is wanted, and the
+deployer's fake-player inventory one nesting level too high.
 
+**Every rule was grounded in a sample from Create Fly's own structures before it was written** --
+unzip its jar, find the same block entity, read what it actually holds. That discipline earned its
+keep twice:
+
+- **`Source` is not always a position.** On `create:display_link` it is `{Label, Id}`, the display
+  source. A migration keyed on the name would have destroyed it. The rule matches on *shape*
+  instead: a compound whose keys are exactly `X`, `Y`, `Z`, all ints.
+- **Create Fly ships the same drift.** Its own structures still carry compound `Source` and even an
+  old-format `{id, Count}` item inside a depot's `HeldItem`, so its scenes log these warnings too.
+  That is worth knowing before treating a `Serialization errors:` line as proof of a porting bug.
+
+Three shapes were left alone because no reference could be found for them and inventing one is how
+a cosmetic bug becomes a crash: `create:chute`'s `Item` and `Owner`, and `create:mechanical_arm`'s
+`HeldItem`. None of them logs an error.
 **The tool.** `tools/ponder-nbt.py` reads and writes gzipped NBT with no dependencies. Its round-trip
 is byte-exact on all fifteen files — assert that before trusting an edit, because it is the only
 thing standing between a one-key change and a corrupted structure.
+
+
+### `FluidInventoryProvider` serves Create; Fabric's transfer API is a second audience
+
+A Fluid Vessel filled normally through Create's pipes, and Jade showed its name and nothing else --
+no bar, no bucket count. Reported 2026-09-08. Nothing is logged, and the block looks correctly
+wired from inside the game, which is what makes this one hard to see.
+
+The *Capabilities* note above is right that upstream's five `RegisterCapabilitiesEvent`
+registrations become `ItemInventoryProvider` / `FluidInventoryProvider` on the block. It is
+incomplete: that interface is how **Create** finds an inventory. It is not how anything else does.
+Every other mod on Fabric reads `ItemStorage.SIDED` and `FluidStorage.SIDED` from
+fabric-transfer-api-v1, and those two lookups have to be told about each block entity type
+separately.
+
+Create Fly does that for its own blocks in `AllTransfer.register()`, and the shape is a two-step:
+
+```java
+BlockEntityBehaviour.add(type, be -> new CachedFluidInventoryBehaviour<>(be, factory));
+FluidStorage.SIDED.registerForBlockEntity(CachedFluidInventoryBehaviour::get, type);
+```
+
+The behaviour holds the wrapper and the lookup resolves through its static `get`; wrapping the
+inventory directly at the lookup would skip the cache neighbour lookups use. `AllTransfer`'s own
+helpers are private and its list of types is hardcoded with no extension point, so an addon repeats
+the pattern or stays invisible. `CCTransfer` does exactly that for the five types that expose an
+inventory -- both vessels on the fluid side, the silo, bridge and access port on the item side --
+and guards on `AllTransfer.DISABLE`, which Create Fly sets when fabric-transfer-api-v1 is absent.
+
+**This needs `fabricApi.module("fabric-transfer-api-v1", ...)` in `build.gradle`.** Without it the
+failure is `package net.fabricmc.fabric.api.transfer.v1.fluid does not exist`, which reads like a
+missing jar rather than a module the build never asked for -- see the note in `dependencies` about
+the fabric-api artifact holding no classes of its own.
+
+**How to check the rest.** Any block whose inventory should be visible from outside Create needs a
+line here, and the test is not "does a pipe fill it":
+
+```bash
+# the angle bracket is what separates the implements clause from the import
+grep -rl "ItemInventoryProvider<\|FluidInventoryProvider<" --include=*Block.java src/main/java
+```
+
+Every hit in that list should appear in `CCTransfer`. Jade showing a bar is the confirmation.
 
 
 ---

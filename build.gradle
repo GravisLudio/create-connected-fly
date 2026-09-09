@@ -126,6 +126,9 @@ dependencies {
     implementation fabricApi.module("fabric-model-loading-api-v1", fabric_version)
     implementation fabricApi.module("fabric-renderer-api-v1", fabric_version)
     implementation fabricApi.module("fabric-rendering-v1", fabric_version)
+    // Needed to publish our inventories to ItemStorage.SIDED / FluidStorage.SIDED, which is what
+    // Jade and other non-Create mods read. See CCTransfer.
+    implementation fabricApi.module("fabric-transfer-api-v1", fabric_version)
     // Still needed at runtime for the rest of the API, and for the JiJ metadata.
     runtimeOnly "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
