@@ -12,6 +12,35 @@ which sits on top of upstream 1.3.2 and adds no content of its own. All of them 
 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Create-Fly) 6.0.9-1 and Java 25.
 Upstream's history continues below and is untouched.
 
+## 1.3.2-mc26.2-5 - 2026-09-21
+
+### Fixed
+
+- **Hovering an Inventory Bridge in the inventory crashed the client.** Its ponder scene stored the side
+  of each filter as a number, and Create Fly reads it as a direction name with no fallback. Present
+  since the port's first release.
+- **Breaking a Fluid Vessel that was part of a working boiler crashed the server.** Breaking one part
+  re-forms the multiblock around a new controller, and the pipe organ advancement check assumed every
+  vessel carries an advancement tracker. In Create Fly only blocks a player placed by hand do.
+- **The Kinetic Battery neither charged nor discharged, and the Crank Wheels provided no stress
+  capacity.** The stress config was built before the blocks registered their values, so no
+  Connected block had any. The same mistake left the per-block feature toggles out of the config.
+  Existing config files fill themselves in on the next launch; nothing needs deleting.
+- **Breaking an Item Silo dropped none of its contents**, and placing a silo back in the same spot
+  brought the items back, because the multiblock was never split. Extracting from a silo in that
+  state could also misbehave.
+- **Breaking a linked button, lever or analog lever lost the Linked Transmitter**, and a linked lever
+  broken while on left its frequency powered.
+- **Extending a 3×3 Item Silo by placing onto its end** checked the wrong layer: part of the layer
+  could be placed for free, and obstructions were ignored, leaving incomplete L-shaped layers. This
+  one also exists in the original mod (hlysine/create_connected#222).
+
+### Known issues
+
+- Large Item Silos have been reported to split into 1×3×1 columns after their chunk reloads. It could
+  not be reproduced on this build. If it happens to you, please report whether the silo crosses a
+  chunk border (F3 + G).
+
 ## 1.3.2-mc26.2-4 - 2026-09-08
 
 ### Fixed
