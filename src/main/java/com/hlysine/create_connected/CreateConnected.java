@@ -32,8 +32,6 @@ public class CreateConnected implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CCConfigs.register();
-
         CCSoundEvents.register();
         CCDataComponents.register();
         CCBlocks.register();
@@ -43,6 +41,15 @@ public class CreateConnected implements ModInitializer {
         CCPackets.register();
         CCCraftingConditions.register();
         CCArmInteractionPointTypes.register();
+
+        // Must come after every registry above, as it did upstream. Two configs build their entries
+        // from lists the block builders fill as they register: CStress from the defaults that
+        // .transform(CStress.setImpact/setCapacity) records, CFeatures from the keys
+        // FeatureToggle.register() collects. The port had moved this to the top of onInitialize,
+        // so both were built from empty lists -- every Connected block had no stress impact and no
+        // capacity (the Kinetic Battery neither charged nor discharged), and no feature could be
+        // toggled off. Nothing above reads our config while registering, so this order is safe.
+        CCConfigs.register();
 
         // Previously ran from FMLCommonSetupEvent. Nothing here needs a deferred phase on Fabric:
         // every registry these touch is already populated by the calls above.

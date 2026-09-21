@@ -670,6 +670,39 @@ one. Two player-visible results, reported 2026-09-21:
 Both walks now use `startPos.offset(x, 0, z)`. `FluidVesselItem` was checked for the same copy and is
 fine: it uses one expression in both loops, and for a horizontal vessel that expression is right.
 
+### The configs were built before the blocks, so two of them came out empty
+
+Reported 2026-09-21: the Kinetic Battery neither charged nor discharged, crafted or from the creative
+tab. Nothing was logged. The proof was in the player's `config/create_connected/server.json`: the
+`stressValues` sections held **no entries at all**, and `common.json`'s `features` had none either.
+
+Both configs build their entries from lists that the block builders fill while registering:
+
+- `CStress.registerAll` walks `DEFAULT_IMPACTS` / `DEFAULT_CAPACITIES`, which
+  `.transform(CStress.setImpact/setCapacity(...))` records as each block registers.
+- `CFeatures.registerAll` walks `FeatureToggle.TOGGLEABLE_FEATURES`, filled by
+  `.transform(FeatureToggle.register())`.
+
+Upstream called `CCConfigs.register` after `CCBlocks`/`CCItems`/`CCBlockEntityTypes`. The port moved
+it to the first line of `onInitialize` -- in the initial mass-port commit, with no note -- and
+`Builder.create` builds the spec immediately, so both walked empty lists. Consequences:
+
+- **No Connected block had a stress impact or capacity.** The battery charges by `lastStressApplied`
+  (0) and discharges by providing capacity (0, so the network overstresses, speed drops to 0 and
+  `tick` returns before draining). The crank wheels provided no capacity either.
+- **No feature could be toggled off.** `isEnabled` falls through to `true` when a key has no toggle.
+
+Fix: `CCConfigs.register()` after the registries, with a comment saying why. Nothing above it reads
+our config while registering (checked), so the move is safe.
+
+**Existing installs heal themselves.** Verified with `runServer` seeded with the player's empty file:
+the builder defines every entry from the defaults and rewrites the file, 12 impacts, 3 capacities and
+35 toggles, on the first launch. No one has to delete their config.
+
+**`runServer` is enough to check this without accepting the EULA.** Fabric runs the mod initializers
+before the EULA check, so the server writes `run/config/` and then stops at "You need to agree to the
+EULA". Read the generated file -- an empty section is the symptom.
+
 ### Goggle tooltips are behaviours now, and a block entity that implements the interface shows nothing
 
 `GoggleOverlayRenderer` looks up a `TooltipBehaviour` at the position and **never touches the block entity**. A block entity that merely implements `IHaveGoggleInformation` compiles, keeps its method, and displays nothing — silently. `FluidVesselBlockEntity` was in exactly that state.
