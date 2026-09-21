@@ -650,6 +650,26 @@ This was already live in `1.3.2-mc26.2-4`: the vessel's split ran through the in
 it -- that fix only let it be found. After it, no unguarded `getBehaviour(...)` dereference is left in
 the port.
 
+### Diverges from upstream: the silo item counted a vertical plane and placed a horizontal one
+
+**This fixes a bug upstream still has** -- hlysine/create_connected#222, open, "the 3x3 silos only
+check for 4 items instead of 9". Re-check it on every rebase: if upstream fixes it differently, take
+theirs.
+
+`ItemSiloItem` extends a silo by a whole layer when you place onto its end. It walks the layer twice,
+once to count the blocks needed and check they fit, once to place them. The first walk kept Create's
+vault expression, `offset(x, y, 0)` for a non-X axis -- the cross-section of a *horizontal* vault. The
+silo is vertical, so it counted and validated a vertical plane and then placed into the horizontal
+one. Two player-visible results, reported 2026-09-21:
+
+- **A dupe.** The count comes out short, the item check passes, and `BlockItem.place` goes on placing
+  after the stack reaches zero, so part of the layer is free.
+- **L-shaped silos.** The real layer's spots are never checked for obstructions, so a blocked one just
+  fails on its own and leaves an incomplete layer.
+
+Both walks now use `startPos.offset(x, 0, z)`. `FluidVesselItem` was checked for the same copy and is
+fine: it uses one expression in both loops, and for a horizontal vessel that expression is right.
+
 ### Goggle tooltips are behaviours now, and a block entity that implements the interface shows nothing
 
 `GoggleOverlayRenderer` looks up a `TooltipBehaviour` at the position and **never touches the block entity**. A block entity that merely implements `IHaveGoggleInformation` compiles, keeps its method, and displays nothing — silently. `FluidVesselBlockEntity` was in exactly that state.

@@ -106,10 +106,16 @@ public class ItemSiloItem extends BlockItem {
         if (VecHelper.getCoordinate(startPos, vaultBlockAxis) != VecHelper.getCoordinate(pos, vaultBlockAxis))
             return;
 
+        // Must walk the same positions as the placement loop below. This used to take Create's
+        // vault expression -- offset(x, y, 0) when the axis is not X -- which is the cross-section
+        // of a *horizontal* vault. The silo is vertical, so it counted and validated a vertical
+        // plane while placing a horizontal one: the count came out short (upstream #222, "only
+        // checks for 4 items instead of 9"), BlockItem.place keeps placing on an empty stack, so a
+        // layer could be placed for free; and blocked spots in the real layer were never checked,
+        // leaving an incomplete, L-shaped layer. getVaultBlockAxis only ever answers Y or null.
         for (int xOffset = 0; xOffset < width; xOffset++) {
             for (int zOffset = 0; zOffset < width; zOffset++) {
-                BlockPos offsetPos = vaultBlockAxis == Axis.X ? startPos.offset(0, xOffset, zOffset)
-                        : startPos.offset(xOffset, zOffset, 0);
+                BlockPos offsetPos = startPos.offset(xOffset, 0, zOffset);
                 BlockState blockState = world.getBlockState(offsetPos);
                 if (ItemSiloBlock.isVault(blockState))
                     continue;
