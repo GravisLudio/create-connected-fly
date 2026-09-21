@@ -190,6 +190,20 @@ def legacy_findings(tag):
     for key, value in tag.items():
         if _is_xyz_compound(value):
             out.append('%s is a compound {X,Y,Z}; 26.2 wants a list of three ints' % key)
+
+    # Walk the whole tree for direction fields still stored as numbers. A top-level scan missed
+    # the Inventory Bridge's Filters[].Side, which crashed the client (see migrate_tag).
+    def walk(value, path):
+        code, x = value
+        if code == 'C':
+            for k, v in x.items():
+                if k in ('Side', 'InDirection') and v[0] in ('b', 's', 'i'):
+                    out.append('%s/%s is a number; 26.2 reads a Direction name' % (path, k))
+                walk(v, path + '/' + k)
+        elif code == 'L':
+            for item in x[1]:
+                walk(item, path + '[]')
+    walk(('C', tag), '')
     return out
 
 
@@ -315,6 +329,21 @@ def migrate_tag(tag, log):
                 raise ValueError('create:depot InDirection %d is not a 3D data value' % d[1])
             held[1]['InDirection'] = ('S', DIRECTIONS[d[1]])
             log.append('create:depot / HeldItem.InDirection: %d -> %r' % (d[1], DIRECTIONS[d[1]]))
+
+    # Sided filters (ServerSidedFilteringBehaviour: the Inventory Bridge here, the brass tunnel in
+    # Create) key each entry by a Direction. It used to be a 3D data value and is a name now, and
+    # the read is `item.read("Side", Direction.CODEC).orElseThrow()` -- so an int here is not a
+    # silent fallback but a client crash the moment the ponder compiles. Reference:
+    # packager_address.nbt, create:brass_tunnel Filters[].Side = 'west'.
+    filters = tag.get('Filters')
+    if filters and filters[0] == 'L':
+        for entry in filters[1][1]:
+            side = entry[1].get('Side') if entry[0] == 'C' else None
+            if side and side[0] == 'i':
+                if not 0 <= side[1] < len(DIRECTIONS):
+                    raise ValueError('%s Filters[].Side %d is not a 3D data value' % (be_id, side[1]))
+                entry[1]['Side'] = ('S', DIRECTIONS[side[1]])
+                log.append('%s / Filters[].Side: %d -> %r' % (be_id, side[1], DIRECTIONS[side[1]]))
 
     # The arm's interaction points carry their own enum, one level down.
     points = tag.get('InteractionPoints')

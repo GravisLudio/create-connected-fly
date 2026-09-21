@@ -782,6 +782,23 @@ keep twice:
 Three shapes were left alone because no reference could be found for them and inventing one is how
 a cosmetic bug becomes a crash: `create:chute`'s `Item` and `Owner`, and `create:mechanical_arm`'s
 `HeldItem`. None of them logs an error.
+**A second crash of the same family turned up on 2026-09-21**, in `inventory_bridge_filter.nbt`: each
+entry of the bridge's `Filters` list stored `Side` as a 3D data value, and
+`ServerSidedFilteringBehaviour.read` does `item.read("Side", Direction.CODEC).orElseThrow()` -- so
+hovering the Inventory Bridge crashed the client. The `-4` migration missed it because both the
+reference comparison and the `legacy` scan only looked at top-level keys, and this field is inside a
+list. `legacy` now walks the whole tree; `migrate` converts the value (reference: a brass tunnel's
+`Filters[].Side = 'west'` in `packager_address.nbt`). The empty `Filter` next to it is in the old
+`{id, Count}` shape too, but that read falls back to an empty filter, which is what it meant anyway.
+
+**Hunting the rest.** A crash needs an *unguarded* read. Scanning every Create Fly `read` method --
+*and its lambdas*, which the compiler emits as separate `lambda$read$N` methods and a first scan
+missed -- for `orElseThrow`/`Optional.get` leaves, outside trains, only `Contraption`,
+`MountedStorageManager` and `EjectorBlockEntity`. None of the fifteen structures contains a weighted
+ejector or any entity, and our own `read` paths have no unguarded optionals. The write-side hazard of
+the first crash (a null into `Codec.STRING`) was checked at the time: `OwnerName` lives only in the
+deployer.
+
 **The tool.** `tools/ponder-nbt.py` reads and writes gzipped NBT with no dependencies. Its round-trip
 is byte-exact on all fifteen files — assert that before trusting an edit, because it is the only
 thing standing between a one-key change and a corrupted structure.
