@@ -28,7 +28,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -107,10 +106,8 @@ public class LinkedLeverBlock extends LeverBlock implements IBE<LinkedTransmitte
 
     @Override
     public void affectNeighborsAfterRemoval(@NotNull BlockState state, @NotNull ServerLevel world, @NotNull BlockPos pos, boolean isMoving) {
-        if (!world.getBlockState(pos).is(state.getBlock()) && !isMoving && getBlockEntityOptional(world, pos).map(be -> be.containsBase).orElse(false)) {
-            Block.popResource(world, pos, new ItemStack(CCItems.LINKED_TRANSMITTER.get()));
-        }
-        withBlockEntityDo(world, pos, be -> be.transmit(0));
+        // Returning the transmitter and cutting the signal need the block entity, which is gone by
+        // now -- they live in LinkedTransmitterBlockEntity.preRemoveSideEffects.
         base.defaultBlockState().affectNeighborsAfterRemoval(world, pos, isMoving);
     }
 

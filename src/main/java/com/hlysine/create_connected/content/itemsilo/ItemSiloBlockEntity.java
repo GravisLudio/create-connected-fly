@@ -13,6 +13,7 @@ import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.infrastructure.config.AllConfigs;
 import com.zurrtum.create.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Containers;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.HolderLookup;
@@ -303,6 +304,29 @@ public class ItemSiloBlockEntity extends SmartBlockEntity implements IMultiBlock
     @Override
     public void preventConnectivityUpdate() {
         updateConnectivity = false;
+    }
+
+    /**
+     * Upstream did this in {@code ItemSiloBlock.onRemove}. Since 1.21.5 the chunk calls
+     * {@code preRemoveSideEffects}, then removes the block entity, and only then calls the block's
+     * {@code affectNeighborsAfterRemoval} -- so a port that kept the logic on the block reads a
+     * block entity that is already gone and silently does nothing. That is what happened here:
+     * breaking a silo dropped none of its contents and never split the multiblock, so the
+     * controller kept the broken part's inventory, and placing a silo back in the same spot
+     * rejoined it and the items "came back". Create Fly's {@code ItemVaultBlockEntity} does exactly
+     * this, in this order.
+     * <p>
+     * Contraptions pass {@code UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS} when they pick a block up, so
+     * this does not run for a silo being moved and its contents stay with it.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        Containers.dropContents(level, pos, inventory);
+        // Before splitMulti, so the split does not find this block entity still at pos and
+        // count it as a surviving part.
+        level.removeBlockEntity(pos);
+        ConnectivityHandler.splitMulti(this);
     }
 
     @Override

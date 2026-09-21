@@ -1,27 +1,22 @@
 package com.hlysine.create_connected.content.itemsilo;
 
-import net.minecraft.server.level.ServerLevel;
 
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.Container;
 import com.zurrtum.create.infrastructure.items.ItemInventoryProvider;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.registries.CCBlocks;
-import com.zurrtum.create.api.connectivity.ConnectivityHandler;
 import com.zurrtum.create.content.equipment.wrench.IWrenchable;
 import com.zurrtum.create.content.logistics.vault.ItemVaultBlock;
 import com.zurrtum.create.foundation.block.IBE;
 import com.zurrtum.create.foundation.item.ItemHelper;
-import net.minecraft.world.Containers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -51,18 +46,6 @@ public class ItemSiloBlock extends Block
         if (pIsMoving)
             return;
         withBlockEntityDo(pLevel, pPos, ItemSiloBlockEntity::updateConnectivity);
-    }
-
-    @Override
-    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean pIsMoving) {
-        if (state.hasBlockEntity()) {
-            BlockEntity be = world.getBlockEntity(pos);
-            if (!(be instanceof ItemSiloBlockEntity vaultBE))
-                return;
-            Containers.dropContents(world, pos, vaultBE.inventory);
-            world.removeBlockEntity(pos);
-            ConnectivityHandler.splitMulti(vaultBE);
-        }
     }
 
     public static boolean isVault(BlockState state) {

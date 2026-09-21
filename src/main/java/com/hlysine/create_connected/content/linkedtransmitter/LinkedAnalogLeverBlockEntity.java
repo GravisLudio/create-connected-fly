@@ -2,6 +2,8 @@ package com.hlysine.create_connected.content.linkedtransmitter;
 
 import com.hlysine.create_connected.mixin.linkedtransmitter.AnalogLeverBlockEntityAccessor;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
+import com.hlysine.create_connected.registries.CCItems;
+import net.minecraft.world.item.ItemStack;
 import com.zurrtum.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.zurrtum.create.content.redstone.link.ServerLinkBehaviour;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
@@ -75,6 +77,19 @@ public class LinkedAnalogLeverBlockEntity extends AnalogLeverBlockEntity {
     public void transmit() {
         if (link != null)
             link.notifySignalChange();
+    }
+
+    /**
+     * Returns the Linked Transmitter when the lever is broken. Upstream did this in the block's
+     * {@code onRemove}; the port kept it in {@code affectNeighborsAfterRemoval}, which since 1.21.5
+     * runs after the block entity is gone, so the transmitter was simply lost. See the matching
+     * override on {@link LinkedTransmitterBlockEntity} for why wrenching does not double it.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (containsBase)
+            Block.popResource(level, pos, new ItemStack(CCItems.LINKED_TRANSMITTER.get()));
+        super.preRemoveSideEffects(pos, state);
     }
 
     private int lastChange() {

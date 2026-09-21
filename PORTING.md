@@ -558,6 +558,74 @@ is the direct expression of what was lost. When a vanilla helper is replaced by 
 appeared to need", write down which parts were dropped — this is the second bug to come out of that
 one substitution.
 
+### Anything a block entity must do on removal belongs in `preRemoveSideEffects`
+
+Reported 2026-09-21 by a player: breaking an Item Silo gave back none of its contents; placing a
+silo back **in the same spot** made the items reappear; and taking items out "only gave the first".
+All three were one bug, and it is the sibling of the one above.
+
+`LevelChunk.setBlockState` in 26.2, read off the bytecode rather than remembered:
+
+```
+430: BlockEntity.preRemoveSideEffects(pos, oldState)       // block entity still here
+435: removeBlockEntity(pos)                                 // gone
+490: BlockState.affectNeighborsAfterRemoval(level, pos, moved)
+```
+
+Upstream's `onRemove` became two hooks, and the block-side one runs **after** the block entity is
+removed. Every `getBlockEntity`, `withBlockEntityDo` or `getBlockEntityOptional` inside
+`affectNeighborsAfterRemoval` therefore finds nothing, and all of them were written in the shape
+`if (!(be instanceof X)) return;` -- so the code compiles, runs, and does nothing, with no error.
+
+The silo kept its drop-and-split there. Its contents were never dropped, and `splitMulti` never
+ran, so the controller's cached combined inventory still held the broken part's handler: put a silo
+back at that position, it rejoined, and the cache served the old items again. Extracting through a
+wrapper that mixes one stale handler with live ones is the likely source of the third symptom.
+
+Create Fly moved every one of these into the block entity. `ItemVaultBlockEntity`:
+
+```java
+public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+    super.preRemoveSideEffects(pos, state);   // SmartBlockEntity: destroys the behaviours
+    Containers.dropContents(level, pos, inventory);
+    level.removeBlockEntity(pos);             // before the split, or it finds this part still there
+    ConnectivityHandler.splitMulti(this);
+}
+```
+
+**Order against `super` matters.** `super` destroys the behaviours, so anything that goes through
+one -- a link behaviour's `notifySignalChange`, say -- has to run first.
+
+**Contraptions are already handled.** The call is skipped when the flag
+`UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS` (512) is set, and that is what a contraption passes when it
+picks a block up. Upstream's `!isMoving` guards map onto it; do not reimplement them.
+
+What was dead, and where it went:
+
+- **Item Silo** -- drop + split, now in `ItemSiloBlockEntity`.
+- **Linked button and lever** -- returning the Linked Transmitter and `transmit(0)`: breaking one lost
+  the transmitter, and a lever broken while on left its frequency powered. Now in
+  `LinkedTransmitterBlockEntity`. Wrenching clears `containsBase` before converting back to the
+  vanilla block, so that conversion does not hand out a second item.
+- **Linked analog lever** -- returning the transmitter, now in `LinkedAnalogLeverBlockEntity`.
+- **Fluid Vessel** -- dead too, but *not broken*: it extends Create Fly's `FluidTankBlockEntity`,
+  which already splits in `preRemoveSideEffects`. The override was only removed so nobody reads it
+  as the place the logic lives. Checking the superclass first is what kept this from being "fixed".
+- **Linked throttle lever** -- excluded from the build (it needs Steam 'n' Rails) and still on the
+  old `onRemove` API. It needs the same move if it is ever re-enabled.
+
+The Kinetic Bridge hooks read only block states and are correct; their comment already says the
+block is gone.
+
+**Finding the next one.** Walk the body of every `affectNeighborsAfterRemoval` and flag any block
+entity lookup in it -- a grep on the method name alone cannot see into the body. The one-off script
+used for this sweep found zero live offenders afterwards:
+
+```python
+# for each `void affectNeighborsAfterRemoval(...) {`, brace-match the body, then
+re.search(r'getBlockEntity|withBlockEntityDo|getBlockEntityOptional', body)
+```
+
 ### Goggle tooltips are behaviours now, and a block entity that implements the interface shows nothing
 
 `GoggleOverlayRenderer` looks up a `TooltipBehaviour` at the position and **never touches the block entity**. A block entity that merely implements `IHaveGoggleInformation` compiles, keeps its method, and displays nothing — silently. `FluidVesselBlockEntity` was in exactly that state.

@@ -1,6 +1,5 @@
 package com.hlysine.create_connected.content.fluidvessel;
 
-import net.minecraft.server.level.ServerLevel;
 
 import net.minecraft.util.RandomSource;
 
@@ -46,7 +45,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -279,16 +277,10 @@ public class FluidVesselBlock extends Block
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean isMoving) {
-        if (state.hasBlockEntity()) {
-            BlockEntity be = world.getBlockEntity(pos);
-            if (!(be instanceof FluidVesselBlockEntity vesselBE))
-                return;
-            world.removeBlockEntity(pos);
-            ConnectivityHandler.splitMulti(vesselBE);
-        }
-    }
+    // No affectNeighborsAfterRemoval override: by the time it runs the block entity is already gone,
+    // so the removeBlockEntity + splitMulti that used to live here never executed. It does not need
+    // to -- FluidVesselBlockEntity extends Create Fly's FluidTankBlockEntity, whose
+    // preRemoveSideEffects already performs both at the point where the block entity still exists.
 
     @Override
     public Class<FluidVesselBlockEntity> getBlockEntityClass() {

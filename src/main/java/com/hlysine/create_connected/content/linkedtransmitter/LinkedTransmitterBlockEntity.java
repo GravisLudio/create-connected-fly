@@ -9,6 +9,9 @@ import com.zurrtum.create.client.foundation.blockEntity.behaviour.ValueBoxTransf
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import com.hlysine.create_connected.registries.CCItems;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -55,6 +58,26 @@ public class LinkedTransmitterBlockEntity extends SmartBlockEntity {
         transmittedSignal = strength;
         if (link != null)
             link.notifySignalChange();
+    }
+
+    /**
+     * Upstream did both of these in the linked button's and lever's {@code onRemove}. Since 1.21.5
+     * the block's {@code affectNeighborsAfterRemoval} runs after the block entity is removed, so the
+     * port's copy of that code never saw one: breaking a linked button or lever did not give the
+     * Linked Transmitter back, and a lever broken while on kept its frequency powered.
+     * <p>
+     * Wrenching the transmitter off clears {@code containsBase} before the block turns back into the
+     * vanilla one, so that conversion -- which also lands here -- does not hand out a second item.
+     * Contraptions skip block entity side effects when they pick a block up, which covers upstream's
+     * {@code !isMoving}.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (containsBase)
+            Block.popResource(level, pos, new ItemStack(CCItems.LINKED_TRANSMITTER.get()));
+        // Before super, which destroys the behaviours -- transmit goes through the link behaviour.
+        transmit(0);
+        super.preRemoveSideEffects(pos, state);
     }
 
     @Override
