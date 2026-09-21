@@ -626,6 +626,30 @@ used for this sweep found zero live offenders afterwards:
 re.search(r'getBlockEntity|withBlockEntityDo|getBlockEntityOptional', body)
 ```
 
+### `AdvancementBehaviour` is optional in Create Fly, and upstream assumed it was always there
+
+Breaking one Fluid Vessel of a working horizontal boiler crashed the server on the next tick, 2026-09-21:
+`NullPointerException` in `BoilerData.checkPipeOrganAdvancement`, because
+`controller.getBehaviour(AdvancementBehaviour.TYPE)` returned null.
+
+Upstream added an `AdvancementBehaviour` to every tank in `addBehaviours`, so dereferencing it was safe.
+Create Fly attaches it only in `AdvancementBehaviour.setPlacedBy`, when a real, non-fake player places
+the block -- so blocks placed by a deployer, a schematicannon, a structure, or **the vessel item's
+multi-placement** never get one. Breaking a part splits the multiblock and re-forms it around a new
+controller, often one of those blocks, and the check dereferences nothing. Create Fly's own
+`BoilerData` guards it with `behaviour != null && behaviour.isOwnerPresent()`; ours now does too.
+
+Note that there are **two** `AdvancementBehaviour` classes here. Create Fly's
+(`com.zurrtum.create.foundation.advancement`) is the one the vessel uses, end to end: `setPlacedBy`
+in the block, `TYPE` in `BoilerData`. The port's own (`datagen.advancements`) backs Connected's
+advancements -- brake, battery, clutch, pulse generator, shear pin -- with its own `TYPE` and null-safe
+helpers. Mixing them would make every lookup miss; check which one a file imports before trusting it.
+
+This was already live in `1.3.2-mc26.2-4`: the vessel's split ran through the inherited
+`FluidTankBlockEntity.preRemoveSideEffects` all along, so nothing in the removal-hook fix above caused
+it -- that fix only let it be found. After it, no unguarded `getBehaviour(...)` dereference is left in
+the port.
+
 ### Goggle tooltips are behaviours now, and a block entity that implements the interface shows nothing
 
 `GoggleOverlayRenderer` looks up a `TooltipBehaviour` at the position and **never touches the block entity**. A block entity that merely implements `IHaveGoggleInformation` compiles, keeps its method, and displays nothing — silently. `FluidVesselBlockEntity` was in exactly that state.

@@ -363,8 +363,13 @@ public class BoilerData extends com.zurrtum.create.content.fluids.tank.BoilerDat
             return;
         }
 
-        if (!controller.getBehaviour(AdvancementBehaviour.TYPE)
-                .isOwnerPresent())
+        // Upstream added this behaviour to every tank, so it dereferenced it directly. In Create Fly it
+        // exists only on a block a real player placed -- AdvancementBehaviour.setPlacedBy attaches it
+        // -- and Create Fly's own BoilerData checks for null. Breaking one vessel of a working boiler
+        // re-forms the multiblock around a new controller, which is often a block the vessel item
+        // placed alongside the clicked one and never had it: that was a server crash on the tick.
+        AdvancementBehaviour behaviour = controller.getBehaviour(AdvancementBehaviour.TYPE);
+        if (behaviour == null || !behaviour.isOwnerPresent())
             return;
 
         BlockPos controllerPos = controller.getBlockPos();
