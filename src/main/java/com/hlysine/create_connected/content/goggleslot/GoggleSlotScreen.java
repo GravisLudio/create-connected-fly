@@ -1,5 +1,6 @@
 package com.hlysine.create_connected.content.goggleslot;
 
+import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.mixin.goggleslot.AbstractContainerScreenAccessor;
 import com.hlysine.create_connected.mixin.goggleslot.CreativeModeInventoryScreenAccessor;
 import net.fabricmc.api.EnvType;
@@ -15,7 +16,9 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
@@ -49,6 +52,16 @@ public final class GoggleSlotScreen {
     private static final int LIGHT = 0xFFFFFFFF;
     private static final int SLOT = 0xFF8B8B8B;
     private static final int HOVER = 0x80FFFFFF;
+
+    /**
+     * The outline drawn in the empty slot, like the helmet and shield outlines in vanilla's armor
+     * slots: one colour, #555555, a one-pixel outline with a one-pixel margin -- the style of the
+     * vanilla sprites it sits beside. Drawn from scratch rather than traced from Create's goggles
+     * texture. Any PNG under textures/gui/sprites/ joins the GUI atlas by itself, so it needs no
+     * registration.
+     */
+    private static final Identifier EMPTY_SLOT_ICON =
+            CreateConnected.asResource("container/slot/goggles");
 
     private GoggleSlotScreen() {
     }
@@ -104,6 +117,8 @@ public final class GoggleSlotScreen {
         ItemStack worn = GoggleSlot.get(player);
         if (!worn.isEmpty())
             g.item(worn, x, y);
+        else
+            g.blitSprite(RenderPipelines.GUI_TEXTURED, EMPTY_SLOT_ICON, x, y, 16, 16);
 
         ItemStack carried = screen instanceof AbstractContainerScreen<?> container
                 ? container.getMenu().getCarried() : ItemStack.EMPTY;
