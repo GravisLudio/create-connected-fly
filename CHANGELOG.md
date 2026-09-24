@@ -12,6 +12,25 @@ which sits on top of upstream 1.3.2 and adds no content of its own. All of them 
 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Create-Fly) 6.0.9-1 and Java 25.
 Upstream's history continues below and is untouched.
 
+## Unreleased
+
+### Added
+
+- **A goggle slot, original to this port.** Engineer's Goggles can be worn in a slot of their own,
+  shown just above the offhand slot in the inventory and on the creative Inventory tab, so wearing
+  them no longer means taking off your helmet. Right-click goggles in the air, shift-click them in
+  the inventory, or click them into the slot. It holds goggles only, can be switched off with the
+  `goggle_slot` feature toggle, and steps aside when Trinkets Updated is installed, which already
+  gives Create Fly a goggle slot.
+- JEI integration is back. Switching a feature off while the game is running now hides its items
+  from JEI as well as from the creative menu.
+
+### Fixed
+
+- **Fluid Vessels held 81 times less than they should.** A 3x3x4 vessel topped out at about 3.5
+  buckets instead of 288. The capacity was computed in NeoForge's units, millibuckets, where
+  Fabric counts droplets. Existing vessels pick up the correct capacity on their own.
+
 ## 1.3.2-mc26.2-5 - 2026-09-21
 
 ### Fixed
