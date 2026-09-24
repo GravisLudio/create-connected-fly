@@ -61,7 +61,6 @@ public final class GoggleSlot {
                 .buildAndRegister(ID);
 
         FeatureToggle.register(ID);
-        GoggleSlotCommand.register();
 
         if (standDown())
             return;
@@ -89,8 +88,9 @@ public final class GoggleSlot {
                 return InteractionResult.SUCCESS;
             }
 
-            // Taking them off, until the slot has a screen of its own. Deliberately narrow --
-            // empty hand and sneaking -- so it cannot swallow an ordinary right click.
+            // Taking them off without opening the inventory. Deliberately narrow -- empty hand
+            // and sneaking -- so it cannot swallow an ordinary right click. Aimed at a block, the
+            // click goes to the block instead and this never runs.
             if (held.isEmpty() && player.isShiftKeyDown() && !worn.isEmpty()) {
                 if (world.isClientSide())
                     return InteractionResult.SUCCESS;

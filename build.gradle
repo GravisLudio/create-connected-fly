@@ -135,8 +135,6 @@ dependencies {
     implementation fabricApi.module("fabric-data-attachment-api-v1", fabric_version)
     implementation fabricApi.module("fabric-entity-events-v1", fabric_version)
     implementation fabricApi.module("fabric-events-interaction-v0", fabric_version)
-    // Solo para el comando de diagnostico del slot de gafas, mientras no tenga interfaz.
-    implementation fabricApi.module("fabric-command-api-v2", fabric_version)
     // Dibujar el slot de gafas en las pantallas de inventario sin tocar sus menus.
     implementation fabricApi.module("fabric-screen-api-v1", fabric_version)
     // Still needed at runtime for the rest of the API, and for the JiJ metadata.

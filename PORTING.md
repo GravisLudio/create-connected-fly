@@ -894,8 +894,10 @@ slot, for goggles only (`content/goggleslot/`).
   helmet, so vanilla's own right-click equips them to HEAD; claiming it only server-side left the
   client predicting that swap, and the goggles flickered into the helmet slot and vanished.
 - **The sneak-and-right-click to take them off only fires aimed at open air** -- aimed at a block it
-  goes to the block. That cost two rounds of debugging an invisible state, which is why
-  `/ccgoggles` (and `/ccgoggles clear`) exists.
+  goes to the block. Before the slot had a screen, that cost two rounds of debugging a state nothing
+  could show, and a `/ccgoggles` command was written to read and empty the slot. It was removed once
+  the slot was on screen: it had no permission requirement, so every player saw it in autocomplete,
+  and it no longer showed anything the inventory does not.
 - **Trinkets was read, not copied.** Both Trinkets and Trinkets Updated are MIT, which would allow
   copying with the notice kept; nothing here is theirs, so no notice travels with it, and the README
   credits them for the approach. If a later change does lift code, that file takes the MIT notice.
