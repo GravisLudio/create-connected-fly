@@ -501,8 +501,18 @@ public class FluidVesselBlockEntity extends FluidTankBlockEntity implements IHav
         return MAX_SIZE;
     }
 
+    /**
+     * Delegates rather than repeating the arithmetic. Upstream read the same config and multiplied
+     * by 1000, because NeoForge counts fluid in millibuckets; Fabric counts droplets, 81 per mB, so
+     * the same line has to be {@code * 81000}. The port kept upstream's literal, and every vessel
+     * held 81 times less than it should -- a 3x3x4 capped at 3.5 buckets instead of 288, which the
+     * goggle overlay reported correctly all along. Reported in game on 2026-09-23.
+     * <p>
+     * FluidVesselItem already called Create Fly's copy, so the two disagreed inside the same
+     * feature. Calling it here keeps one source of the number.
+     */
     public static int getCapacityMultiplier() {
-        return AllConfigs.server().fluids.fluidTankCapacity.get() * 1000;
+        return FluidTankBlockEntity.getCapacityMultiplier();
     }
 
     public static int getMaxHeight() {

@@ -213,6 +213,14 @@ Fabric counts droplets at 81 per mB. NeoForge's `1000` is `81000`. Nothing fails
 
 It is not only recipes. `BoilerData.waterSupplyPerLevel` was `10` and had to become `10 * 81`, because the supply it is compared against is now counted in droplets — Create Fly's own copy says `10 * 81` for the same reason, and its goggle tooltip divides by 81 for display. Any constant that is compared against a fluid amount is suspect, not just the ones in JSON.
 
+**One escaped until 2026-09-23: the Fluid Vessel's own capacity.**
+`FluidVesselBlockEntity.getCapacityMultiplier()` kept upstream's `fluidTankCapacity * 1000`, where
+Create Fly's `FluidTankBlockEntity` uses `* 81000`. Every vessel held 81 times less -- a 3x3x4 capped
+at 3.5 buckets instead of 288 -- and the goggle overlay, which reads the real capacity, showed it all
+along as `3,555.56mB`. `FluidVesselItem` was already calling Create Fly's copy, so the feature
+disagreed with itself. The method now delegates to Create Fly's. After the fix a grep for `* 1000`
+and `1000 *` over `src/main/java` comes back empty; re-run it after any upstream merge.
+
 ### The fabric-api artifact contains no classes
 
 `net.fabricmc.fabric-api:fabric-api` is a container: 53 nested jars and nothing of its own. Declared as plain `implementation` it puts **nothing** on the compile classpath, and every `net.fabricmc.fabric` import fails with *package does not exist* — an error that names no jar and reads like the import is simply wrong. `modImplementation` would have unpacked it, but those configurations are gone (see above), so each module has to be named:
