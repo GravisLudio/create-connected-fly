@@ -1,5 +1,7 @@
 package com.hlysine.create_connected.config;
 
+import com.hlysine.create_connected.compat.CreateConnectedJEI;
+import com.hlysine.create_connected.compat.Mods;
 import com.hlysine.create_connected.mixin.featuretoggle.CreativeModeTabsAccessor;
 import com.hlysine.create_connected.foundation.registrate.NamedBuilder;
 import com.hlysine.create_connected.foundation.registrate.BlockEntry;
@@ -156,8 +158,10 @@ public class FeatureToggle {
      * the whole platform-abstraction layer went with the Fabric rewrite -- so the physical-side
      * guard is the loader's own environment check.
      * <p>
-     * The JEI refresh that used to follow is gone with the rest of the JEI integration, which is
-     * excluded from the build (see build.gradle).
+     * Rebuilding the creative tabs is only half of it: JEI keeps its own copy of the item list, so
+     * without the second call a feature toggled off mid-game disappears from the creative menu and
+     * stays in JEI. The supplier is what keeps this safe when JEI is absent -- it defers loading
+     * CreateConnectedJEI until the mod is known to be there.
      */
     static void refreshItemVisibility() {
         if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT)
@@ -167,5 +171,6 @@ public class FeatureToggle {
         if (cachedParameters != null) {
             CreativeModeTabsAccessor.callBuildAllTabContents(cachedParameters);
         }
+        Mods.JEI.executeIfInstalled(() -> CreateConnectedJEI::refreshItemList);
     }
 }

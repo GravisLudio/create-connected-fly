@@ -1011,7 +1011,15 @@ The first two are stubs with the full mapping recorded in their class docs — b
 
 ### Excluded from compilation
 
-Integrations with mods that have no 26.2 release, excluded per-file in `build.gradle` rather than deleted — one line each to re-enable: **Copycats+, Additional Placements, Dye Depot, Simulated, JEI**. `FeatureRefreshEvent` goes with JEI: it exists only to tell JEI to refresh its list when a feature toggles.
+Integrations with mods that have no 26.2 release, excluded per-file in `build.gradle` rather than deleted — one line each to re-enable: **Copycats+, Additional Placements, Dye Depot, Simulated**.
+
+**JEI came back on 2026-09-23**, when a 26.2 build existed. It is `compileOnly` against
+`maven.modrinth:jei:${jei_version}`, where `jei_version` is a Modrinth *version id* (`x6nG9OT2`) rather
+than a number: the Modrinth maven resolves ids, and the bare number is shared across loaders. On Fabric
+JEI finds plugins through the `jei_mod_plugin` entrypoint -- its `FabricPluginFinder` reads that key and
+the `@JeiPlugin` annotation is only scanned on Forge -- so the entrypoint is what registers it.
+`FeatureRefreshEvent` stays excluded: it was an event on NeoForge's bus for modpacks to hook the
+refresh, and Fabric has no such bus.
 
 Two mixins have no target at all: `ThrottleLeverBlockMixin` (aimed at Simulated, never at Create) and `SubMenuConfigScreenMixin` (Create Fly has no config UI). `ItemUseOverridesMixin` goes with `ItemUseOverrides`, which Create Fly removed outright. `MountedStorageManagerMixin` joins them: `readLegacy` was not renamed, Create Fly deleted legacy contraption storage reading entirely, so there is nowhere to inject and no data to migrate either way.
 

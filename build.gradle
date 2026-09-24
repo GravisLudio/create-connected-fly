@@ -32,10 +32,10 @@ sourceSets.main.java {
     exclude 'com/hlysine/create_connected/compat/CopycatsManager.java'             // Copycats+
     exclude 'com/hlysine/create_connected/compat/DyeDepotCompat.java'              // Dye Depot
     exclude 'com/hlysine/create_connected/compat/SimCompatRegistry.java'           // Simulated
-    exclude 'com/hlysine/create_connected/compat/CreateConnectedJEI.java'          // JEI
-    // Solo existe para avisarle a JEI que refresque su lista al cambiar un feature toggle, y
-    // ademas colgaba del event bus de NeoForge. Vuelve con JEI.
-    exclude 'com/hlysine/create_connected/compat/FeatureRefreshEvent.java'         // JEI
+    // JEI ya existe en 26.2 y CreateConnectedJEI volvio al compilado. FeatureRefreshEvent no:
+    // era un evento del bus de NeoForge para que los modpacks se engancharan al refresco, y
+    // Fabric no tiene ese bus. Ver CreateConnectedJEI.
+    exclude 'com/hlysine/create_connected/compat/FeatureRefreshEvent.java'
     exclude 'com/hlysine/create_connected/mixin/compat/**'
 
     // Mixins cuyo target no existe en 26.2:
@@ -137,6 +137,10 @@ dependencies {
     // namespace de produccion ya es mojmap, no hay paso de remapeo y las
     // configuraciones mod* no existen. Create Fly declara sus deps de mods igual.
     implementation "maven.modrinth:create-fly:${create_fly_version}"
+
+    // JEI. compileOnly: el plugin solo se carga si JEI esta presente, via el entrypoint
+    // jei_mod_plugin de fabric.mod.json, que es como JEI descubre plugins en Fabric.
+    compileOnly "maven.modrinth:jei:${jei_version}"
 }
 
 processResources {
