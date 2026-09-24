@@ -421,5 +421,7 @@
   "item.create_connected.vertical_parallel_gearbox": "Vertical Parallel Gearbox",
   "item.create_connected.vertical_six_way_gearbox": "Vertical 6-way Gearbox",
   "item.create_connected.vertical_six_way_gearbox.tooltip.summary": "A gearbox with shafts on _all 6 sides_. Top and bottom spin at _half speed_.",
-  "itemGroup.create_connected.main": "Create: Connected"
+  "itemGroup.create_connected.main": "Create: Connected",
+  "gui.create_connected.goggle_slot": "Goggle Slot",
+  "gui.create_connected.goggle_slot.hint": "Wear Engineer's Goggles here, under any helmet"
 }

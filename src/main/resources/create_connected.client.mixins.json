@@ -9,7 +9,9 @@
     "sequencedgearshift.SequencedGearshiftScreenMixin",
     "crankwheel.ClientCrankWheelPlacementMixin",
     "linkedtransmitter.LinkBehaviourAccessor",
-    "tint.BlockColorsMixin"
+    "tint.BlockColorsMixin",
+    "goggleslot.AbstractContainerScreenAccessor",
+    "goggleslot.CreativeModeInventoryScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,5 +1,6 @@
 package com.hlysine.create_connected;
 
+import com.hlysine.create_connected.content.goggleslot.GoggleSlot;
 import com.hlysine.create_connected.content.redstonelinkwildcard.LinkWildcardNetworkHandler;
 import com.hlysine.create_connected.config.CCConfigs;
 import com.hlysine.create_connected.datagen.advancements.CCAdvancements;
@@ -41,6 +42,10 @@ public class CreateConnected implements ModInitializer {
         CCPackets.register();
         CCCraftingConditions.register();
         CCArmInteractionPointTypes.register();
+        // Original to this port: a goggles-only equipment slot. Must come before CCConfigs like
+        // the registries above, because it registers a feature toggle and the config is built
+        // from the toggles collected by then.
+        GoggleSlot.register();
 
         // Must come after every registry above, as it did upstream. Two configs build their entries
         // from lists the block builders fill as they register: CStress from the defaults that

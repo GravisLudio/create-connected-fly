@@ -14,6 +14,13 @@
 > no in-game config screen — are listed there and in `PORTING.md`, which records the whole port
 > including what is deliberately missing.
 >
+> **Only in this port: a goggle slot.** Engineer's Goggles can be worn in a slot of their own,
+> just above the offhand slot, so they no longer cost you your helmet. Right-click goggles in the
+> air or shift-click them in the inventory to put them on. It holds goggles and nothing else, can
+> be switched off in the config (`goggle_slot`), and steps aside when
+> [Trinkets Updated](https://modrinth.com/mod/trinkets-updated) is installed -- which is the mod to
+> get if you want general accessory slots.
+>
 > **Report issues with this port here, not upstream.** Lysine did not publish this and does not
 > maintain it.
 >
@@ -141,6 +148,12 @@ can [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/O4O2
 
 - Thanks [Crowdin contributors](https://crowdin.com/project/create-connected-mod/reports/top-members) for their effort
   in localization
+
+**Goggle slot**
+
+- Designed by studying [Trinkets Updated](https://github.com/Patbox/trinkets) by Patbox, itself based on
+  [Trinkets](https://github.com/emilyalexandra/trinkets) by Emi. Our approach grew out of theirs; none of
+  their code is copied.
 
 **Inspiration**
 

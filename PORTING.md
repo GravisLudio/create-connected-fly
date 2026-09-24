@@ -857,6 +857,52 @@ Every hit in that list should appear in `CCTransfer`. Jade showing a bar is the 
 
 ---
 
+## Original to this port
+
+Content upstream does not have. Lysine has said the original will not follow these Minecraft
+versions, which is what made adding things reasonable -- but each of these is a divergence to carry
+through any future merge.
+
+### The goggle slot
+
+Create Fly counts a player as wearing goggles when they are in the HEAD slot, or when a mod
+registers another check. So on 26.2 goggles cost you your helmet unless you install Trinkets
+Updated, which Create Fly supports. Some players do not want Trinkets' other slots; this is one
+slot, for goggles only (`content/goggleslot/`).
+
+- **Detection** is Create Fly's own extension point, `GogglesItem.addIsWearingPredicate` -- the same
+  call its Trinkets compat makes. No mixin.
+- **Storage** is a Fabric data attachment, persistent and synced to the owning player only
+  (`targetOnly`; nothing renders goggles on other players yet). It is registered even when the
+  feature is off or Trinkets is present: an unregistered attachment makes the game drop saved data,
+  which would eat a player's goggles the first time they loaded with the feature disabled.
+- **`GoggleSlot.register()` must run before `CCConfigs.register()`.** It registers the `goggle_slot`
+  feature toggle, and the config is built from the toggles collected by then -- the same ordering
+  trap as *The configs were built before the blocks*.
+- **It stands down when `trinkets` is loaded**, so nobody gets two goggle slots.
+- **The slot is drawn, not added to a menu.** A real `Slot` in `InventoryMenu` works in survival and
+  does nothing in creative, which runs its own `ItemPickerMenu`. Fabric's screen events draw it on
+  both screens and take the click before vanilla. In exchange nothing comes free: two packets carry
+  what a slot would have done.
+  - `GoggleSlotClickPacket` -- a click with the cursor. In survival the server owns the cursor; in
+    creative only the client has it, so the client reports it and mirrors the result, and the
+    server trusts it the way vanilla trusts every creative click.
+  - `GoggleSlotQuickMovePacket` -- shift-click, by index into the player's `Inventory`. Both screens
+    wrap the same `Inventory`, so the index means the same thing on either.
+  - Dragging across the slot is not handled.
+- **Right-click to equip claims the click on the client as well as the server.** Goggles are a
+  helmet, so vanilla's own right-click equips them to HEAD; claiming it only server-side left the
+  client predicting that swap, and the goggles flickered into the helmet slot and vanished.
+- **The sneak-and-right-click to take them off only fires aimed at open air** -- aimed at a block it
+  goes to the block. That cost two rounds of debugging an invisible state, which is why
+  `/ccgoggles` (and `/ccgoggles clear`) exists.
+- **Trinkets was read, not copied.** Both Trinkets and Trinkets Updated are MIT, which would allow
+  copying with the notice kept; nothing here is theirs, so no notice travels with it, and the README
+  credits them for the approach. If a later change does lift code, that file takes the MIT notice.
+- **Not done:** rendering the goggles on the player model, and anything for other players.
+
+---
+
 ## Reference material
 
 > **`_reference/` is a sibling of this repository, not a directory inside it** — the layout is
@@ -949,6 +995,10 @@ Missing that gap left `extends com.simibubi...BoilerData` unmapped, which broke 
 - `ResourceKey.location()` is `identifier()`; `RegistryAccess.registryOrThrow` is `lookupOrThrow`; `Registry.getHolder(int)` is `get(int)`
 - `PlayerLookup.world` is `PlayerLookup.level` (Fabric API)
 - Reading raw NBT into a block entity goes through `TagValueInput.create(problemReporter, registryAccess, tag)`
+
+- **Game rules** moved to `net.minecraft.world.level.gamerules`, and the values hang off `ServerLevel`,
+  not `Level`: `serverLevel.getGameRules().get(GameRules.KEEP_INVENTORY)`. `RULE_KEEPINVENTORY` and
+  `getBoolean` are gone; `GameRule` is only the definition now.
 
 ### Gone with no code equivalent
 

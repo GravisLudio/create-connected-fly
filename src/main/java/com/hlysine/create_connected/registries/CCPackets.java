@@ -4,6 +4,8 @@ import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.contraption.jukebox.PlayContraptionJukeboxPacket;
 import com.hlysine.create_connected.content.sequencedpulsegenerator.ConfigureSequencedPulseGeneratorPacket;
 import net.fabricmc.api.EnvType;
+import com.hlysine.create_connected.content.goggleslot.GoggleSlotClickPacket;
+import com.hlysine.create_connected.content.goggleslot.GoggleSlotQuickMovePacket;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
@@ -25,12 +27,28 @@ public class CCPackets {
     public static final CustomPacketPayload.Type<PlayContraptionJukeboxPacket> PLAY_CONTRAPTION_JUKEBOX =
             new CustomPacketPayload.Type<>(CreateConnected.asResource("play_contraption_jukebox"));
 
+    public static final CustomPacketPayload.Type<GoggleSlotClickPacket> GOGGLE_SLOT_CLICK =
+            new CustomPacketPayload.Type<>(CreateConnected.asResource("goggle_slot_click"));
+
+    public static final CustomPacketPayload.Type<GoggleSlotQuickMovePacket> GOGGLE_SLOT_QUICK_MOVE =
+            new CustomPacketPayload.Type<>(CreateConnected.asResource("goggle_slot_quick_move"));
+
     public static void register() {
         PayloadTypeRegistry.serverboundPlay().register(CONFIGURE_SEQUENCER, ConfigureSequencedPulseGeneratorPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(PLAY_CONTRAPTION_JUKEBOX, PlayContraptionJukeboxPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(GOGGLE_SLOT_CLICK, GoggleSlotClickPacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(GOGGLE_SLOT_QUICK_MOVE, GoggleSlotQuickMovePacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(
                 CONFIGURE_SEQUENCER,
+                (payload, context) -> context.server().execute(() -> payload.apply(context.player()))
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+                GOGGLE_SLOT_CLICK,
+                (payload, context) -> context.server().execute(() -> payload.apply(context.player()))
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+                GOGGLE_SLOT_QUICK_MOVE,
                 (payload, context) -> context.server().execute(() -> payload.apply(context.player()))
         );
 

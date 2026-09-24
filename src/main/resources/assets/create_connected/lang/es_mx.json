@@ -299,5 +299,7 @@
   "item.create_connected.vertical_parallel_gearbox": "Caja de transmisión vertical paralela",
   "item.create_connected.vertical_six_way_gearbox": "Caja de transmisión vertical 6-lados",
   "item.create_connected.vertical_six_way_gearbox.tooltip.summary": "Una caja de transmisión con ejes en _todos los 6 lados_. Arriba y abajo giran a la _mitad de velocidad_.",
-  "itemGroup.create_connected.main": "Create: Connected"
+  "itemGroup.create_connected.main": "Create: Connected",
+  "gui.create_connected.goggle_slot": "Ranura de gafas",
+  "gui.create_connected.goggle_slot.hint": "Ponte aquí las gafas de ingeniero, debajo de cualquier casco"
 }
