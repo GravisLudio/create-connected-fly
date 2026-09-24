@@ -105,16 +105,32 @@ public final class GoggleSlotScreen {
         if (!worn.isEmpty())
             g.item(worn, x, y);
 
+        ItemStack carried = screen instanceof AbstractContainerScreen<?> container
+                ? container.getMenu().getCarried() : ItemStack.EMPTY;
+
         if (isOver(pos, mouseX, mouseY)) {
             g.fill(x, y, x + 16, y + 16, HOVER);
-            if (!worn.isEmpty())
-                g.setTooltipForNextFrame(Minecraft.getInstance().font, worn, mouseX, mouseY);
-            else
-                g.setTooltipForNextFrame(Minecraft.getInstance().font, List.of(
-                        Component.translatable("gui.create_connected.goggle_slot"),
-                        Component.translatable("gui.create_connected.goggle_slot.hint")
-                                .withStyle(net.minecraft.ChatFormatting.GRAY)
-                ), Optional.empty(), mouseX, mouseY);
+            // Like vanilla: no tooltip while something is on the cursor.
+            if (carried.isEmpty()) {
+                if (!worn.isEmpty())
+                    g.setTooltipForNextFrame(Minecraft.getInstance().font, worn, mouseX, mouseY);
+                else
+                    g.setTooltipForNextFrame(Minecraft.getInstance().font, List.of(
+                            Component.translatable("gui.create_connected.goggle_slot"),
+                            Component.translatable("gui.create_connected.goggle_slot.hint")
+                                    .withStyle(net.minecraft.ChatFormatting.GRAY)
+                    ), Optional.empty(), mouseX, mouseY);
+            }
+        }
+
+        // This event runs after the screen has drawn everything, cursor stack included, so the slot
+        // above was painted over whatever the player is carrying -- which a vanilla slot never
+        // does. Draw the cursor stack again on top, where vanilla puts it (mouse minus 8), whenever
+        // it overlaps the slot or its creative panel.
+        int cx = mouseX - 8, cy = mouseY - 8;
+        if (!carried.isEmpty() && cx < x + 21 && cx + 16 > x - 5 && cy < y + 21 && cy + 16 > y - 5) {
+            g.item(carried, cx, cy);
+            g.itemDecorations(Minecraft.getInstance().font, carried, cx, cy);
         }
     }
 
