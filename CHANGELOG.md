@@ -40,6 +40,11 @@ Brings the port up to upstream 1.3.3.
   changed, until something else changed next to them.
 - Inventory Access Ports and Bridges were slow in large storage networks: they looked up the
   inventory behind them on every access. It is now remembered until a neighbour changes.
+- **Schematicannons built Farmer's Delight rich soil farmland out of plain dirt.** Create Fly
+  charges every kind of farmland one dirt; the special case making rich soil farmland cost rich
+  soil is switched off in Create Fly. It costs rich soil again. Original to this port, and a fix for
+  Create Fly rather than for Connected: it applies whenever both this and Farmer's Delight are
+  installed.
 - Translations updated from upstream: German, Hungarian, Japanese, Russian, Turkish, Ukrainian,
   Simplified Chinese and the pirate one.
 

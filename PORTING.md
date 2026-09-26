@@ -949,6 +949,17 @@ stay after Create Fly fixes it; drop it when that lands.
 
 ---
 
+### Schematic costs Create Fly gets wrong
+
+`compat/SchematicRequirementFixes` registers a provider on Create Fly's
+`SchematicRequirementRegistries.BLOCKS`, which `ItemRequirement.of` consults before its default
+rules -- so no mixin. Today it holds one fix: Farmer's Delight's `rich_soil_farmland` costs
+`rich_soil`. Create has that special case; Create Fly left it commented out behind a `//TODO` in
+`ItemRequirement.defaultOf`, so every farmland cost one dirt and a schematicannon made rich soil
+farmland from dirt. Reported by a player on 2026-09-26. A provider rather than `register`, because
+Farmer's Delight may register its blocks after us; it does nothing unless `farmersdelight` is loaded.
+Drop it once Create Fly restores the case.
+
 ## Reference material
 
 > **`_reference/` is a sibling of this repository, not a directory inside it** — the layout is

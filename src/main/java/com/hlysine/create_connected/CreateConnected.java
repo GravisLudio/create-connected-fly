@@ -6,6 +6,7 @@ import com.hlysine.create_connected.config.CCConfigs;
 import com.hlysine.create_connected.datagen.advancements.CCAdvancements;
 import com.hlysine.create_connected.datagen.advancements.CCTriggers;
 import com.hlysine.create_connected.foundation.registrate.CCRegistrate;
+import com.hlysine.create_connected.compat.SchematicRequirementFixes;
 import com.hlysine.create_connected.registries.*;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
@@ -68,6 +69,7 @@ public class CreateConnected implements ModInitializer {
         CCDisplayTargets.register();
         CCUnpackingHandlers.register();
         CCInventoryIdentifiers.register();
+        SchematicRequirementFixes.register();
 
         // Were keyed off RegisterEvent for a specific registry; now called directly.
         CCItemAttributes.register();
