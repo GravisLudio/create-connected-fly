@@ -165,7 +165,13 @@ public class SequencedPulseGeneratorBlockEntity extends SmartBlockEntity {
     public void onRedstoneUpdate(int input) {
         this.currentInput = input;
         if (currentInput == previousInput) return;
-        if (!isIdle() || currentInput == 0) {
+        // While a sequence runs, leave previousInput alone: tick() advances it after the current
+        // instruction has seen the change, which is how the "until" instructions detect an edge.
+        // Upstream 8a954a64 (fixes hlysine/create_connected#296).
+        if (!isIdle()) {
+            return;
+        }
+        if (currentInput == 0) {
             previousInput = currentInput;
             return;
         }

@@ -12,6 +12,15 @@ which sits on top of upstream 1.3.2 and adds no content of its own. All of them 
 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Create-Fly) 6.0.9-1 and Java 25.
 Upstream's history continues below and is untouched.
 
+## Unreleased
+
+### Fixed
+
+- **The Sequenced Pulse Generator's "until" instructions never finished.** "Output until exact signal
+  strength is reached" -- and every other instruction that waits on the input signal -- kept its
+  output on forever, because a change of input while the sequence ran was recorded before the
+  instruction could see it. Fixed upstream in 1.3.3 (hlysine/create_connected#296); this is that fix.
+
 ## 1.3.2-mc26.2-6 - 2026-09-26
 
 ### Added
