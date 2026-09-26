@@ -39,8 +39,8 @@ import net.minecraft.world.level.gamerules.GameRules;
  * <p>
  * The stack lives in a data attachment rather than a capability or an extra inventory row: it is
  * persisted by the attachment's codec, synced to the owning player by the API, and survives a
- * dimension change without any code of ours. Only the wearer needs the sync, because nothing
- * renders the goggles on other players yet.
+ * dimension change without any code of ours. It syncs to everyone tracking the wearer, not just
+ * the wearer, because {@link GoggleSlotLayer} draws the goggles on other players too.
  */
 public final class GoggleSlot {
     /** Also the feature toggle key, so a pack can switch the slot off in the config. */
@@ -57,7 +57,7 @@ public final class GoggleSlot {
         // player's goggles the first time they loaded with the feature disabled.
         WORN = AttachmentRegistry.<ItemStack>builder()
                 .persistent(ItemStack.OPTIONAL_CODEC)
-                .syncWith(ItemStack.OPTIONAL_STREAM_CODEC, AttachmentSyncPredicate.targetOnly())
+                .syncWith(ItemStack.OPTIONAL_STREAM_CODEC, AttachmentSyncPredicate.all())
                 .buildAndRegister(ID);
 
         FeatureToggle.register(ID);

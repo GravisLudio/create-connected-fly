@@ -1,6 +1,8 @@
 package com.hlysine.create_connected;
 
+import com.hlysine.create_connected.content.goggleslot.GoggleSlotLayer;
 import com.hlysine.create_connected.content.goggleslot.GoggleSlotScreen;
+import com.hlysine.create_connected.client.FlywheelShutdownFix;
 import com.hlysine.create_connected.client.CCConnectedTextures;
 import com.hlysine.create_connected.client.CCBlockEntityRenders;
 import com.hlysine.create_connected.client.CCModels;
@@ -32,6 +34,8 @@ public class CreateConnectedClient implements ClientModInitializer {
         CCDisplaySourceRenders.register();
         CCConnectedTextures.register();
         GoggleSlotScreen.register();
+        GoggleSlotLayer.register();
+        FlywheelShutdownFix.register();
         PonderIndex.addPlugin(new CCPonderPlugin());
     }
 }

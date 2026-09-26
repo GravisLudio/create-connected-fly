@@ -872,8 +872,8 @@ slot, for goggles only (`content/goggleslot/`).
 
 - **Detection** is Create Fly's own extension point, `GogglesItem.addIsWearingPredicate` -- the same
   call its Trinkets compat makes. No mixin.
-- **Storage** is a Fabric data attachment, persistent and synced to the owning player only
-  (`targetOnly`; nothing renders goggles on other players yet). It is registered even when the
+- **Storage** is a Fabric data attachment, persistent and synced to everyone tracking the wearer
+  (`AttachmentSyncPredicate.all()`), because other players' goggles are drawn too. It is registered even when the
   feature is off or Trinkets is present: an unregistered attachment makes the game drop saved data,
   which would eat a player's goggles the first time they loaded with the feature disabled.
 - **`GoggleSlot.register()` must run before `CCConfigs.register()`.** It registers the `goggle_slot`
@@ -901,7 +901,19 @@ slot, for goggles only (`content/goggleslot/`).
 - **Trinkets was read, not copied.** Both Trinkets and Trinkets Updated are MIT, which would allow
   copying with the notice kept; nothing here is theirs, so no notice travels with it, and the README
   credits them for the approach. If a later change does lift code, that file takes the MIT notice.
-- **Not done:** rendering the goggles on the player model, and anything for other players.
+- **Rendering** is `GoggleSlotLayer`, a `RenderLayer` added to every `AvatarRenderer` through
+  Fabric's `LivingEntityRenderLayerRegistrationCallback`. The pose is copied from Create Fly's
+  `GoggleTrinketRenderer`, including the flip onto the forehead when `headEquipment` is not empty.
+  The render state has no entity reference but carries `id`, so the layer looks the player up in
+  the client level at submit time -- no mixin on `extractRenderState` needed.
+
+### Flywheel shutdown workaround
+
+`client/FlywheelShutdownFix` stops Create Fly's Flywheel worker threads on `CLIENT_STOPPING`. They
+are non-daemon and Create Fly never calls `ParallelTaskExecutor.stopWorkers()`, so on 26.2 every
+exit ended in a "Client shutdown from post-main" watchdog crash report
+([ZurrTum/Create-Fly#357](https://github.com/ZurrTum/Create-Fly/issues/357)). Idempotent, so it can
+stay after Create Fly fixes it; drop it when that lands.
 
 ---
 

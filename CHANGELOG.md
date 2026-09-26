@@ -12,7 +12,7 @@ which sits on top of upstream 1.3.2 and adds no content of its own. All of them 
 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Create-Fly) 6.0.9-1 and Java 25.
 Upstream's history continues below and is untouched.
 
-## Unreleased
+## 1.3.2-mc26.2-6 - 2026-09-26
 
 ### Added
 
@@ -22,11 +22,18 @@ Upstream's history continues below and is untouched.
   the inventory, or click them into the slot. It holds goggles only, can be switched off with the
   `goggle_slot` feature toggle, and steps aside when Trinkets Updated is installed, which already
   gives Create Fly a goggle slot.
+- Goggles in the goggle slot show on the player, other players included. Over a helmet they sit
+  pushed up on the forehead, the way Create Fly draws goggles worn through Trinkets.
 - JEI integration is back. Switching a feature off while the game is running now hides its items
   from JEI as well as from the creative menu.
 
 ### Fixed
 
+- **Closing the game always wrote a crash report** ("Watchdog (Client shutdown from post-main)").
+  Create Fly never stops Flywheel's worker threads, and on 26.2 they keep the game from exiting.
+  This is Create Fly's bug ([ZurrTum/Create-Fly#357](https://github.com/ZurrTum/Create-Fly/issues/357)),
+  worked around here by stopping those threads when the client shuts down; it helps anyone with
+  this port installed, whatever else they run.
 - **Fluid Vessels held 81 times less than they should.** A 3x3x4 vessel topped out at about 3.5
   buckets instead of 288. The capacity was computed in NeoForge's units, millibuckets, where
   Fabric counts droplets. Existing vessels pick up the correct capacity on their own.
