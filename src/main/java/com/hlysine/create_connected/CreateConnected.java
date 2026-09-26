@@ -66,6 +66,8 @@ public class CreateConnected implements ModInitializer {
         CCTransfer.register();
         CCDisplaySources.register();
         CCDisplayTargets.register();
+        CCUnpackingHandlers.register();
+        CCInventoryIdentifiers.register();
 
         // Were keyed off RegisterEvent for a specific registry; now called directly.
         CCItemAttributes.register();

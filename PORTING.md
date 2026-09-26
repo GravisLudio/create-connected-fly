@@ -857,6 +857,38 @@ Every hit in that list should appear in `CCTransfer`. Jade showing a bar is the 
 
 ---
 
+## Keeping up with upstream
+
+The port tracks hlysine/create_connected `main`, added as the `upstream` remote. Its NeoForge code
+does not cherry-pick onto this tree, so each upstream commit is read and re-applied by hand.
+
+To see what is missing: `git fetch upstream main`, then
+`git log --oneline --no-merges $(git merge-base HEAD upstream/main)..upstream/main`. The merge base
+only moves when upstream history is merged in; after a hand port it stays where it was, so check
+the list against the changelog rather than trusting it to shrink. Crowdin commits touch only
+`lang/*.json`; a file the port has never edited can be taken whole with
+`git checkout upstream/main -- <file>`.
+
+### 1.3.3 (ported 2026-09-26 as `1.3.3-mc26.2-1`)
+
+Everything up to upstream `c9eb8382`, the 1.3.3 bump. Adapted, not copied:
+
+- **`InventoryIdentifier` / `UnpackingHandler`** exist in Create Fly under `com.zurrtum.create`,
+  but the default unpacking handler is `AllUnpackingHandlers.DEFAULT`, not a field on the
+  interface, and the crafter's is `AllUnpackingHandlers.MECHANICAL_CRAFTER`.
+- **Diverges: the recursion guard stays a `ThreadLocal`.** Upstream #294 replaced it with one
+  `static boolean` shared by every port or bridge. In singleplayer the client and the integrated
+  server are separate threads, and a flag held by one makes the other's `setItem` a silent no-op
+  -- a lost item. The handler cache from the same commit, which is the actual speed-up, is ported.
+- **The IAP's redstone fix.** Upstream moved the update out of `onNeighborChange` into a scheduled
+  tick. Here the old hook was Create Fly's `NeighborUpdateListeningBlock.neighborUpdate`; it now
+  schedules the same tick, and vanilla `neighborChanged` does too.
+- **The bridge no longer re-broadcasts neighbour updates**, as upstream dropped it in the same
+  commit. That also removed the 26.2 re-entrancy guard (`propagating`) that bounded the broadcast.
+
+Not ported: `6495b7e1`, a ponder scene for the six-way gearbox, which is after 1.3.3 and in no
+upstream release yet.
+
 ## Original to this port
 
 Content upstream does not have. Lysine has said the original will not follow these Minecraft

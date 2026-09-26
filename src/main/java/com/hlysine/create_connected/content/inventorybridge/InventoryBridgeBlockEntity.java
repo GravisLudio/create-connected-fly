@@ -5,6 +5,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
 import com.hlysine.create_connected.content.inventoryaccessport.WrappedItemHandler;
+import com.zurrtum.create.api.packager.InventoryIdentifier;
+import com.zurrtum.create.content.logistics.packager.IdentifiedInventory;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
 import com.zurrtum.create.foundation.blockEntity.behaviour.filtering.ServerFilteringBehaviour;
@@ -42,6 +44,12 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
     public ServerFilteringBehaviour positiveFilter;
 
     private boolean powered;
+
+    // See InventoryAccessPortBlockEntity: cached until updateConnectedInventory (upstream #294).
+    private Container cachedNegativeHandler;
+    private Container cachedPositiveHandler;
+    private boolean negativeHandlerDirty = true;
+    private boolean positiveHandlerDirty = true;
 
     public InventoryBridgeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -114,6 +122,8 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
     public void updateConnectedInventory() {
         negativeInventory.findNewCapability();
         positiveInventory.findNewCapability();
+        negativeHandlerDirty = true;
+        positiveHandlerDirty = true;
         boolean previouslyPowered = powered;
         powered = level.hasNeighborSignal(worldPosition);
         if (powered != previouslyPowered) {
@@ -127,6 +137,14 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
                     .setValue(ATTACHED_POSITIVE, attachedPositive);
             level.setBlockAndUpdate(worldPosition, state);
         }
+    }
+
+    @Nullable
+    public InventoryIdentifier getInventoryId() {
+        // best we can do is identify as one of the two connected inventory
+        // not currently possible to completely dedupe inventory contents in stock networks
+        IdentifiedInventory inv = negativeInventory.getIdentifiedInventory();
+        return inv == null ? null : inv.identifier();
     }
 
     @Override
@@ -145,17 +163,23 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
     // Container subinterface, and a neighbour need not be one, so these stay at the wider type.
     private Container getNegativeHandler() {
         if (powered) return null;
-        Container handler = negativeInventory.getInventory();
-        // Guard against bridging a bridge, which would recurse across a chain of them.
-        if (handler instanceof InventoryBridgeHandler) return null;
-        return handler;
+        if (negativeHandlerDirty) {
+            Container handler = negativeInventory.getInventory();
+            // Guard against bridging a bridge, which would recurse across a chain of them.
+            cachedNegativeHandler = handler instanceof InventoryBridgeHandler ? null : handler;
+            negativeHandlerDirty = false;
+        }
+        return cachedNegativeHandler;
     }
 
     private Container getPositiveHandler() {
         if (powered) return null;
-        Container handler = positiveInventory.getInventory();
-        if (handler instanceof InventoryBridgeHandler) return null;
-        return handler;
+        if (positiveHandlerDirty) {
+            Container handler = positiveInventory.getInventory();
+            cachedPositiveHandler = handler instanceof InventoryBridgeHandler ? null : handler;
+            positiveHandlerDirty = false;
+        }
+        return cachedPositiveHandler;
     }
 
     private void refreshCapability() {
@@ -177,6 +201,9 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
      */
     private class InventoryBridgeHandler implements ItemInventory {
 
+        // Upstream (#294) swapped this for one static flag shared by every instance. Kept as a
+        // ThreadLocal here: in singleplayer the client and the integrated server are separate
+        // threads, and a shared flag held by one would make the other's setItem a silent no-op.
         private final ThreadLocal<Boolean> recursionGuard = ThreadLocal.withInitial(() -> false);
 
         private <T> T preventRecursion(Supplier<T> value, T defaultValue) {
@@ -185,7 +212,6 @@ public class InventoryBridgeBlockEntity extends SmartBlockEntity {
             try {
                 return value.get();
             } finally {
-                // Was left set on exception, wedging the bridge shut for the rest of the thread.
                 recursionGuard.set(false);
             }
         }

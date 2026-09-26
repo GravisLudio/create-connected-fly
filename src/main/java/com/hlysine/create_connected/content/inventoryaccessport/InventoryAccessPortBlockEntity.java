@@ -5,6 +5,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import com.zurrtum.create.foundation.item.ItemHelper;
 import com.hlysine.create_connected.registries.CCBlockEntityTypes;
 import com.hlysine.create_connected.CreateConnected;
+import com.zurrtum.create.api.packager.InventoryIdentifier;
+import com.zurrtum.create.content.logistics.packager.IdentifiedInventory;
 import com.zurrtum.create.content.redstone.DirectedDirectionalBlock;
 import com.zurrtum.create.foundation.blockEntity.SmartBlockEntity;
 import com.zurrtum.create.api.behaviour.BlockEntityBehaviour;
@@ -30,6 +32,11 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
     protected ItemInventory itemCapability;
     private InvManipulationBehaviour observedInventory;
     private boolean powered;
+
+    // Resolving the neighbour on every slot access was the cost behind upstream #294; it only
+    // changes when updateConnectedInventory runs, so that is what marks it dirty.
+    private ItemInventory cachedHandler;
+    private boolean handlerDirty = true;
 
     public InventoryAccessPortBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -69,6 +76,7 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
 
     public void updateConnectedInventory() {
         observedInventory.findNewCapability();
+        handlerDirty = true;
         boolean previouslyPowered = powered;
         assert level != null;
         powered = level.hasNeighborSignal(worldPosition);
@@ -79,6 +87,16 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
             BlockState state = getBlockState().cycle(ATTACHED);
             level.setBlockAndUpdate(worldPosition, state);
         }
+    }
+
+    /**
+     * The inventory this port forwards, so Create's stock network treats the port and the
+     * inventory as one and does not count its contents twice (upstream 93504609, fixes #305).
+     */
+    @Nullable
+    public InventoryIdentifier getInventoryId() {
+        IdentifiedInventory inv = observedInventory.getIdentifiedInventory();
+        return inv == null ? null : inv.identifier();
     }
 
     @Override
@@ -95,12 +113,13 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
 
     private ItemInventory getConnectedItemHandler() {
         if (powered) return null;
-        // The behaviour hands back a plain Container; only an ItemInventory can be forwarded.
-        if (!(observedInventory.getInventory() instanceof ItemInventory handler))
-            return null;
-        if (handler instanceof WrappedItemHandler)
-            return null;
-        return handler;
+        if (handlerDirty) {
+            // The behaviour hands back a plain Container; only an ItemInventory can be forwarded.
+            cachedHandler = observedInventory.getInventory() instanceof ItemInventory handler
+                    && !(handler instanceof WrappedItemHandler) ? handler : null;
+            handlerDirty = false;
+        }
+        return cachedHandler;
     }
 
     private void refreshCapability() {
@@ -122,14 +141,19 @@ public class InventoryAccessPortBlockEntity extends SmartBlockEntity {
      */
     private class InventoryAccessHandler implements WrappedItemHandler {
 
+        // Upstream (#294) swapped this for one static flag shared by every instance. Kept as a
+        // ThreadLocal here: in singleplayer the client and the integrated server are separate
+        // threads, and a shared flag held by one would make the other's setItem a silent no-op.
         private final ThreadLocal<Boolean> recursionGuard = ThreadLocal.withInitial(() -> false);
 
         private <T> T preventRecursion(Supplier<T> value, T defaultValue) {
             if (recursionGuard.get()) return defaultValue;
             recursionGuard.set(true);
-            T result = value.get();
-            recursionGuard.set(false);
-            return result;
+            try {
+                return value.get();
+            } finally {
+                recursionGuard.set(false);
+            }
         }
 
         @Override

@@ -8,6 +8,8 @@ import com.zurrtum.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -75,26 +77,22 @@ public class InventoryBridgeBlock extends Block
     }
 
     @Override
-    public void neighborChanged(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Block pBlock, Orientation orientation, boolean pIsMoving) {
-        withBlockEntityDo(pLevel, pPos, InventoryBridgeBlockEntity::updateConnectedInventory);
-        super.neighborChanged(pState, pLevel, pPos, pBlock, orientation, pIsMoving);
-
-        // 26.2 replaced the source position with an Orientation, and the vanilla path that reaches
-        // us passes null for it -- so the notifying side can no longer be identified. Upstream
-        // excluded it to keep two facing bridges from notifying each other forever; a re-entrancy
-        // guard bounds the same cascade. It costs nothing here because bridges never chain:
-        // getAnalogOutputSignal already ignores a target that is another bridge.
-        if (propagating)
+    public void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block, Orientation orientation, boolean isMoving) {
+        super.neighborChanged(state, level, pos, block, orientation, isMoving);
+        // Deferred to the next tick so a redstone change is read once it has settled; updating in
+        // the middle of the notification missed it. Upstream f12e4e97, which also dropped the
+        // re-broadcast to neighbours this used to do -- and with it the 26.2 re-entrancy guard
+        // that bounded that broadcast.
+        if (level.isClientSide())
             return;
-        propagating = true;
-        try {
-            pLevel.updateNeighborsAt(pPos, this, orientation);
-        } finally {
-            propagating = false;
-        }
+        if (!level.getBlockTicks().willTickThisTick(pos, this))
+            level.scheduleTick(pos, this, 1);
     }
 
-    private static boolean propagating = false;
+    @Override
+    protected void tick(@NotNull BlockState state, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random) {
+        withBlockEntityDo(level, pos, InventoryBridgeBlockEntity::updateConnectedInventory);
+    }
 
     public static Direction getNegativeTarget(BlockState state) {
         return Direction.fromAxisAndDirection(state.getValue(AXIS), Direction.AxisDirection.NEGATIVE);

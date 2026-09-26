@@ -7,19 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## The Fabric port
 
-Versions numbered `1.3.2-mc26.2-N` are builds of the unofficial Fabric / Minecraft 26.2 port,
-which sits on top of upstream 1.3.2 and adds no content of its own. All of them need Minecraft
-26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Create-Fly) 6.0.9-1 and Java 25.
-Upstream's history continues below and is untouched.
+Versions numbered `<upstream>-mc26.2-N` are builds of the unofficial Fabric / Minecraft 26.2 port:
+`<upstream>` is the upstream release they are based on, and `N` counts the port's builds of it.
+`1.3.2-mc26.2-1` to `-6` sit on upstream 1.3.2; `1.3.3-mc26.2-1` onwards on 1.3.3. All of them
+need Minecraft 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Create-Fly) 6.0.9-1
+and Java 25. Content original to the port is marked as such. Upstream's history continues below
+and is untouched.
 
-## Unreleased
+## 1.3.3-mc26.2-1 - 2026-09-26
+
+Brings the port up to upstream 1.3.3.
+
+### Added
+
+- **Mechanical Crafters behind Inventory Access Ports and Bridges.** A packager unpacking into a
+  port or bridge in front of a Mechanical Crafter now lays the items out in the recipe's shape and
+  starts the craft, as it does when aimed at the crafter directly. A bridge between a packager and
+  two crafters fills whichever is free, for double the crafting speed; every ingredient must pass
+  that side's filter for the recipe to go there.
 
 ### Fixed
 
-- **The Sequenced Pulse Generator's "until" instructions never finished.** "Output until exact signal
-  strength is reached" -- and every other instruction that waits on the input signal -- kept its
-  output on forever, because a change of input while the sequence ran was recorded before the
-  instruction could see it. Fixed upstream in 1.3.3 (hlysine/create_connected#296); this is that fix.
+- **Stock duplication through Inventory Access Ports and Bridges.** A chest reached by one stock
+  link directly and another through a port or bridge had its contents counted twice, and ordering
+  both counts duplicated the items. The network now sees through the port or bridge to the
+  inventory behind it.
+- **The Sequenced Pulse Generator's "until" instructions never finished.** "Output until exact
+  signal strength is reached", and every other instruction that waits on the input signal, kept its
+  output on forever: a change of input while the sequence ran was recorded before the instruction
+  could see it.
+- Inventory Access Ports and Bridges did not connect or disconnect when their redstone signal
+  changed, until something else changed next to them.
+- Inventory Access Ports and Bridges were slow in large storage networks: they looked up the
+  inventory behind them on every access. It is now remembered until a neighbour changes.
+- Translations updated from upstream: German, Hungarian, Japanese, Russian, Turkish, Ukrainian,
+  Simplified Chinese and the pirate one.
 
 ## 1.3.2-mc26.2-6 - 2026-09-26
 
@@ -124,6 +146,26 @@ Upstream's history continues below and is untouched.
 ### Added
 
 - First public build of the port, released as a beta.
+
+## 1.3.3 - 2026-08-31
+
+### Added
+
+- Mechanical crafter compatibility for inventory access ports / inventory bridges
+    - When packagers unpack into inventory extensions, the crafting layout is preserved when connected to mechanical
+      crafters
+    - Crafting is automatically triggered after insertion
+    - Inventory bridges can now connect a packager to two mechanical crafters, and insert ingredients to the first
+      available crafter for double crafting speed
+    - All crafting ingredients must pass the set filter on an inventory bridge for the whole recipe to unpack
+
+### Fixed
+
+- Performance issues with inventory access ports / inventory bridges (#294)
+- Inventory access ports not unlocking after losing redstone signal
+- Duplicate stock count when an inventory is connected to multiple stock links via inventory access ports (#305)
+- Sequenced pulse generator getting stuck in "wait until" instructions (#296)
+- Rare concurrent modification in copycat migration
 
 ## 1.3.2 - 2026-06-22
 

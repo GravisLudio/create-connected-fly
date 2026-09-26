@@ -12,6 +12,9 @@ import com.zurrtum.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -89,7 +92,32 @@ public class InventoryAccessPortBlock extends DirectedDirectionalBlock
             @NotNull BlockPos fromPos,
             boolean isMoving
     ) {
-        withBlockEntityDo(world, pos, InventoryAccessPortBlockEntity::updateConnectedInventory);
+        scheduleUpdate(world, pos);
+    }
+
+    /**
+     * Redstone reaches the port through vanilla's neighbour update, not the hook above; without
+     * this, powering or unpowering it did not connect or disconnect it until something else
+     * changed next to it. Both paths defer to the next tick so the power level read is settled.
+     * Upstream f12e4e97.
+     */
+    @Override
+    protected void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block,
+                                   @Nullable Orientation orientation, boolean isMoving) {
+        super.neighborChanged(state, level, pos, block, orientation, isMoving);
+        scheduleUpdate(level, pos);
+    }
+
+    private void scheduleUpdate(Level level, BlockPos pos) {
+        if (level.isClientSide())
+            return;
+        if (!level.getBlockTicks().willTickThisTick(pos, this))
+            level.scheduleTick(pos, this, 1);
+    }
+
+    @Override
+    protected void tick(@NotNull BlockState state, @NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull RandomSource random) {
+        withBlockEntityDo(level, pos, InventoryAccessPortBlockEntity::updateConnectedInventory);
     }
 
     @Override
