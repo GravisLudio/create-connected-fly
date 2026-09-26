@@ -45,6 +45,8 @@ Brings the port up to upstream 1.3.3.
   soil is switched off in Create Fly. It costs rich soil again. Original to this port, and a fix for
   Create Fly rather than for Connected: it applies whenever both this and Farmer's Delight are
   installed.
+- **Printing a material checklist in the schematicannon ate the whole stack** of books or
+  clipboards in its input slot instead of one. Another Create Fly bug fixed from here.
 - Translations updated from upstream: German, Hungarian, Japanese, Russian, Turkish, Ukrainian,
   Simplified Chinese and the pirate one.
 

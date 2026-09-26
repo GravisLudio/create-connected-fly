@@ -960,6 +960,16 @@ farmland from dirt. Reported by a player on 2026-09-26. A provider rather than `
 Farmer's Delight may register its blocks after us; it does nothing unless `farmersdelight` is loaded.
 Drop it once Create Fly restores the case.
 
+### Other Create Fly bugs fixed from here (`mixin/createfixes/`)
+
+The user's call (2026-09-26): this port fixes what Create Fly gets wrong when players hit it, rather
+than waiting on upstream. Each mixin names the Create Fly line it works around; drop it when Create
+Fly fixes that line.
+
+- `SchematicannonChecklistMixin` -- `SchematicannonBlockEntity.tickPaperPrinter` cleared the whole
+  book/clipboard input slot with `setItem(BookInput, ItemStack.EMPTY)` when a checklist printed;
+  Create extracts one. Wraps that first `setItem` to shrink the stack by one instead.
+
 ## Reference material
 
 > **`_reference/` is a sibling of this repository, not a directory inside it** — the layout is
