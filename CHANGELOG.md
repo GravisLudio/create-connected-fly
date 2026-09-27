@@ -14,6 +14,17 @@ need Minecraft 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Crea
 and Java 25. Content original to the port is marked as such. Upstream's history continues below
 and is untouched.
 
+## Unreleased
+
+### Fixed
+
+- **The Create: Dragons Plus fan catalysts could not be made.** Their recipes, and the data that tells
+  Dragons Plus which blocks are catalysts, were removed while porting because Dragons Plus had no
+  26.2 release then; Create: Dragons Plus Fly exists now. Back with it installed: the freezing
+  catalyst (powder snow bucket on an empty catalyst), the ending catalyst filled with dragon's
+  breath, the sanding catalyst, and the sixteen dyeing catalysts working as Dragons Plus coloring
+  catalysts. The Dye Depot colours stay out, as Dye Depot has no 26.2 release.
+
 ## 1.3.3-mc26.2-1 - 2026-09-26
 
 Brings the port up to upstream 1.3.3.

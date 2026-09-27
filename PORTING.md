@@ -889,6 +889,28 @@ Everything up to upstream `c9eb8382`, the 1.3.3 bump. Adapted, not copied:
 Not ported: `6495b7e1`, a ponder scene for the six-way gearbox, which is after 1.3.3 and in no
 upstream release yet.
 
+### Create: Dragons Plus compat, restored 2026-09-27
+
+Deleted with the rest of the compat for mods without a 26.2 release; restored once Create: Dragons
+Plus Fly (mod id still `create_dragons_plus`) existed. Taken from `upstream/main` -- every file whose
+content names `create_dragons_plus`, plus the three `data/create_dragons_plus/tags/block/` tags --
+and converted:
+
+- conditions as in *Data and asset formats*; `neoforge:mod_loaded` becomes `fabric:all_mods_loaded`
+  with a one-element `values`, `neoforge:or`/`and` become `fabric:or`/`and`;
+- `tools/migrate-recipes.js` for the ingredient shapes, **except filling**: upstream carries the fluid
+  as the second entry of `ingredients`, which the script (written for a `fluid_ingredients` list)
+  silently drops. Those were rebuilt by hand: `neoforge:single` and single-fluid
+  `neoforge:compound` become `fluid_stack`, `neoforge:tag` becomes `fluid_tag` with a `#`, and every
+  amount is multiplied by 81;
+- **the coloring data map** is Dragons Plus Fly's own format, `{"replace": false, "values": {block:
+  dye}}` with no per-entry conditions (the file sits in Dragons Plus's namespace, so only it reads
+  it). Its loader merges every pack's layer, so this adds to Dragons Plus's own `coloring.json`
+  rather than replacing it -- checked by disassembling `CDPColoringCatalysts.mergeLayers`.
+
+Everything also gated on `dye_depot` was left out (65 files and 16 data map entries): Dye Depot has
+no 26.2 release and its catalysts are excluded from the port.
+
 ## Original to this port
 
 Content upstream does not have. Lysine has said the original will not follow these Minecraft
