@@ -907,6 +907,11 @@ and converted:
   dye}}` with no per-entry conditions (the file sits in Dragons Plus's namespace, so only it reads
   it). Its loader merges every pack's layer, so this adds to Dragons Plus's own `coloring.json`
   rather than replacing it -- checked by disassembling `CDPColoringCatalysts.mergeLayers`.
+- **the 17 `item_application/*_dragons_plus_from_empty` and `ending_catalyst_dragons_breath_from_empty`
+  recipes were never deleted**, so the restore did not touch them, and they still carried a
+  one-item `neoforge:compound` ingredient. While Dragons Plus was absent their load condition hid
+  that; with it installed all 17 failed to parse (`No key fabric:type`). They are a plain item id now
+  (2026-10-01). After any compat restore, `grep -r neoforge: src/*/resources/data` must come back empty.
 
 Everything also gated on `dye_depot` was left out (65 files and 16 data map entries): Dye Depot has
 no 26.2 release and its catalysts are excluded from the port.

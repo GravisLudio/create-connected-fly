@@ -18,12 +18,5 @@
     }
   ],
   "target": "create_connected:empty_fan_catalyst",
-  "ingredient": {
-    "type": "neoforge:compound",
-    "ingredients": [
-      {
-        "item": "create_dragons_plus:pink_dye_bucket"
-      }
-    ]
-  }
+  "ingredient": "create_dragons_plus:pink_dye_bucket"
 }
