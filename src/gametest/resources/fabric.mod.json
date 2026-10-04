@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "create_connected_gametest",
+  "version": "1.0.0",
+  "name": "Create: Connected game tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.hlysine.create_connected.gametest.KineticSourceTests",
+      "com.hlysine.create_connected.gametest.ArmBasinTests"
+    ]
+  },
+  "depends": {
+    "create_connected": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}

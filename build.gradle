@@ -10,6 +10,13 @@ base {
     archivesName = "${mod_id}-fly"
 }
 
+sourceSets {
+    gametest {
+        compileClasspath += main.compileClasspath + main.output
+        runtimeClasspath += main.runtimeClasspath + main.output
+    }
+}
+
 loom {
     // SIN splitEnvironmentSourceSets(): un solo source set, como la version NeoForge.
     // Partir el proyecto obligaria a operar 49 archivos mixtos (BlockEntities con metodos de
@@ -21,6 +28,23 @@ loom {
     mods {
         "create_connected" {
             sourceSet sourceSets.main
+        }
+        "create_connected_gametest" {
+            sourceSet sourceSets.gametest
+        }
+    }
+
+    // `gradlew runGametest`: a headless server that runs every @GameTest in src/gametest and exits,
+    // with the results in build/gametest/report.xml. The tests live in their own source set so none
+    // of them ends up in the released jar.
+    runs {
+        gametest {
+            server()
+            name "Game Test"
+            source sourceSets.gametest
+            vmArg "-Dfabric-api.gametest"
+            vmArg "-Dfabric-api.gametest.report-file=${project.file('build/gametest/report.xml')}"
+            runDir "build/gametest"
         }
     }
 }
@@ -149,6 +173,9 @@ dependencies {
     // JEI. compileOnly: el plugin solo se carga si JEI esta presente, via el entrypoint
     // jei_mod_plugin de fabric.mod.json, que es como JEI descubre plugins en Fabric.
     compileOnly "maven.modrinth:jei:${jei_version}"
+
+    // Not part of the fabric-api bundle: it is a dev-only module.
+    gametestImplementation fabricApi.module("fabric-gametest-api-v1", fabric_version)
 }
 
 processResources {

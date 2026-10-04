@@ -24,6 +24,13 @@ and is untouched.
   catalyst (powder snow bucket on an empty catalyst), the ending catalyst filled with dragon's
   breath, the sanding catalyst, and the sixteen dyeing catalysts working as Dragons Plus coloring
   catalysts. The Dye Depot colours stay out, as Dye Depot has no 26.2 release.
+- **Mechanical Arms stalled on inventories whose first item had nowhere to go** (a Create Fly bug,
+  fixed here until it is fixed there). A basin making granite with leftover quartz in it held 512
+  granite the arm never moved, because the arm only ever looked at the first stack. It now checks
+  every slot, as in Create.
+- **Mechanical Arms in schematics made with Create lost all their targets** (a Create Fly bug).
+  Create saves a target's mode as `TAKE`/`DEPOSIT` and Create Fly only read `take`/`deposit`; both
+  are read now.
 
 ## 1.3.3-mc26.2-1 - 2026-09-26
 

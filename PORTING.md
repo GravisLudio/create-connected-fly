@@ -996,6 +996,40 @@ Fly fixes that line.
 - `SchematicannonChecklistMixin` -- `SchematicannonBlockEntity.tickPaperPrinter` cleared the whole
   book/clipboard input slot with `setItem(BookInput, ItemStack.EMPTY)` when a checklist printed;
   Create extracts one. Wraps that first `setItem` to shrink the stack by one instead.
+- `ArmInteractionPointExtractMixin` -- `ArmInteractionPoint.extract` ignored its `slot` and matched
+  `stack -> true`, so every slot reported the first non-empty stack and the arm stalled when that
+  stack had no target (a basin with leftover quartz ahead of finished granite, reported 2026-10-04).
+  Takes the item in the requested slot instead. Note Create *does* let arms take basin inputs; do not
+  "fix" this by hiding the basin's input slots.
+- `ArmUpstreamPointModeMixin` -- Create writes an arm point's `Mode` with `NBTHelper.writeEnum`
+  (`"TAKE"`), Create Fly decodes it with `StringRepresentable.fromEnum` (`"take"` only) and drops the
+  point. Lowercases the modes at the end of `ArmBlockEntity.read` -- at `RETURN`, not `TAIL`, because
+  the server-side read leaves through an early return. Schematics carry only the points
+  (`writeSafe`), so `Phase` needs nothing.
+
+Both are also sent upstream as a Create Fly PR (branch `fix/arm-slot-extract-and-upstream-modes` in
+`E:\DEV\_upstream\create-fly-26.2`, which changes `Mode.CODEC`/`Phase.CODEC` properly). Both have a
+game test (`ArmBasinTests`) that fails without the mixin -- checked by removing them from the mixin
+config, 2026-10-04.
+
+### Game tests
+
+`.\gradlew.bat runGametest` starts a headless server, runs every `@GameTest` in `src/gametest/`
+and exits; results in `build/gametest/report.xml` and `build/gametest/logs/latest.log`. About 40 s.
+The tests are their own source set and mod (`create_connected_gametest`), so none of it is in the
+released jar. No EULA is needed: Fabric starts a `GameTestServer`, not a dedicated server.
+
+- `ArmBasinTests` -- the two arm fixes above, on the setup a player hit.
+- `KineticSourceTests` -- every Create/Connected block with a shaft face, driven from that face by a
+  creative motor (control), a kinetic battery touching it, a battery behind a shaft, and a battery
+  facing away. Table in `build/gametest/kinetic-sources.md`. First run (2026-10-04): 94 machine faces
+  turn for all three, none turns for a battery facing away -- the battery only drives through its
+  front while discharging (`getRotationSpeedModifier`, same as upstream), which is what a player
+  saw as "the battery does not drive a deployer it touches".
+
+Traps met writing them: a smart chute's *default* state is `powered=true` (placement recomputes it,
+`setBlock` does not), and a powered smart chute accepts nothing. The arm and the mixer have no shaft
+face at all (`hasShaftTowards` is `false`); they turn only through a cog beside them.
 
 ## Reference material
 
