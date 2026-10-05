@@ -14,7 +14,24 @@ need Minecraft 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Crea
 and Java 25. Content original to the port is marked as such. Upstream's history continues below
 and is untouched.
 
-## 1.3.3-mc26.2-2 - 2026-10-04
+## 1.3.3-mc26.2-3 - 2026-10-04
+
+### Fixed
+
+- **The sixteen Create: Dragons Plus dyeing catalysts and the dragon's breath ending catalyst still
+  could not be made in 1.3.3-mc26.2-2.** Their recipes used a NeoForge-only ingredient format, so
+  none of the seventeen loaded once Dragons Plus was installed. Fixed.
+- **Mechanical Arms stalled on inventories whose first item had nowhere to go** (a Create Fly bug,
+  fixed here until it is fixed there). A basin making granite with leftover quartz in it held 512
+  granite the arm never moved, because the arm only ever looked at the first stack. It now checks
+  every slot, as in Create.
+- **Mechanical Arms in schematics made with Create lost all their targets** (a Create Fly bug).
+  Create saves a target's mode as `TAKE`/`DEPOSIT` and Create Fly only read `take`/`deposit`; both
+  are read now.
+
+## 1.3.3-mc26.2-2 - 2026-09-27
+
+Published on CurseForge only.
 
 ### Fixed
 
@@ -23,14 +40,8 @@ and is untouched.
   26.2 release then; Create: Dragons Plus Fly exists now. Back with it installed: the freezing
   catalyst (powder snow bucket on an empty catalyst), the ending catalyst filled with dragon's
   breath, the sanding catalyst, and the sixteen dyeing catalysts working as Dragons Plus coloring
-  catalysts. The Dye Depot colours stay out, as Dye Depot has no 26.2 release.
-- **Mechanical Arms stalled on inventories whose first item had nowhere to go** (a Create Fly bug,
-  fixed here until it is fixed there). A basin making granite with leftover quartz in it held 512
-  granite the arm never moved, because the arm only ever looked at the first stack. It now checks
-  every slot, as in Create.
-- **Mechanical Arms in schematics made with Create lost all their targets** (a Create Fly bug).
-  Create saves a target's mode as `TAKE`/`DEPOSIT` and Create Fly only read `take`/`deposit`; both
-  are read now.
+  catalysts. The Dye Depot colours stay out, as Dye Depot has no 26.2 release. (The dyeing and
+  dragon's breath recipes did not load in this build; see 1.3.3-mc26.2-3.)
 
 ## 1.3.3-mc26.2-1 - 2026-09-26
 
