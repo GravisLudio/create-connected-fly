@@ -47,6 +47,8 @@ Every number in this document was produced by running the tool, not estimated.
 |---|---|
 | Repository | https://github.com/GravisLudio/create-connected-fly |
 | Modrinth | https://modrinth.com/mod/create-connected-fly-port |
+| CurseForge | project 1651260 -- https://authors.curseforge.com/#/projects/1651260/files |
+| Releases | Publish on GitHub, CurseForge and Modrinth with the **same number and the same jar**. Before numbering a release, list what each one already has: a `1.3.3-mc26.2-2` went to CurseForge on 2026-09-27 without being recorded here, and a different `-2` nearly went to GitHub. As of 2026-10-04 all three have `1.3.3-mc26.2-3`; Modrinth skipped from `1.3.2-mc26.2-2` to it, and its changelog covers the gap. |
 | Local path | `C:\Users\GravisLudio\dev\create-connected-fly` |
 | Upstream remote | `upstream` → `hlysine/create_connected` |
 | Branch | `main` |
