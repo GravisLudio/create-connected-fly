@@ -2,32 +2,34 @@
 >
 > This is a **fork** of [hlysine/create_connected](https://github.com/hlysine/create_connected),
 > porting it from NeoForge 1.21.1 to **Fabric on Minecraft 26.2**, targeting
-> [Create Fly](https://github.com/ZurrTum/Create-Fly) by ZurrTum.
+> [Create Fly](https://github.com/ZurrTum/Create-Fly) by ZurrTum. Published on
+> [CurseForge](https://www.curseforge.com/minecraft/mc-mods/create-connected-fly-port) and
+> [Modrinth](https://modrinth.com/mod/create-connected-fly-port) with the original author's
+> permission. It is still not Lysine's release and he does not maintain it.
 >
-> **It works.** Block entity renderers and Flywheel visuals are across, connected textures are
-> wired, kinetics propagate correctly, and block tints are registered. Tested on a singleplayer
-> client and on a dedicated server.
+> **What's in this port.** Two kinds of content:
 >
-> Released as beta on
-> [Modrinth](https://modrinth.com/mod/create-connected-fly-port). Known gaps — the sequenced
-> gearshift screen not knowing Connected's three added instructions, no server→client config sync,
-> no in-game config screen — are listed there and in `PORTING.md`, which records the whole port
-> including what is deliberately missing.
+> - **Create: Connected, ported with Lysine's permission.** Every block, item and feature of the
+>   original mod, and each new upstream release as it comes out, is brought to Fabric 26.2 here with
+>   the permission of Lysine, its author. The design, code and assets are Lysine's and the
+>   Create: Connected contributors'.
+> - **Extras designed by GravisLudio, only in this port.** A goggle slot, so Engineer's Goggles no
+>   longer cost you your helmet (switch it off with `goggle_slot`; it steps aside when
+>   [Trinkets Updated](https://modrinth.com/mod/trinkets-updated) is installed), and fixes for
+>   Create Fly bugs players run into -- Mechanical Arms stalling on the first stack and losing their
+>   targets in schematics made with Create, the Schematicannon eating a whole stack of books, rich
+>   soil farmland costing plain dirt, and a crash report on every game exit. They are marked
+>   *original to this port* in [`CHANGELOG.md`](CHANGELOG.md).
 >
-> **Only in this port: a goggle slot.** Engineer's Goggles can be worn in a slot of their own,
-> just above the offhand slot, so they no longer cost you your helmet. Right-click goggles in the
-> air or shift-click them in the inventory to put them on. It holds goggles and nothing else, can
-> be switched off in the config (`goggle_slot`), and steps aside when
-> [Trinkets Updated](https://modrinth.com/mod/trinkets-updated) is installed -- which is the mod to
-> get if you want general accessory slots.
+> Known gaps are listed in [`docs/description.md`](docs/description.md), the text of the CurseForge
+> and Modrinth pages, and in `PORTING.md`, which records the whole port.
 >
-> **Report issues with this port here, not upstream.** Lysine did not publish this and does not
-> maintain it.
+> **Report issues with this port here, not upstream** -- extras included, which are never Lysine's
+> to answer for.
 >
 > All credit for the mod itself goes to **Lysine** and the Create: Connected contributors, and for
-> the 26.2 Create port to **ZurrTum**. Licensed AGPL-3.0 with the original's additional terms —
+> the 26.2 Create port to **ZurrTum**. Licensed AGPL-3.0 with the original's additional terms --
 > see [`LICENSE`](LICENSE).
-
 <p align="center"><img src="https://raw.githubusercontent.com/hlysine/create_connected/main/src/main/resources/create_connected_icon.png" alt="Logo" width="128"></p>
 
 <h1 align="center">Create: Connected</h1>
