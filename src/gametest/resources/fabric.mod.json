@@ -7,7 +7,8 @@
   "entrypoints": {
     "fabric-gametest": [
       "com.hlysine.create_connected.gametest.KineticSourceTests",
-      "com.hlysine.create_connected.gametest.ArmBasinTests"
+      "com.hlysine.create_connected.gametest.ArmBasinTests",
+      "com.hlysine.create_connected.gametest.BatteryPlacementOrderTests"
     ]
   },
   "depends": {
