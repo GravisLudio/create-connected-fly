@@ -14,7 +14,7 @@ need Minecraft 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Crea
 and Java 25. Content original to the port is marked as such. Upstream's history continues below
 and is untouched.
 
-## 1.3.3-mc26.2-4 - Unreleased
+## 1.3.3-mc26.2-4 - 2026-10-08
 
 ### Fixed
 
