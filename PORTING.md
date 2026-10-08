@@ -1009,7 +1009,15 @@ Fly fixes that line.
   the server-side read leaves through an early return. Schematics carry only the points
   (`writeSafe`), so `Phase` needs nothing.
 
-Both are also sent upstream as a Create Fly PR (branch `fix/arm-slot-extract-and-upstream-modes` in
+- `BlueprintRendererNullRotationMixin` (client) -- `BlueprintRenderer.extractRenderState` stores
+  `yRot = null` when the yaw is 0, and `submit` guards it for the model but passes it to
+  `Matrix3f.rotate`/`Matrix4f.rotate` for the items: any south-facing crafting blueprint holding a
+  recipe crashed every client in range (three CRETORIA crash reports, 2026-10-08). Wraps those
+  rotations and skips a null one. Client-only, so no game test covers it -- checked in game.
+
+This is the last Create Fly fix that goes into Connected (the user's call, 2026-10-08): later ones
+go to a separate hotfix mod of Gravis's own, so they do not depend on Connected being installed.
+Both arm fixes are also sent upstream as a Create Fly PR (branch `fix/arm-slot-extract-and-upstream-modes` in
 `E:\DEV\_upstream\create-fly-26.2`, which changes `Mode.CODEC`/`Phase.CODEC` properly). Both have a
 game test (`ArmBasinTests`) that fails without the mixin -- checked by removing them from the mixin
 config, 2026-10-04.

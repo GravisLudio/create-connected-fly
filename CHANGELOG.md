@@ -14,6 +14,14 @@ need Minecraft 26.2, Fabric Loader, [Create Fly](https://github.com/ZurrTum/Crea
 and Java 25. Content original to the port is marked as such. Upstream's history continues below
 and is untouched.
 
+## 1.3.3-mc26.2-4 - Unreleased
+
+### Fixed
+
+- **A crafting blueprint facing south with a recipe in it crashed every player who looked at it**
+  ("Rendering entity in world", `"quat" is null` in `BlueprintRenderer`). A Create Fly bug, fixed
+  here: Create Fly skips the rotation of a blueprint facing south, and then used that missing
+  rotation to draw its items.
 ## 1.3.3-mc26.2-3 - 2026-10-04
 
 ### Fixed
