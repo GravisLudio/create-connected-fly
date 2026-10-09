@@ -1457,6 +1457,13 @@ children with independent render types.
   screen has **not** been taught about them, and its `updateParamsOfRow` injection additionally
   warns about a `Shift.BY=2` that exceeds `maxShiftBy`. Two signals pointing at the same place.
   This is the one known-incomplete piece rather than a deliberate omission.
+- **Item silos splitting after a chunk reload — reported, never reproduced.** A player reported
+  large silos breaking into 1×3×1 columns after their chunk reloaded (noted as a known issue in
+  `1.3.2-mc26.2-5`). Not reproduced on that build when it was reported, and not on 2026-10-09
+  either: the user walked far enough to unload the chunk and back, on the CRETORIA server (silos run
+  server-side, and that server is on `1.3.2-mc26.2-5`), and every silo stayed whole. Not tested yet:
+  a silo straddling a chunk border (F3 + G), and a full logout/login. If it comes back, ask whether
+  the silo crosses a chunk border, its size, and for the `latest.log`.
 
 Then the visible gaps, roughly in order of how much they cost: the block entity renderers and Flywheel visuals (`client/CCBlockEntityRenders`), connected textures (`client/CCConnectedTextures`), and server→client config sync (`config/CCommon`). All three are stubs whose class docs record the exact mapping needed.
 
