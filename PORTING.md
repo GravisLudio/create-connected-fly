@@ -941,6 +941,12 @@ slot, for goggles only (`content/goggleslot/`).
   feature toggle, and the config is built from the toggles collected by then -- the same ordering
   trap as *The configs were built before the blocks*.
 - **It stands down when `trinkets` is loaded**, so nobody gets two goggle slots.
+- **Curios: nothing to integrate yet** (checked 2026-10-10, when the user asked). Curios
+  `16.0.0+26.2` is NeoForge only -- its `26.2` branch is a single NeoForge project and the last
+  Fabric build was 1.16.5 -- and neither Accessories nor Curios Continuation has a Fabric 26.2
+  build. Trinkets Updated is the only accessory mod here. If one arrives for Fabric: Create Fly
+  ships no compat for it, so it needs the slot definition, a `GogglesItem.addIsWearingPredicate`
+  for that slot, the render, and the stand-down above. Do not write it blind.
 - **The slot is drawn, not added to a menu.** A real `Slot` in `InventoryMenu` works in survival and
   does nothing in creative, which runs its own `ItemPickerMenu`. Fabric's screen events draw it on
   both screens and take the click before vanilla. In exchange nothing comes free: two packets carry
